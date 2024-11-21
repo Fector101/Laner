@@ -1,0 +1,14 @@
+{
+    "fabian": true,
+    "pc_storage": {
+        "folders": [
+            "public/lab",
+            "public/shared_files"
+        ],
+        "files": [
+            "public/data.json",
+            "public/index.html",
+            "public/script.js"
+        ]
+    }
+}
