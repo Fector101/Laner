@@ -281,7 +281,7 @@ class DownloadScreen(MDScreen):
         super().__init__(**kwargs)
         self.name='download'
         
-        self.current_dir = '/'
+        self.current_dir = './'
         # """ Only set with setPath function"""
         self.current_dir_info: list[dict]=[]
         # """ Only set with setPathInfo function"""
@@ -319,13 +319,11 @@ class DownloadScreen(MDScreen):
         self.add_widget(self.layout)
     
     def setPathInfo(self):
-        responses = requests.get("http://localhost:8000/api/endpoint_name") #os.listdir(self.current_dir)
+        responses = requests.get("http://localhost:8000/api/getpathinfo",json={'path':self.current_dir})   #os.listdir(self.current_dir)
+        if responses.status_code != 200:
+            return
         self.current_dir_info=responses.json()['data']
-        print(self.current_dir_info)
-        # self.current_dir_info=json.load(path_list_res)
         # requests.get(server,data='to be sent',auth=(username,password))
-        # print(path_list.)
-        
         self.renderPath()
         
     def setPath(self,path,add_to_history=True):
