@@ -64,7 +64,7 @@ from kivymd.uix.screen import MDScreen
 from kivymd.uix.list import MDList
 
 from kivy.uix.widget import Widget
-
+import requests
 
 Window.size = (400, 1000)
 THEME_COLOR_TUPLE=(.6, .9, .8, 1)
@@ -273,7 +273,7 @@ class Header(MDBoxLayout):
         
 # from typing import Dict, List, Optional
 # from unicodedata import name
-
+import json
 class DownloadScreen(MDScreen):
     download_screen_history = []  # Stack to directory screens
     
@@ -319,11 +319,13 @@ class DownloadScreen(MDScreen):
         self.add_widget(self.layout)
     
     def setPathInfo(self):
-        path_list =os.listdir(self.current_dir)
-        dir_info=[]
-        for each in path_list:
-            dir_info.append({'name':each,'path':os.path.join(self.current_dir,each)})
-        self.current_dir_info=dir_info
+        responses = requests.get("http://localhost:8000/api/endpoint_name") #os.listdir(self.current_dir)
+        self.current_dir_info=responses.json()['data']
+        print(self.current_dir_info)
+        # self.current_dir_info=json.load(path_list_res)
+        # requests.get(server,data='to be sent',auth=(username,password))
+        # print(path_list.)
+        
         self.renderPath()
         
     def setPath(self,path,add_to_history=True):

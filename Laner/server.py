@@ -5,9 +5,11 @@ import threading
 import json
 
 KV = '''
-BoxLayout:
+MDBoxLayout:
     orientation: "vertical"
     padding: dp(10)
+    spacing: dp(10)
+    md_bg_color: .5,.5,1,1
 
     MDLabel:
         text: "File Sharing Server with Custom Endpoint"
@@ -20,10 +22,15 @@ BoxLayout:
         size_hint_x: 0.8
         pos_hint: {"center_x": 0.5}
 
-    MDRaisedButton:
-        text: "Start Server"
-        pos_hint: {"center_x": 0.5}
+    MDButton:
+        pos_hint: {"center_x": .5}
         on_release: app.start_server()
+        theme_text_color: "Custom"
+        theme_bg_color: "Custom"
+        MDButtonText:
+            color: 0,0,1,1
+            text: "Start Server"
+        
 
     MDLabel:
         id: status_label
