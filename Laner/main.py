@@ -319,15 +319,23 @@ class DownloadScreen(MDScreen):
         self.add_widget(self.layout)
     
     def setPathInfo(self):
-        responses = requests.get("http://localhost:8000/api/getpathinfo",json={'path':self.current_dir})   #os.listdir(self.current_dir)
-        if responses.status_code != 200:
+        response = requests.get("http://localhost:8000/api/getpathinfo",json={'path':self.current_dir})   #os.listdir(self.current_dir)
+        if response.status_code != 200:
             return
-        self.current_dir_info=responses.json()['data']
+        self.current_dir_info=response.json()['data']
         # requests.get(server,data='to be sent',auth=(username,password))
         self.renderPath()
+    def isDir(self,path:str):
         
+        try:
+            response=requests.get("http://localhost:8000/api/ispath",json={'path':path})
+            if response.status_code != 200:
+                return False
+            return response.json()['data']
+            
+        except:...
     def setPath(self,path,add_to_history=True):
-        if not os.path.isdir(path):
+        if not self.isDir(path):
             return
         if add_to_history:  # Saving Last directory for screen history
             self.download_screen_history.append(self.current_dir) 
@@ -338,7 +346,7 @@ class DownloadScreen(MDScreen):
     def getIcon(self,path:str):
         img_source="assets/imgs/files.png"
         
-        if os.path.isdir(path):
+        if self.isDir(path):
             img_source="assets/imgs/folder.png"
         elif path.lower().endswith(('.png','.jpg','.jpeg','.tif','.bmp','.gif')):
             img_source=path

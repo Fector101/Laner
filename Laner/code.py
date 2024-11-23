@@ -17,10 +17,27 @@ class CustomHandler(SimpleHTTPRequestHandler):
                 path_list =os.listdir(request_path)
                 dir_info=[]
                 for each in path_list:
+                    # TODO Send {name:'',path:'',isdir:''} instead
                     dir_info.append({'name':each,'path':os.path.join(request_path,each)})
 
                 response_data={'data':dir_info}
                 self.wfile.write(json.dumps(response_data).encode("utf-8"))
+            except json.JSONDecodeError:
+                self.send_response(400)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({'error':"Invaild JSON"}).encode("utf-8"))
+
+        elif self.path == "/api/ispath":
+            content_length = int(self.headers['Content-Length'])    # This will be None when no path requested (i.e no json= in request)
+            request_data = self.rfile.read(content_length)
+            try:
+                request_path=json.loads(request_data)['path']
+                self.send_response(200)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
+                
+                self.wfile.write(json.dumps({'data':os.path.isdir(request_path)}).encode("utf-8"))
             except json.JSONDecodeError:
                 self.send_response(400)
                 self.send_header("Content-type", "application/json")
