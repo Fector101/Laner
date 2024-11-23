@@ -66,7 +66,7 @@ from kivymd.uix.list import MDList
 from kivy.uix.widget import Widget
 
 
-#Window.size = (400, 1000)
+Window.size = (400, 1000)
 THEME_COLOR_TUPLE=(.6, .9, .8, 1)
 __DIR__ = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
 MY_DATABASE_PATH = os.path.join(__DIR__, 'data', 'store.json') 
@@ -84,7 +84,6 @@ class WindowManager(ScreenManager):
             self.transition=SlideTransition(direction='right')
     def change_screen(self, screen_name):
         """Navigate to a specific screen and record history."""        
-        
         self.changeScreenAnimation(screen_name)
         
         if self.current != screen_name:
@@ -103,6 +102,13 @@ class WindowManager(ScreenManager):
     def Android_back_click(self, window, key, *largs):
         """Handle the Android back button."""
         if key == 27:  # Back button key code
+            if self.current == 'download' and len(self.current_screen.download_screen_history):
+                # might switch to "if []:" since it works on python but "if len([]):" is more understandable
+                # print(self.current_screen.download_screen_history)
+                last_dir = self.current_screen.download_screen_history.pop()
+                self.current_screen.setPath(last_dir, False)
+                return True            
+            
             if len(self.screen_history): # Navigate back to the previous screen
                 last_screen = self.screen_history.pop()
                 self.changeScreenAnimation(last_screen)
@@ -243,23 +249,42 @@ class UploadScreen(MDScreen):
 class Header(MDBoxLayout):
     text=StringProperty()
     text_halign=StringProperty()
+    title_color=ListProperty([1,1,1,1])
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.md_bg_color = (.2, .2, .2, .5)
         self.header_label=MDLabel(
-            color=self.theme_cls.backgroundColor,
+            text_color=self.title_color,
             text=self.text,
             halign=self.text_halign,
-            valign='center'
+            valign='center',
+            shorten_from='center',
+            shorten=True,
+            
             )
         if self.text_halign == 'left':
-            self.header_label.padding=[sp(50),0,0,0]
+            self.header_label.padding=[sp(40),0,0,0]
+        else:
+            self.header_label.padding=[sp(10),0,sp(10),0]
+            
         self.add_widget(self.header_label)
-    
+    def chandeTitle(self,text):
+        self.header_label.text=text
+        
+# from typing import Dict, List, Optional
+# from unicodedata import name
+
 class DownloadScreen(MDScreen):
+    download_screen_history = []  # Stack to directory screens
+    
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name='download'
+        
+        self.current_dir = '/'
+        # """ Only set with setPath function"""
+        self.current_dir_info: list[dict]=[]
+        # """ Only set with setPathInfo function"""
         
         # self.md_bg_color=[1,0,1,1]
         self.layout=MDStackLayout(md_bg_color=[.4,.4,.4,1],)
@@ -268,35 +293,86 @@ class DownloadScreen(MDScreen):
         # self.header_label=Label(color=self.theme_cls.backgroundColor,text="~ Root",halign='center',valign='center')
         # self.header.add_widget(self.header_label)
         
-        self.header=Header(text='~ Root',size_hint=[1,.1], text_halign='center')
+        self.header=Header(
+                           text='~ Root',
+                           size_hint=[1,.1],
+                           text_halign='center',
+                           title_color=self.theme_cls.backgroundColor,
+                           
+                           )
+        
+        
         
         self.scroll_box=MDBoxLayout(size_hint=[1,.9],md_bg_color=[.6,.6,1,1])
         self.layout.add_widget(self.header)
+        
+        # Needs to be after Header because function adds widget
+        self.screen_scroll_box = ScrollView(size_hint=(1, .9))
+        self.cur_dir_elements = None#GridLayout(cols=4, spacing=18, size_hint_y=None,padding=dp(10))
+        self.layout.add_widget(self.screen_scroll_box)
+        self.setPathInfo()
+        
         self.theme_bg_color="Custom"
         # self.md_bg_color=[1,1,1,1]#bg
-        
-        self.addData()        
-        
+                
         self.layout.add_widget(self.scroll_box)
         self.add_widget(self.layout)
-    def addData(self):
+    
+    def setPathInfo(self):
+        path_list =os.listdir(self.current_dir)
+        dir_info=[]
+        for each in path_list:
+            dir_info.append({'name':each,'path':os.path.join(self.current_dir,each)})
+        self.current_dir_info=dir_info
+        self.renderPath()
+        
+    def setPath(self,path,add_to_history=True):
+        if not os.path.isdir(path):
+            return
+        if add_to_history:  # Saving Last directory for screen history
+            self.download_screen_history.append(self.current_dir) 
+            
+        self.current_dir = path
+        self.header.chandeTitle(path)
+        self.setPathInfo()
+    def getIcon(self,path:str):
+        img_source="assets/imgs/files.png"
+        
+        if os.path.isdir(path):
+            img_source="assets/imgs/folder.png"
+        elif path.lower().endswith(('.png','.jpg','.jpeg','.tif','.bmp','.gif')):
+            img_source=path
+            
+        return img_source
+                
+              
+    def renderPath(self):
+        list_of_path_info=self.current_dir_info
+        self.screen_scroll_box.remove_widget(self.cur_dir_elements) # If Widget not already added it won't cause can error (also tested with None keyword and no error)
+        
         def myFormat(text:str):
             if len(text) > 20:
                 return text[0:18] + '...'
             return text.capitalize()
-        layout = GridLayout(cols=4, spacing=18, size_hint_y=None,padding=dp(10))
+        
+        self.cur_dir_elements = GridLayout(cols=4, spacing=18, size_hint_y=None,padding=dp(10))
         # Make sure the height is such that there is something to scroll.
-        layout.bind(minimum_height=layout.setter('height'))
-        list_=['american_psycho_D12.mp3', 'anything_but_normal_juice_wrld.mp3', 'ass_like_that_eminem.mp3', 'AUD-20221201-WA0066.mp3', 'A_Boogie_Wit_Da_Hoodie_-_06_Demons_and_Angels_Ft_Juice_WRLD.mp3', 'central_cee_x_dave_uk_rap_lyrics_mp3_43300.mp3', 'coolio_gangsta_s_paradise_feat._l.v.mp3', 'd4vd_romantic_homicide_out_on_all_platforms.mp3', 'Dave - Streatham (Lyrics) (128 kbps).mp3', 'eminem-the_kids_explict_version.mp3', 'Eminem_-_Baby.mp3', 'Eminem_-_Bad_Guy.mp3', 'Eminem_-_Beautiful_Pain_feat_Sia_.mp3', 'Eminem_-_Berzerk.mp3', 'Eminem_-_Brainless.mp3', 'Eminem_-_Desperation_feat_Jamie_N_Commons_.mp3', 'Eminem_-_Evil_Twin.mp3', 'Eminem_-_feat_Skylar_Grey_.mp3', 'Eminem_-_Groundhog_Day.mp3', 'Eminem_-_Headlights_feat_Nate_Ruess_.mp3', 'Eminem_-_Legacy.mp3', 'Eminem_-_Love_Game_feat_Kendrick_Lamar_.mp3', 'Eminem_-_Parking_Lot_skit_.mp3', 'Eminem_-_Rap_God.mp3', 'Eminem_-_Rhyme_Or_Reason.mp3', 'Eminem_-_So_Far.mp3', 'Eminem_-_So_Much_Better.mp3', 'Eminem_-_Stronger_Than_I_Was.mp3', 'Eminem_-_Survival.mp3', 'Eminem_-_The_Monster_feat_Rihanna_.mp3', 'Eminem_-_Wicked_Ways.mp3', 'eminem_godzilla_lyrics_ft._juice_wrld.mp3', 'eminem_guilty_conscience_explicit_mp3_12807.mp3', 'eminem_my_dad_s_gone_crazy_official_instrumental.mp3', 'eminem_stan_uncensored_mp3_43810.mp3', 'frente_goodbye_goodguy.avi_mp3_1318.mp3', 'girls_D12.mp3', 'Juice WRLD - Burn (Official Music Video).mp3', 'juicewrld_sadv3_....doing_drugs_since_13.mp3', 'juice_wrld-what_else_lyrics_unrelased_mp3_55291.mp3', 'juice_wrld_already_dead_lyrics_mp3_41771.mp3', 'juice_wrld_awful_times_unreleased_lyrics_mp3_66378.mp3', 'juice_wrld_denial_mp3_49929.mp3', 'juice_wrld_fast_lyrics_mp3_39841.mp3', 'juice_wrld_in_my_head_official_music_video_mp3_66213.mp3', 'juice_wrld_lost_in_the_abyss_unreleased_mp3_67221.mp3', 'juice_wrld_my_x_was_poison_official_audio_mp3_67541.mp3', 'juice_wrld_no_good_unreleased.mp3', 'juice_wrld_reminds_me_of_the_summer_unreleased.mp3', 'juice_wrld_run.mp3', 'juice_wrld_split_my_brains_unreleased.mp3', 'K Like A Russian Juice WRLD UNRELESED.mp3', 'led_zeppelin_whole_lotta_love_official_audio_mp3_1674.mp3', 'lil_dicky_jail_full_song_mp3_47902.mp3', 'michael_jackson_billie_jean_mp3_69662.mp3', 'my_dad_s_gone_crazy.mp3', 'NF  HOPE Lyrics.mp3', 'NF - HOPE.mp3', 'Nirvana - Something In The Way (Audio).mp3', 'playboi_carti_immortal_prod._cash_carti_mp3_46670.mp3', 'psycho_mp3_41385.mp3', 'these_drugs_D12.mp3', 'the_beastie_boys_no_sleep_till_brooklyn_mp3_70041.mp3', 'the_rains_of_castamere_lannister_song_lyrics_hd_mp3_65667.mp3', 'tmnt_opening_theme_original_intro_mp3_52020.mp3', 'untitled_mp3_9846.mp3', 'van_halen_jump_mp3_45276.mp3', 'VID-20230324-WA0085_mp3.mp3', 'young_m.a_10_bands_x_brooklyn_poppin_freestyle_music_videos_mp3_64854.mp3', 'gtp.py', 'main.py', 'myfile.py', 'Screenshot-2.png']
-        for each_file in list_[0:10]:# ("elevated", "filled", "outlined"):
-            layout.add_widget(
+        self.cur_dir_elements.bind(minimum_height=self.cur_dir_elements.setter('height'))
+        # list_=['american_psycho_D12.mp3', 'anything_but_normal_juice_wrld.mp3', 'ass_like_that_eminem.mp3', 'AUD-20221201-WA0066.mp3', 'A_Boogie_Wit_Da_Hoodie_-_06_Demons_and_Angels_Ft_Juice_WRLD.mp3', 'central_cee_x_dave_uk_rap_lyrics_mp3_43300.mp3', 'coolio_gangsta_s_paradise_feat._l.v.mp3', 'd4vd_romantic_homicide_out_on_all_platforms.mp3', 'Dave - Streatham (Lyrics) (128 kbps).mp3', 'eminem-the_kids_explict_version.mp3', 'Eminem_-_Baby.mp3', 'Eminem_-_Bad_Guy.mp3', 'Eminem_-_Beautiful_Pain_feat_Sia_.mp3', 'Eminem_-_Berzerk.mp3', 'Eminem_-_Brainless.mp3', 'Eminem_-_Desperation_feat_Jamie_N_Commons_.mp3', 'Eminem_-_Evil_Twin.mp3', 'Eminem_-_feat_Skylar_Grey_.mp3', 'Eminem_-_Groundhog_Day.mp3', 'Eminem_-_Headlights_feat_Nate_Ruess_.mp3', 'Eminem_-_Legacy.mp3', 'Eminem_-_Love_Game_feat_Kendrick_Lamar_.mp3', 'Eminem_-_Parking_Lot_skit_.mp3', 'Eminem_-_Rap_God.mp3', 'Eminem_-_Rhyme_Or_Reason.mp3', 'Eminem_-_So_Far.mp3', 'Eminem_-_So_Much_Better.mp3', 'Eminem_-_Stronger_Than_I_Was.mp3', 'Eminem_-_Survival.mp3', 'Eminem_-_The_Monster_feat_Rihanna_.mp3', 'Eminem_-_Wicked_Ways.mp3', 'eminem_godzilla_lyrics_ft._juice_wrld.mp3', 'eminem_guilty_conscience_explicit_mp3_12807.mp3', 'eminem_my_dad_s_gone_crazy_official_instrumental.mp3', 'eminem_stan_uncensored_mp3_43810.mp3', 'frente_goodbye_goodguy.avi_mp3_1318.mp3', 'girls_D12.mp3', 'Juice WRLD - Burn (Official Music Video).mp3', 'juicewrld_sadv3_....doing_drugs_since_13.mp3', 'juice_wrld-what_else_lyrics_unrelased_mp3_55291.mp3', 'juice_wrld_already_dead_lyrics_mp3_41771.mp3', 'juice_wrld_awful_times_unreleased_lyrics_mp3_66378.mp3', 'juice_wrld_denial_mp3_49929.mp3', 'juice_wrld_fast_lyrics_mp3_39841.mp3', 'juice_wrld_in_my_head_official_music_video_mp3_66213.mp3', 'juice_wrld_lost_in_the_abyss_unreleased_mp3_67221.mp3', 'juice_wrld_my_x_was_poison_official_audio_mp3_67541.mp3', 'juice_wrld_no_good_unreleased.mp3', 'juice_wrld_reminds_me_of_the_summer_unreleased.mp3', 'juice_wrld_run.mp3', 'juice_wrld_split_my_brains_unreleased.mp3', 'K Like A Russian Juice WRLD UNRELESED.mp3', 'led_zeppelin_whole_lotta_love_official_audio_mp3_1674.mp3', 'lil_dicky_jail_full_song_mp3_47902.mp3', 'michael_jackson_billie_jean_mp3_69662.mp3', 'my_dad_s_gone_crazy.mp3', 'NF  HOPE Lyrics.mp3', 'NF - HOPE.mp3', 'Nirvana - Something In The Way (Audio).mp3', 'playboi_carti_immortal_prod._cash_carti_mp3_46670.mp3', 'psycho_mp3_41385.mp3', 'these_drugs_D12.mp3', 'the_beastie_boys_no_sleep_till_brooklyn_mp3_70041.mp3', 'the_rains_of_castamere_lannister_song_lyrics_hd_mp3_65667.mp3', 'tmnt_opening_theme_original_intro_mp3_52020.mp3', 'untitled_mp3_9846.mp3', 'van_halen_jump_mp3_45276.mp3', 'VID-20230324-WA0085_mp3.mp3', 'young_m.a_10_bands_x_brooklyn_poppin_freestyle_music_videos_mp3_64854.mp3', 'gtp.py', 'main.py', 'myfile.py', 'Screenshot-2.png']
+        for each in list_of_path_info:# ("elevated", "filled", "outlined"):
+              
+            self.cur_dir_elements.add_widget(
                 MyCard(
                     MDRelativeLayout(
                         FitImage(
-                        source="assets/imgs/test.png",
-                        size_hint=[1,.7],
+                        source=self.getIcon(each['path']),
+                        size_hint=[.9,.7],
+                        fit_mode='scale-down',  #['scale-down', 'fill', 'contain', 'cover']
+                        mipmap=True,
                         pos_hint={"top":1},
                         radius=(dp(5),dp(5),0,0),
+                        
+                        
                     ),
                         MDButton(
                             MDButtonIcon(
@@ -310,14 +386,14 @@ class DownloadScreen(MDScreen):
                             theme_width= "Custom",
                             radius='15sp',
                             size_hint= [None, None],
-                            width= '30sp',
-                            height='30sp',
+                            width= '32sp',
+                            height='32sp',
                             md_bg_color=[.7,.6,.9,1],
                             pos_hint={"top": .979, "right": .97},
                         ),
                         MDLabel(
-                            text=myFormat(each_file),
-                            shorten_from='center',
+                            text=myFormat(each['name']),
+                            # shorten_from='center',
                             font_size='11sp',
                             theme_font_size= "Custom",
                             text_color=[1,1,1,1],
@@ -331,11 +407,16 @@ class DownloadScreen(MDScreen):
                     height='140sp',
                     radius=dp(5),theme_bg_color="Custom",
                     md_bg_color=[1,0,0,0],
+                    # TODO attach on_release outside add_widget so i can add event only when it's a folder not a file,
+                    # (i.e TODO Create a custom CARD Class or find a where to add label id and use that Card.ids.label_id.on_release = function)
+                    on_release=lambda item_self_prop__,current_file_path=each['path']: self.setPath(current_file_path)
                 )
             )
-        root = ScrollView(size_hint=(1, .9))
-        root.add_widget(layout)
-        self.layout.add_widget(root)
+        # self.screen_scroll_box = ScrollView(size_hint=(1, .9))
+        self.screen_scroll_box.add_widget(self.cur_dir_elements)
+        
+        # self.layout.remove_widget(self.screen_scroll_box)
+        # self.layout.add_widget(self.screen_scroll_box)
         
 class SettingsScreen(MDScreen):
     def __init__(self, **kwargs):
@@ -365,7 +446,7 @@ class Laner(MDApp):
         my_screen_manager.add_widget(UploadScreen())
         my_screen_manager.add_widget(DownloadScreen())
         my_screen_manager.add_widget(SettingsScreen())
-        my_screen_manager.current='settings'
+        my_screen_manager.current='download'
 
         bottom_navigation_bar=BottomNavigationBar(my_screen_manager)
 
