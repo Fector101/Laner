@@ -3,9 +3,10 @@ import threading
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 import os
 import json
-
+SERVER_IP = '192.168.2.4'
 class CustomHandler(SimpleHTTPRequestHandler):
     def do_GET(self):
+
         if self.path == "/api/getpathinfo":
             content_length = int(self.headers['Content-Length'])    # This will be None when no path requested (i.e no json= in request)
             request_data = self.rfile.read(content_length)
@@ -14,14 +15,27 @@ class CustomHandler(SimpleHTTPRequestHandler):
                 self.send_response(200)
                 self.send_header("Content-type", "application/json")
                 self.end_headers()
-                path_list =os.listdir(request_path)
+                path_list:list[str] =os.listdir(request_path)
                 dir_info=[]
                 for each in path_list:
-                    # TODO Send {name:'',path:'',isdir:''} instead
-                    dir_info.append({'name':each,'path':os.path.join(request_path,each)})
+                    each_path=os.path.join(request_path,each)
+                    is_dir=os.path.isdir(each_path)
+                    img_source=None
+                    if is_dir:
+                        img_source="assets/imgs/folder.png"
+                    elif each.lower().endswith(('.png','.jpg','.jpeg','.tif','.bmp','.gif')):
+                        img_source=f"http://{SERVER_IP}:8000{each_path[1:].replace(' ','%20')}"
+                    else:
+                        img_source="assets/imgs/files.png"
+                    
+                    dir_info.append({
+                        'name':each,'path':each_path,
+                        'is_dir':is_dir,'icon':img_source
+                        })
 
                 response_data={'data':dir_info}
                 self.wfile.write(json.dumps(response_data).encode("utf-8"))
+                print('Handled -----')
             except json.JSONDecodeError:
                 self.send_response(400)
                 self.send_header("Content-type", "application/json")
@@ -29,6 +43,7 @@ class CustomHandler(SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps({'error':"Invaild JSON"}).encode("utf-8"))
 
         elif self.path == "/api/ispath":
+            
             content_length = int(self.headers['Content-Length'])    # This will be None when no path requested (i.e no json= in request)
             request_data = self.rfile.read(content_length)
             try:
@@ -86,7 +101,7 @@ class CustomHandler(SimpleHTTPRequestHandler):
             # Serve files for other requests (e.g., base URL)
             super().do_GET()
 class FileSharingServer:
-    def __init__(self, port=8000, directory="public"):
+    def __init__(self, port=8000, directory="/"):
         self.port = port
         self.directory = directory
         self.server = None
@@ -97,7 +112,8 @@ class FileSharingServer:
         # if not os.path.exists(self.directory):
         #     os.makedirs(self.directory)
         # print(os.getcwd())
-        # os.chdir(self.directory)
+        print(self.directory)
+        os.chdir(self.directory)
 
         # Create the HTTP server
         self.server = HTTPServer(("", self.port), CustomHandler)
@@ -120,7 +136,7 @@ class FileSharingServer:
 if __name__ == "__main__":
     # Specify the port and directory
     port = 8000
-    directory = "public"
+    directory = "/"
 
     # Initialize the server
     server = FileSharingServer(port, directory)
