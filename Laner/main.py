@@ -67,6 +67,61 @@ from kivy.uix.image import AsyncImage
 from kivy.uix.widget import Widget
 import requests
 
+from kivy.lang import Builder
+
+Builder.load_string('''
+<MyCard>:
+    MDRelativeLayout:
+        FitImage:
+            id: stored_state
+            source: root.img
+            size_hint: [.9,.7]
+            fit_mode: 'contain'
+            mipmap: True
+            pos_hint: {"top":1}
+            radius: (dp(5),dp(5),0,0)
+        MDButton:
+            MDButtonIcon:
+                icon: "download"
+                pos_hint: {'x':.19,'y':.17}
+                theme_icon_color: "Custom"
+                icon_color: [1,1,1,1]
+
+            theme_bg_color:  "Custom"
+            theme_height:  "Custom"
+            theme_width:  "Custom"
+            radius: '15sp'
+            size_hint:  [None, None]
+            width:  '32sp'
+            height: '32sp'
+            md_bg_color: [.7,.6,.9,1]
+            pos_hint: {"top": .979, "right": .97}
+        MDLabel:
+            text: root.myFormat(root.text)
+            font_size: '11sp'
+            theme_font_size:  "Custom"
+            text_color: [1,1,1,1]
+            height: '40sp'
+            size_hint: [1,None]
+    style: 'filled'
+    size_hint: (.5, None)
+    height: '140sp'
+    radius: dp(5)
+    theme_bg_color: "Custom"
+    md_bg_color: [1,0,0,0]
+    on_release: root.setPath(self.path)
+''')
+
+
+                    
+                    
+                    
+                    
+                    
+                    
+                
+
+
 # Window.size = (400, 1000)
 THEME_COLOR_TUPLE=(.6, .9, .8, 1)
 __DIR__ = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
@@ -277,9 +332,13 @@ class MySwitch(MDRelativeLayout):
                                 #  theme_bg_color='Custom',md_bg_color=[1,0,.5,1]
                                  ))
 
-
+from kivy.uix.recycleview.views import RecycleDataViewBehavior
 class MyCard(MDCard):
     '''Implements a material card.'''
+
+class MyScrollBox_ChildernContainer(RecycleDataViewBehavior,GridLayout):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
 class UploadScreen(MDScreen):
     def __init__(self, **kwargs):
@@ -346,10 +405,6 @@ class DownloadScreen(MDScreen):
                            title_color=self.theme_cls.backgroundColor,
                            
                            )
-        
-        
-        
-        self.scroll_box=MDBoxLayout(size_hint=[1,.9],md_bg_color=[.6,.6,1,1])
         self.layout.add_widget(self.header)
         
         # Needs to be after Header because function adds widget
@@ -361,7 +416,6 @@ class DownloadScreen(MDScreen):
         self.theme_bg_color="Custom"
         # self.md_bg_color=[1,1,1,1]#bg
                 
-        self.layout.add_widget(self.scroll_box)
         self.add_widget(self.layout)
     
     def setPathInfo(self):
@@ -419,7 +473,7 @@ class DownloadScreen(MDScreen):
                 return text[0:18] + '...'
             return text.capitalize()
         
-        self.cur_dir_elements = GridLayout(cols=4, spacing=18, size_hint_y=None,padding=dp(10))
+        self.cur_dir_elements = MyScrollBox_ChildernContainer(cols=4, spacing=18, size_hint_y=None,padding=dp(10))
         # Make sure the height is such that there is something to scroll.
         self.cur_dir_elements.bind(minimum_height=self.cur_dir_elements.setter('height'))
         
