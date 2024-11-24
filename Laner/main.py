@@ -44,6 +44,7 @@ from kivy.uix.image import Image
 
 from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout
+from kivy.uix.relativelayout import RelativeLayout
 from kivymd.uix.button import MDIconButton
 from kivymd.uix.card import MDCard
 from kivymd.uix.label import MDLabel
@@ -71,45 +72,43 @@ from kivy.lang import Builder
 
 Builder.load_string('''
 <MyCard>:
-    MDRelativeLayout:
-        FitImage:
-            id: stored_state
-            source: root.img
-            size_hint: [.9,.7]
-            fit_mode: 'contain'
-            mipmap: True
-            pos_hint: {"top":1}
-            radius: (dp(5),dp(5),0,0)
-        MDButton:
-            MDButtonIcon:
-                icon: "download"
-                pos_hint: {'x':.19,'y':.17}
-                theme_icon_color: "Custom"
-                icon_color: [1,1,1,1]
-
-            theme_bg_color:  "Custom"
-            theme_height:  "Custom"
-            theme_width:  "Custom"
-            radius: '15sp'
-            size_hint:  [None, None]
-            width:  '32sp'
-            height: '32sp'
-            md_bg_color: [.7,.6,.9,1]
-            pos_hint: {"top": .979, "right": .97}
-        MDLabel:
-            text: root.myFormat(root.text)
-            font_size: '11sp'
-            theme_font_size:  "Custom"
-            text_color: [1,1,1,1]
-            height: '40sp'
-            size_hint: [1,None]
     style: 'filled'
     size_hint: (.5, None)
     height: '140sp'
     radius: dp(5)
     theme_bg_color: "Custom"
     md_bg_color: [1,0,0,0]
-    on_release: root.setPath(self.path)
+    
+    AsyncImage:
+        id: stored_state
+        source: root.icon
+        size_hint: [.9,.7]
+        fit_mode: 'contain'
+        mipmap: True
+        pos_hint: {"top":1}
+        radius: (dp(5),dp(5),0,0)
+    MDButton:
+        theme_bg_color:  "Custom"
+        theme_height:  "Custom"
+        theme_width:  "Custom"
+        radius: '15sp'
+        size_hint:  [None, None]
+        width:  '32sp'
+        height: '32sp'
+        md_bg_color: [.7,.6,.9,1]
+        pos_hint: {"top": .979, "right": .97}
+        MDButtonIcon:
+            icon: "download"
+            pos_hint: {'x':.19,'y':.17}
+            theme_icon_color: "Custom"
+            icon_color: [1,1,1,1]
+        
+    Label:
+        text: root.myFormat(root.text)
+        font_size: '11sp'
+        height: '40sp'
+        pos_hint: {'left': 1}
+        size_hint: [1,None]
 ''')
 
 
@@ -333,8 +332,18 @@ class MySwitch(MDRelativeLayout):
                                  ))
 
 from kivy.uix.recycleview.views import RecycleDataViewBehavior
-class MyCard(MDCard):
+class MyCard(RectangularRippleBehavior,ButtonBehavior,RelativeLayout):
     '''Implements a material card.'''
+    path=StringProperty()
+    icon=StringProperty()
+    text=StringProperty()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+            
+    def myFormat(self, text:str):
+        if len(text) > 20:
+            return text[0:18] + '...'
+        return text.capitalize()
 
 class MyScrollBox_ChildernContainer(RecycleDataViewBehavior,GridLayout):
     def __init__(self, **kwargs):
@@ -376,8 +385,6 @@ class Header(MDBoxLayout):
     def chandeTitle(self,text):
         self.header_label.text=text
         
-# from typing import Dict, List, Optional
-# from unicodedata import name
 import json
 class DownloadScreen(MDScreen):
     download_screen_history = []  # Stack to directory screens
@@ -419,8 +426,6 @@ class DownloadScreen(MDScreen):
         self.add_widget(self.layout)
     
     def setPathInfo(self):
-        # Usage
-        
         try:
             response = requests.get(f"http://{SERVER_IP}:8000/api/getpathinfo",json={'path':self.current_dir})   #os.listdir(self.current_dir)
             if response.status_code != 200:
@@ -447,17 +452,7 @@ class DownloadScreen(MDScreen):
             
         self.current_dir = path
         self.header.chandeTitle(path)
-        self.setPathInfo()
-    # def getIcon(self,path:str):
-    #     img_source="assets/imgs/files.png"
-        
-    #     if self.isDir(path):
-    #         img_source="assets/imgs/folder.png"
-    #     elif path.lower().endswith(('.png','.jpg','.jpeg','.tif','.bmp','.gif')):
-    #         img_source=path
-            
-    #     return img_source
-                
+        self.setPathInfo()              
               
     def renderPath(self):
         list_of_path_info=self.current_dir_info
@@ -468,10 +463,6 @@ class DownloadScreen(MDScreen):
         
         elapsed_timer=time.time() - start_timer
         print(f'Done in {elapsed_timer} seconds --1')
-        def myFormat(text:str):
-            if len(text) > 20:
-                return text[0:18] + '...'
-            return text.capitalize()
         
         self.cur_dir_elements = MyScrollBox_ChildernContainer(cols=4, spacing=18, size_hint_y=None,padding=dp(10))
         # Make sure the height is such that there is something to scroll.
@@ -483,52 +474,9 @@ class DownloadScreen(MDScreen):
               
             self.cur_dir_elements.add_widget(
                 MyCard(
-                    MDRelativeLayout(
-                        FitImage(
-                        source=each['icon'],
-                        size_hint=[.9,.7],
-                        fit_mode='contain',  #['scale-down', 'fill', 'contain', 'cover']
-                        mipmap=True,
-                        pos_hint={"top":1},
-                        radius=(dp(5),dp(5),0,0),
-                        
-                        
-                    ),
-                        MDButton(
-                            MDButtonIcon(
-                                icon="download",
-                                pos_hint={'x':.19,'y':.17},
-                                theme_icon_color="Custom",
-                                icon_color=[1,1,1,1],
-                            ),
-                            theme_bg_color= "Custom",
-                            theme_height= "Custom",
-                            theme_width= "Custom",
-                            radius='15sp',
-                            size_hint= [None, None],
-                            width= '32sp',
-                            height='32sp',
-                            md_bg_color=[.7,.6,.9,1],
-                            pos_hint={"top": .979, "right": .97},
-                        ),
-                        MDLabel(
-                            text=myFormat(each['name']),
-                            # shorten_from='center',
-                            font_size='11sp',
-                            theme_font_size= "Custom",
-                            text_color=[1,1,1,1],
-                            height='40sp',
-                            size_hint=[1,None]
-                        ),
-                        md_bg_color=[0,0,0,0]
-                    ),
-                    style='filled',
-                    size_hint=(.5, None),
-                    height='140sp',
-                    radius=dp(5),theme_bg_color="Custom",
-                    md_bg_color=[1,0,0,0],
-                    # TODO attach on_release outside add_widget so i can add event only when it's a folder not a file,
-                    # (i.e TODO Create a custom CARD Class or find a where to add label id and use that Card.ids.label_id.on_release = function)
+                    icon=each['icon'],
+                    text=each['name'],
+                    path=each['path'],
                     on_release=lambda item_self_prop__,current_file_path=each['path']: self.setPath(current_file_path)
                 )
             )
@@ -568,7 +516,7 @@ class Laner(MDApp):
         my_screen_manager.add_widget(UploadScreen())
         my_screen_manager.add_widget(DownloadScreen())
         my_screen_manager.add_widget(SettingsScreen())
-        my_screen_manager.current='upload'
+        my_screen_manager.current='download'
 
         bottom_navigation_bar=BottomNavigationBar(my_screen_manager)
 
