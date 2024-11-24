@@ -43,7 +43,7 @@ from kivy.uix.image import Image
 
 from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.button import MDIconButton,MDButton
+from kivymd.uix.button import MDIconButton
 from kivymd.uix.card import MDCard
 from kivymd.uix.label import MDLabel
 from kivymd.uix.relativelayout import MDRelativeLayout
@@ -58,7 +58,7 @@ from kivymd.uix.fitimage import FitImage
 
 from kivy.clock import Clock
 
-from kivymd.uix.button import MDButton, MDButtonIcon, MDButtonText
+# from kivymd.uix.button import MDButton, MDButtonIcon, MDButtonText
 
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.list import MDList
@@ -66,10 +66,53 @@ from kivymd.uix.list import MDList
 from kivy.uix.widget import Widget
 import requests
 
-Window.size = (400, 1000)
+# Window.size = (400, 1000)
 THEME_COLOR_TUPLE=(.6, .9, .8, 1)
 __DIR__ = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
 MY_DATABASE_PATH = os.path.join(__DIR__, 'data', 'store.json') 
+
+
+# import socket
+import ipaddress
+import threading
+# from multiprocessing.dummy import Pool as ThreadPool
+import os
+
+SERVER_IP = '192.168.2.4'
+
+
+
+
+
+rechable_ips=[]
+lock=threading.Lock()
+def ping(ip):
+    """
+    Ping an IP address to check if it is reachable.
+    Returns the IP address if reachable, otherwise None.
+    """
+    # Execute a ping command
+    response = os.system(f"ping -c 1 -W 1 {ip} > /dev/null 2>&1")
+    if response == 0:
+        with lock:
+            rechable_ips.append(ip)
+            
+def scan_network(network):
+    """
+    Scan the provided network to find active devices.
+    Returns a list of IP addresses of devices that respond to ping.
+    """
+    print(f"Scanning network: {network}")
+    # Create a pool of threads for faster execution
+    threads=[]
+    
+    for ip in ipaddress.IPv4Network(network, strict=False):
+        t=threading.Thread(target=ping, args=(str(ip),))
+        threads.append(t)
+        t.start()
+        
+    for t in threads:
+        t.join()
 
 class WindowManager(ScreenManager):
     screen_history = []  # Stack to manage visited screens
@@ -319,16 +362,21 @@ class DownloadScreen(MDScreen):
         self.add_widget(self.layout)
     
     def setPathInfo(self):
-        response = requests.get("http://localhost:8000/api/getpathinfo",json={'path':self.current_dir})   #os.listdir(self.current_dir)
-        if response.status_code != 200:
-            return
-        self.current_dir_info=response.json()['data']
-        # requests.get(server,data='to be sent',auth=(username,password))
-        self.renderPath()
+        # Usage
+        
+        try:
+            response = requests.get(f"http://{SERVER_IP}:8000/api/getpathinfo",json={'path':self.current_dir})   #os.listdir(self.current_dir)
+            if response.status_code != 200:
+                return
+            self.current_dir_info=response.json()['data']
+            # requests.get(server,data='to be sent',auth=(username,password))
+            self.renderPath()
+        except Exception as e:
+            print(e)
     def isDir(self,path:str):
         
         try:
-            response=requests.get("http://localhost:8000/api/ispath",json={'path':path})
+            response=requests.get(f"http://{SERVER_IP}:8000/api/ispath",json={'path':path})
             if response.status_code != 200:
                 return False
             return response.json()['data']
@@ -382,23 +430,23 @@ class DownloadScreen(MDScreen):
                         
                         
                     ),
-                        MDButton(
-                            MDButtonIcon(
-                                icon="download",
-                                pos_hint={'x':.19,'y':.17},
-                                theme_icon_color="Custom",
-                                icon_color=[1,1,1,1],
-                            ),
-                            theme_bg_color= "Custom",
-                            theme_height= "Custom",
-                            theme_width= "Custom",
-                            radius='15sp',
-                            size_hint= [None, None],
-                            width= '32sp',
-                            height='32sp',
-                            md_bg_color=[.7,.6,.9,1],
-                            pos_hint={"top": .979, "right": .97},
-                        ),
+                        # MDButton(
+                        #     MDButtonIcon(
+                        #         icon="download",
+                        #         pos_hint={'x':.19,'y':.17},
+                        #         theme_icon_color="Custom",
+                        #         icon_color=[1,1,1,1],
+                        #     ),
+                        #     theme_bg_color= "Custom",
+                        #     theme_height= "Custom",
+                        #     theme_width= "Custom",
+                        #     radius='15sp',
+                        #     size_hint= [None, None],
+                        #     width= '32sp',
+                        #     height='32sp',
+                        #     md_bg_color=[.7,.6,.9,1],
+                        #     pos_hint={"top": .979, "right": .97},
+                        # ),
                         MDLabel(
                             text=myFormat(each['name']),
                             # shorten_from='center',

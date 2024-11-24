@@ -22,7 +22,7 @@ source.include_exts = py,png,jpg,kv,atlas,ttf,json
 #source.exclude_exts = spec
 
 # (list) List of directory to exclude (let empty to not exclude anything)
-source.exclude_dirs = tests, bin, myenv, worked, __pycache__, .idea
+source.exclude_dirs = tests, bin, venv, worked, __pycache__, .idea
 
 # (list) List of exclusions using pattern matching
 # Do not prefix with './'
@@ -39,6 +39,7 @@ version = 1.0
 # comma separated e.g. requirements = sqlite3,kivy
 requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,materialyoucolor,asynckivy,asyncgui
 
+
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
 # requirements.source.kivy = ../../kivy
@@ -48,7 +49,6 @@ presplash.filename = %(source.dir)s/assets/imgs/presplash.png
 
 # (str) Icon of the application
 icon.filename = %(source.dir)s/assets/imgs/icon.png
-#icon.filename = %(source.dir)s/data/icon.png
 
 # (list) Supported orientations
 # Valid options are: landscape, portrait, portrait-reverse or landscape-reverse
@@ -96,9 +96,7 @@ fullscreen = 0
 
 # (list) Permissions
 # (See https://python-for-android.readthedocs.io/en/latest/buildoptions/#build-options-1 for all the supported syntaxes and properties)
-#android.permissions = android.permission.INTERNET, (name=android.permission.WRITE_EXTERNAL_STORAGE;maxSdkVersion=18)
-android.permissions = INTERNET,ACCESS_NETWORK_STATE,ACCESS_WIFI_STATE,FOREGROUND_SERVICE
-
+android.permissions = android.permission.INTERNET, (name=android.permission.WRITE_EXTERNAL_STORAGE;maxSdkVersion=18)
 
 # (list) features (adds uses-feature -tags to manifest)
 #android.features = android.hardware.usb.host
@@ -204,8 +202,7 @@ android.permissions = INTERNET,ACCESS_NETWORK_STATE,ACCESS_WIFI_STATE,FOREGROUND
 #android.add_resources =
 
 # (list) Gradle dependencies to add
-#android.gradle_version = 7.0.2
-#android.gradle_dependencies = com.android.tools.build:gradle:7.0.2
+#android.gradle_dependencies =
 
 # (bool) Enable AndroidX support. Enable when 'android.gradle_dependencies'
 # contains an 'androidx' package, or any package from Kotlin source.

@@ -5,8 +5,8 @@ import socketserver
 import os
 import threading
 
-# /home/fabian/Desktop/safe/myenv/lib64/python3.12/site-packages/kivymd/uix/menu/menu.py
-# Run this from VSCode content menu (Run Python) --> /home/fabian/Desktop/safe/myenv/lib64/python3.12/site-packages/kivymd/icon_definitions.py
+# /home/fabian/Documents/my projects code/mobile dev/Laner/venv/lib64/python3.12/site-packages/kivymd/uix/menu/menu.py
+# Run this from VSCode content menu (Run Python) --> /home/fabian/Documents/my projects code/mobile dev/Laner/venv/lib64/python3.12/site-packages/kivymd/icon_definitions.py
 def getSystemName():
   # Windows
   USER_HOME_PATH=os.getenv('HOMEPATH')  # Can also be editable to downloads path or something else
