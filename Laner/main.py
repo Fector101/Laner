@@ -40,27 +40,27 @@ from kivymd.uix.stacklayout import MDStackLayout
 from kivy.uix.label import Label
 from kivymd.uix.behaviors import RectangularRippleBehavior
 from kivy.uix.behaviors import ButtonBehavior
-from kivy.uix.image import Image
+# from kivy.uix.image import Image
 
 from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivy.uix.relativelayout import RelativeLayout
-from kivymd.uix.button import MDIconButton
-from kivymd.uix.card import MDCard
+# from kivymd.uix.button import MDIconButton
+# from kivymd.uix.card import MDCard
 from kivymd.uix.label import MDLabel
 from kivymd.uix.relativelayout import MDRelativeLayout
 from kivymd.uix.screen import MDScreen
 
-from kivy.uix.slider import Slider
-from kivymd.uix.slider import MDSlider
-from kivy.uix.switch import Switch
+# from kivy.uix.slider import Slider
+# from kivymd.uix.slider import MDSlider
+# from kivy.uix.switch import Switch
 from kivymd.uix.selectioncontrol import MDSwitch
 
-from kivymd.uix.fitimage import FitImage
+# from kivymd.uix.fitimage import FitImage
 
-from kivy.clock import Clock
+# from kivy.clock import Clock
 
-from kivymd.uix.button import MDButton, MDButtonIcon, MDButtonText
+# from kivymd.uix.button import MDButton, MDButtonIcon, MDButtonText
 
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.list import MDList
@@ -105,12 +105,64 @@ Builder.load_string('''
         
     Label:
         text: root.myFormat(root.text)
+        # text: "Really long text with some lengthy description on subject"
         font_size: '11sp'
-        height: '40sp'
-        pos_hint: {'left': 1}
-        size_hint: [1,None]
+        size_hint: [None, None]
+        size: (root.width, 40)
+        text_size: (root.width, None)
+        # max_lines: 2
+        
+        # shorten: True
+        # pos_hint: {'left': 1}
+        #md_bg_color: [.7,.6,.9,1]
+        
 ''')
 
+
+# from kivy.graphics import Color, Rectangle
+
+
+# class ColoredLabel(MDLabel):
+#     def __init__(self, **kwargs):
+#         super().__init__(**kwargs)
+        # print(self.parent)
+        # self.bind(size=self.update_rect, pos=self.update_rect)
+        # with self.canvas.before:
+        #     # Set the background color (RGBA)
+        #     self.bg_color = Color(0, 0.5, 0.5, 1)  # Teal color
+        #     self.bg_rect = Rectangle(size=self.size, pos=self.pos)
+        # self.text_size = (self.width, None)  # Restrict text width
+        # self.bind(size=self.update_text_size)
+    # def on_parent(self, widget,parent):
+        # widget.text=parent.text
+        # print(widget,self,parent.text)
+        # if parent and parent.text and self:
+        #     self.text=parent.text
+        # print(self.text)
+        # ...
+    # def update_text_size(self, *args):
+    #     self.text_size = (self.width, None)
+
+    # def check_screen_for_menu(self, dt):
+    #     # print(self.limit_render_to_text_bbox)
+    #     ...
+    # def on_text(self, instance, value):
+    #     # self.remove = Clock.schedule_once(self.check_screen_for_menu, 0)
+
+        
+        
+    #     lines = self.text.splitlines()
+    #     print(lines)
+    #     if len(lines) > 2:  # Limit to 2 lines
+    #         self.text = "\n".join(lines[:2]) + "..."  # Add ellipsis if truncated
+    # #     else:
+    # #         # self.text=''.join(lines)
+    # #         self.text=value
+    #     # return super().on_text()
+        
+    # def update_rect(self, *args):
+    #     self.bg_rect.size = self.size
+    #     self.bg_rect.pos = self.pos
 
                     
                     
