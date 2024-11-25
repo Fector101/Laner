@@ -1,3 +1,23 @@
+# from kivymd.uix.button import MDButton
+# from kivy.uix.screenmanager import NoTransition
+# from kivymd.uix.button import BaseButton, MDIconButton, MDRectangleFlatButton,MDRectangleFlatIconButton,ButtonContentsIconText
+# from kivy.uix.boxlayout import BoxLayout
+# from kivymd.uix.button import MDRaisedButton
+# from kivymd.uix.relativelayout import MDRelativeLayout
+# from kivymd.uix.behaviors import CircularRippleBehavior
+# from kivy.uix.image import Image
+# from kivymd.uix.button import MDIconButton
+# from kivymd.uix.card import MDCard
+# from kivy.uix.slider import Slider
+# from kivymd.uix.slider import MDSlider
+# from kivy.uix.switch import Switch
+# from kivymd.uix.fitimage import FitImage
+# from kivy.clock import Clock
+# from kivymd.uix.button import MDButton, MDButtonIcon, MDButtonText
+# import socket
+# from multiprocessing.dummy import Pool as ThreadPool
+from kivy.uix.recycleboxlayout import RecycleBoxLayout
+from kivy.properties import ( BooleanProperty, ListProperty, BoundedNumericProperty, ColorProperty, DictProperty, NumericProperty, ObjectProperty, OptionProperty, StringProperty, VariableListProperty)
 from kivymd.app import MDApp
 from kivy.core.window import Window
 from kivy.properties import StringProperty,ListProperty
@@ -6,81 +26,58 @@ from kivy.metrics import dp,sp
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivy.uix.screenmanager import ScreenManager, Screen, SlideTransition
-# from kivymd.uix.button import MDButton
-import os, sys, json
-
-
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.button import Button
 from kivy.uix.scrollview import ScrollView
-from kivy.uix.recycleview import RecycleView
+from kivy.uix.recycleview import RecycleView,RecycleLayoutManagerBehavior
 from kivy.core.window import Window
 from kivy.app import runTouchApp
-
-
-# from kivy.uix.screenmanager import NoTransition
-# from kivymd.uix.button import BaseButton, MDIconButton, MDRectangleFlatButton,MDRectangleFlatIconButton,ButtonContentsIconText
-from kivy.properties import (
-    BooleanProperty,
-    ListProperty,
-    BoundedNumericProperty,
-    ColorProperty,
-    DictProperty,
-    NumericProperty,
-    ObjectProperty,
-    OptionProperty,
-    StringProperty,
-    VariableListProperty,
-)
-# from kivy.uix.boxlayout import BoxLayout
-# from kivymd.uix.button import MDRaisedButton
 from kivymd.uix.stacklayout import MDStackLayout
-# from kivymd.uix.relativelayout import MDRelativeLayout
-# from kivymd.uix.behaviors import CircularRippleBehavior
 from kivy.uix.label import Label
 from kivymd.uix.behaviors import RectangularRippleBehavior
 from kivy.uix.behaviors import ButtonBehavior
-# from kivy.uix.image import Image
-
 from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivy.uix.relativelayout import RelativeLayout
-# from kivymd.uix.button import MDIconButton
-# from kivymd.uix.card import MDCard
 from kivymd.uix.label import MDLabel
 from kivymd.uix.relativelayout import MDRelativeLayout
 from kivymd.uix.screen import MDScreen
-
-# from kivy.uix.slider import Slider
-# from kivymd.uix.slider import MDSlider
-# from kivy.uix.switch import Switch
 from kivymd.uix.selectioncontrol import MDSwitch
-
-# from kivymd.uix.fitimage import FitImage
-
-# from kivy.clock import Clock
-
-# from kivymd.uix.button import MDButton, MDButtonIcon, MDButtonText
-
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.list import MDList
 from kivy.uix.image import AsyncImage
 from kivy.uix.widget import Widget
-import requests
-
 from kivy.lang import Builder
 
+import requests
+import os, sys, json
+
+# Window.size = (400, 1000)
+THEME_COLOR_TUPLE=(.6, .9, .8, 1)
+__DIR__ = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
+MY_DATABASE_PATH = os.path.join(__DIR__, 'data', 'store.json') 
+
+
+import ipaddress
+import threading
+import os
+from kivy.uix.recycleview.views import RecycleDataViewBehavior
+from kivy.uix.recyclegridlayout import RecycleGridLayout
+import json
+
+SERVER_IP = '192.168.2.4'
+
+
+# size_hint: (.5, None)
 Builder.load_string('''
 <MyCard>:
-    style: 'filled'
-    size_hint: (.5, None)
-    height: '140sp'
     radius: dp(5)
+    size_hint:(1,1)
     theme_bg_color: "Custom"
-    md_bg_color: [1,0,0,0]
+    on_release: app.download_screen.setPath(self.path)
     
     AsyncImage:
-        id: stored_state
+        id: test_stuff
         source: root.icon
         size_hint: [.9,.7]
         fit_mode: 'contain'
@@ -105,90 +102,24 @@ Builder.load_string('''
         
     Label:
         text: root.myFormat(root.text)
-        # text: "Really long text with some lengthy description on subject"
         font_size: '11sp'
         size_hint: [None, None]
         size: (root.width, 40)
         text_size: (root.width, None)
         # max_lines: 2
-        
-        # shorten: True
-        # pos_hint: {'left': 1}
-        #md_bg_color: [.7,.6,.9,1]
-        
+
+<RV>:
+    viewclass: 'MyCard'
+    size_hint: (1, .9)
+    RecycleGridLayout:
+        default_size: 1, '140sp'
+        default_size_hint: 1, None
+        cols:4
+        spacing:18
+        padding:"10dp"
+        size_hint: (1, None)
+        height: self.minimum_height
 ''')
-
-
-# from kivy.graphics import Color, Rectangle
-
-
-# class ColoredLabel(MDLabel):
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-        # print(self.parent)
-        # self.bind(size=self.update_rect, pos=self.update_rect)
-        # with self.canvas.before:
-        #     # Set the background color (RGBA)
-        #     self.bg_color = Color(0, 0.5, 0.5, 1)  # Teal color
-        #     self.bg_rect = Rectangle(size=self.size, pos=self.pos)
-        # self.text_size = (self.width, None)  # Restrict text width
-        # self.bind(size=self.update_text_size)
-    # def on_parent(self, widget,parent):
-        # widget.text=parent.text
-        # print(widget,self,parent.text)
-        # if parent and parent.text and self:
-        #     self.text=parent.text
-        # print(self.text)
-        # ...
-    # def update_text_size(self, *args):
-    #     self.text_size = (self.width, None)
-
-    # def check_screen_for_menu(self, dt):
-    #     # print(self.limit_render_to_text_bbox)
-    #     ...
-    # def on_text(self, instance, value):
-    #     # self.remove = Clock.schedule_once(self.check_screen_for_menu, 0)
-
-        
-        
-    #     lines = self.text.splitlines()
-    #     print(lines)
-    #     if len(lines) > 2:  # Limit to 2 lines
-    #         self.text = "\n".join(lines[:2]) + "..."  # Add ellipsis if truncated
-    # #     else:
-    # #         # self.text=''.join(lines)
-    # #         self.text=value
-    #     # return super().on_text()
-        
-    # def update_rect(self, *args):
-    #     self.bg_rect.size = self.size
-    #     self.bg_rect.pos = self.pos
-
-                    
-                    
-                    
-                    
-                    
-                    
-                
-
-
-# Window.size = (400, 1000)
-THEME_COLOR_TUPLE=(.6, .9, .8, 1)
-__DIR__ = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
-MY_DATABASE_PATH = os.path.join(__DIR__, 'data', 'store.json') 
-
-
-# import socket
-import ipaddress
-import threading
-# from multiprocessing.dummy import Pool as ThreadPool
-import os
-
-SERVER_IP = '192.168.2.4'
-
-
-
 
 
 rechable_ips=[]
@@ -383,23 +314,22 @@ class MySwitch(MDRelativeLayout):
                                 #  theme_bg_color='Custom',md_bg_color=[1,0,.5,1]
                                  ))
 
-from kivy.uix.recycleview.views import RecycleDataViewBehavior
-class MyCard(RectangularRippleBehavior,ButtonBehavior,RelativeLayout):
-    '''Implements a material card.'''
+
+class MyCard(RecycleDataViewBehavior,RectangularRippleBehavior,ButtonBehavior,MDRelativeLayout):
     path=StringProperty()
     icon=StringProperty()
     text=StringProperty()
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-            
+           
     def myFormat(self, text:str):
         if len(text) > 20:
             return text[0:18] + '...'
         return text.capitalize()
-
-class MyScrollBox_ChildernContainer(RecycleDataViewBehavior,GridLayout):
+    
+class RV(RecycleView):
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        super(RV,self).__init__(**kwargs)
 
 class UploadScreen(MDScreen):
     def __init__(self, **kwargs):
@@ -437,54 +367,44 @@ class Header(MDBoxLayout):
     def chandeTitle(self,text):
         self.header_label.text=text
         
-import json
 class DownloadScreen(MDScreen):
     download_screen_history = []  # Stack to directory screens
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name='download'
-        
+        # self.size_hint=[1,1]
         self.current_dir = './'
         # """ Only set with setPath function"""
         self.current_dir_info:list[dict]=[]
         # """ Only set with setPathInfo function"""
-        
-        # self.md_bg_color=[1,0,1,1]
-        self.layout=MDStackLayout(md_bg_color=[.4,.4,.4,1],)
-        
-        # self.header=MDBoxLayout(size_hint=[1,.1])
-        # self.header_label=Label(color=self.theme_cls.backgroundColor,text="~ Root",halign='center',valign='center')
-        # self.header.add_widget(self.header_label)
-        
+
+        self.layout=MDBoxLayout(md_bg_color=[.4,.4,.4,1],orientation='vertical')        
         self.header=Header(
-                           text='~ Root',
+                           text=self.current_dir,
                            size_hint=[1,.1],
                            text_halign='center',
                            title_color=self.theme_cls.backgroundColor,
-                           
                            )
         self.layout.add_widget(self.header)
         
-        # Needs to be after Header because function adds widget
-        self.screen_scroll_box = RecycleView(size_hint=(1, .9))
-        self.cur_dir_elements = None#GridLayout(cols=4, spacing=18, size_hint_y=None,padding=dp(10))
-        self.layout.add_widget(self.screen_scroll_box)
+        self.screen_scroll_box = RV()
+        self.screen_scroll_box.data=self.current_dir_info
         self.setPathInfo()
         
-        self.theme_bg_color="Custom"
-        # self.md_bg_color=[1,1,1,1]#bg
-                
+        self.layout.add_widget(self.screen_scroll_box)
         self.add_widget(self.layout)
     
     def setPathInfo(self):
         try:
             response = requests.get(f"http://{SERVER_IP}:8000/api/getpathinfo",json={'path':self.current_dir})   #os.listdir(self.current_dir)
+            # requests.get(server,data='to be sent',auth=(username,password))
             if response.status_code != 200:
                 return
             self.current_dir_info=response.json()['data']
-            # requests.get(server,data='to be sent',auth=(username,password))
-            self.renderPath()
+            self.screen_scroll_box.data=self.current_dir_info
+            
+            # self.renderPath()
         except Exception as e:
             print(e)
     def isDir(self,path:str):
@@ -505,40 +425,6 @@ class DownloadScreen(MDScreen):
         self.current_dir = path
         self.header.chandeTitle(path)
         self.setPathInfo()              
-              
-    def renderPath(self):
-        list_of_path_info=self.current_dir_info
-        import time
-        start_timer=time.time()
-        
-        self.screen_scroll_box.clear_widgets() # If Widget not already added it won't cause can error
-        
-        elapsed_timer=time.time() - start_timer
-        print(f'Done in {elapsed_timer} seconds --1')
-        
-        self.cur_dir_elements = MyScrollBox_ChildernContainer(cols=4, spacing=18, size_hint_y=None,padding=dp(10))
-        # Make sure the height is such that there is something to scroll.
-        self.cur_dir_elements.bind(minimum_height=self.cur_dir_elements.setter('height'))
-        
-        start_timer=time.time()
-        
-        for each in list_of_path_info:# ("elevated", "filled", "outlined"):
-              
-            self.cur_dir_elements.add_widget(
-                MyCard(
-                    icon=each['icon'],
-                    text=each['name'],
-                    path=each['path'],
-                    on_release=lambda item_self_prop__,current_file_path=each['path']: self.setPath(current_file_path)
-                )
-            )
-        elapsed_timer=time.time() - start_timer
-        print(f'Done in {elapsed_timer} seconds --2')
-        
-        self.screen_scroll_box.add_widget(self.cur_dir_elements)
-        
-        # self.layout.remove_widget(self.screen_scroll_box)
-        # self.layout.add_widget(self.screen_scroll_box)
         
 class SettingsScreen(MDScreen):
     def __init__(self, **kwargs):
@@ -559,14 +445,21 @@ class SettingsScreen(MDScreen):
         self.add_widget(self.layout)
 
 class Laner(MDApp):
+    
     def build(self):
         self.title='Laner'
+        
+        # self.death='Fog'
+        # self.bind(death=self.change_theme)
+        
+        self.theme_cls.backgroundColor=THEME_COLOR_TUPLE
         root_layout=MDBoxLayout(orientation='vertical')
         root_layout.md_bg_color=.3,.3,.3,1
+        
         my_screen_manager = WindowManager()
-        self.theme_cls.backgroundColor=THEME_COLOR_TUPLE
         my_screen_manager.add_widget(UploadScreen())
-        my_screen_manager.add_widget(DownloadScreen())
+        self.download_screen=DownloadScreen()
+        my_screen_manager.add_widget(self.download_screen)
         my_screen_manager.add_widget(SettingsScreen())
         my_screen_manager.current='download'
 
@@ -577,12 +470,9 @@ class Laner(MDApp):
         # Clock.schedule_once(self.change_theme, 2)
         
         return root_layout
-    # def change_theme(self, dt):
-    #     print(999)
-    #     self.theme_cls.backgroundColor=[1,0,0,1]
-    #     self.theme_cls
-    # def update_theme_colors(self, *args):
-    #     print('change')
+    def change_theme(self, *args):
+        print(self.death)
+        
         
 
 if __name__ == '__main__':

@@ -123,3 +123,87 @@ Test().run()
 
 
 
+
+# from kivy.graphics import Color, Rectangle
+
+
+# class ColoredLabel(MDLabel):
+#     def __init__(self, **kwargs):
+#         super().__init__(**kwargs)
+        # print(self.parent)
+        # self.bind(size=self.update_rect, pos=self.update_rect)
+        # with self.canvas.before:
+        #     # Set the background color (RGBA)
+        #     self.bg_color = Color(0, 0.5, 0.5, 1)  # Teal color
+        #     self.bg_rect = Rectangle(size=self.size, pos=self.pos)
+        # self.text_size = (self.width, None)  # Restrict text width
+        # self.bind(size=self.update_text_size)
+    # def on_parent(self, widget,parent):
+        # widget.text=parent.text
+        # print(widget,self,parent.text)
+        # if parent and parent.text and self:
+        #     self.text=parent.text
+        # print(self.text)
+        # ...
+    # def update_text_size(self, *args):
+    #     self.text_size = (self.width, None)
+
+    # def check_screen_for_menu(self, dt):
+    #     # print(self.limit_render_to_text_bbox)
+    #     ...
+    # def on_text(self, instance, value):
+    #     # self.remove = Clock.schedule_once(self.check_screen_for_menu, 0)
+
+        
+        
+    #     lines = self.text.splitlines()
+    #     print(lines)
+    #     if len(lines) > 2:  # Limit to 2 lines
+    #         self.text = "\n".join(lines[:2]) + "..."  # Add ellipsis if truncated
+    # #     else:
+    # #         # self.text=''.join(lines)
+    # #         self.text=value
+    #     # return super().on_text()
+        
+    # def update_rect(self, *args):
+    #     self.bg_rect.size = self.size
+    #     self.bg_rect.pos = self.pos
+
+                    
+                    
+                    
+       
+# def renderPath(self):
+#     list_of_path_info=self.current_dir_info
+#     import time
+#     start_timer=time.time()
+    
+#     self.screen_scroll_box.clear_widgets() # If Widget not already added it won't cause can error
+    
+#     elapsed_timer=time.time() - start_timer
+#     print(f'Done in {elapsed_timer} seconds --1')
+    
+#     self.cur_dir_elements = MyScrollBox_ChildernContainer(cols=4, spacing=18, size_hint_y=None,padding=dp(10))
+#     # Make sure the height is such that there is something to scroll.
+#     self.cur_dir_elements.bind(minimum_height=self.cur_dir_elements.setter('height'))
+    
+#     start_timer=time.time()
+    
+#     for each in list_of_path_info:# ("elevated", "filled", "outlined"):
+            
+#         self.cur_dir_elements.add_widget(
+#             MyCard(
+#                 icon=each['icon'],
+#                 text=each['name'],
+#                 path=each['path'],
+#                 on_release=lambda item_self_prop__,current_file_path=each['path']: self.setPath(current_file_path)
+#             )
+#         )
+#     elapsed_timer=time.time() - start_timer
+#     print(f'Done in {elapsed_timer} seconds --2')
+    
+#     self.screen_scroll_box.add_widget(self.cur_dir_elements)
+    
+#     # self.layout.remove_widget(self.screen_scroll_box)
+#     # self.layout.add_widget(self.screen_scroll_box)
+    
