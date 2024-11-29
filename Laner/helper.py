@@ -1,9 +1,8 @@
 import os
 import json
-from http.server import SimpleHTTPRequestHandler,HTTPServer
-import socketserver
-import os
-import threading
+# from http.server import SimpleHTTPRequestHandler,HTTPServer
+# import socketserver
+# import threading
 
 # /home/fabian/Documents/my projects code/mobile dev/Laner/venv/lib64/python3.12/site-packages/kivymd/uix/menu/menu.py
 # Run this from VSCode content menu (Run Python) --> /home/fabian/Documents/my projects code/mobile dev/Laner/venv/lib64/python3.12/site-packages/kivymd/icon_definitions.py
@@ -15,6 +14,13 @@ def getSystemName():
     USER_HOME_PATH=os.getenv('HOME')
     os_name='Linux'
   return os_name
+
+def getHomePath():
+  # Windows
+  USER_HOME_PATH=os.getenv('HOMEPATH')  # Can also be editable to downloads path or something else
+  if(USER_HOME_PATH == None):
+    USER_HOME_PATH=os.getenv('HOME')
+  return USER_HOME_PATH
 
 def findClosestParent(path:str):
   if getSystemName() == 'Win':
@@ -39,7 +45,7 @@ def scanFolder(inputted_folder_path:str):
     print(e) # Display Error in Log Screen "As is" i mean in the same format it's printed out in console (Will Probably only get error if Access Denied or Folder Moved)
   return {'folders':folder_paths,'files':file_paths}
   
-os.chdir("public")  # <dev> Ensure this folder exists in your app's root
+# os.chdir("public")  # <dev> Ensure this folder exists in your app's root
 def writeIntoDB(data):
   with open("public/data.json") as file:
       Dict_Structure = json.load(file)  
