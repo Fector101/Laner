@@ -12,12 +12,6 @@ A versatile app enabling file browsing between PC and phone seamlessly.
 - **Python**: Backend logic and Kivy for UI.
 - **Buildozer**: Packaging for mobile platforms.
 
-## Getting Started
+## TODO
 
-1. Clone this repository:
-
-```bash
-git clone https://github.com/Fector101/Laner.git
-```
-
-2. Follow the setup instructions in `buildozer.spec` for packaging.
+1. When authentication added to protect users data will release packaged apps for download 
