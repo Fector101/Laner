@@ -4,7 +4,7 @@
 title = Laner
 
 # (str) Package name
-package.name = LAN_FT
+package.name = lan_ft
 
 # (str) Package domain (needed for android/ios packaging)
 package.domain = org.test
@@ -14,6 +14,9 @@ source.dir = ./Laner
 
 # (list) Source files to include (let empty to include all the files)
 source.include_exts = py,png,jpg,kv,atlas,ttf,json
+
+android.manifest =./AndroidManifest.xml
+
 
 # (list) List of inclusions using pattern matching
 #source.include_patterns = assets/*,images/*.png
@@ -37,8 +40,11 @@ version = 1.0
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,materialyoucolor,asynckivy,asyncgui
 
+#requirements = python3,kivy,kivymd,materialyoucolor,asynckivy,asyncgui,aiohttp,multidict,attrs,yarl,propcache,async_timeout
+
+#requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,materialyoucolor,asynckivy,asyncgui,jnius
+requirements = python3,kivy,kivymd,materialyoucolor,asynckivy,asyncgui,pyjnius
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -55,6 +61,7 @@ icon.filename = %(source.dir)s/assets/imgs/icon.png
 orientation = portrait
 
 # (list) List of service to declare
+services = Sendshit:./test.py
 #services = NAME:ENTRYPOINT_TO_PY,NAME2:ENTRYPOINT2_TO_PY
 
 #
@@ -96,13 +103,14 @@ fullscreen = 0
 
 # (list) Permissions
 # (See https://python-for-android.readthedocs.io/en/latest/buildoptions/#build-options-1 for all the supported syntaxes and properties)
-android.permissions = android.permission.INTERNET, (name=android.permission.WRITE_EXTERNAL_STORAGE;maxSdkVersion=18)
+#android.permissions = android.permission.INTERNET,WRITE_EXTERNAL_STORAGE
+android.permissions = android.permission.INTERNET, FOREGROUND_SERVICE, READ_EXTERNAL_STORAGE,RECEIVE_BOOT_COMPLETED,NOTIFICATION
 
 # (list) features (adds uses-feature -tags to manifest)
 #android.features = android.hardware.usb.host
 
 # (int) Target Android API, should be as high as possible.
-#android.api = 31
+android.api = 34
 
 # (int) Minimum API your APK / AAB will support.
 #android.minapi = 21
@@ -157,6 +165,7 @@ android.permissions = android.permission.INTERNET, (name=android.permission.WRIT
 # (str) Full name including package path of the Java class that implements Python Service
 # use that parameter to set custom Java class which extends PythonService
 #android.service_class_name = org.kivy.android.PythonService
+android.service = True
 
 # (str) Android app theme, default is ok for Kivy-based app
 # android.apptheme = "@android:style/Theme.NoTitleBar"
