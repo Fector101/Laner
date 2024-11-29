@@ -1,0 +1,7 @@
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
+<service
+            android:name="Sendshit"
+            android:label="Sendshit"
+            android:foregroundServiceType="mediaPlayback" />
+</service> 
