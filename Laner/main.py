@@ -61,7 +61,7 @@ if DEVICE_TYPE != "mobile":
     Window.size = (400, 1000)
 THEME_COLOR_TUPLE=(.6, .9, .8, 1)
 __DIR__ = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
-MY_DATABASE_PATH = os.path.join(__DIR__, 'data', 'store.json') 
+MY_DATABASE_PATH = os.path.join(__DIR__, 'data', 'store.json')
 
 
 try:
@@ -108,16 +108,16 @@ if platform == 'android':
             if check_permission(permission) != True:
                 return False
         return True
-    
+
     permissions=[Permission.WRITE_EXTERNAL_STORAGE,Permission.READ_EXTERNAL_STORAGE]
     if check_permissions(permissions):
         request_permissions(permissions)
-            
+
 
 def makeAppDownloadsFolder():
     if not os.path.exists(my_folder):
         os.makedirs(my_folder)
-        
+
 makeAppDownloadsFolder()
 
 
@@ -134,10 +134,10 @@ async def async_download_file(url, save_path):
         Clock.schedule_once(lambda dt: Snackbar(confirm_txt='Open',h1=f'Successfully Saved { truncateStr(Path(file_path).parts[-1],10) }'))
         # Clock.schedule_once(lambda dt: print(f"File saved at {file_path}"))
     except Exception as e:
-        print(e,"Failed to Write to My Downloads Folder")      
+        print(e,"Failed to Write to My Downloads Folder")
 
 def download_file(url, save_path):
-    
+
     # Run the async function in the event loop
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
@@ -149,7 +149,7 @@ def myDownloadTest():
     url = needed_file.replace(' ', '%20')
     file_name = needed_file.split('/')[-1]
     file_path = os.path.join(my_folder, file_name)
-    
+
     # Start the download in a new thread
     # thread = Thread(target=download_file, args=(url, file_path))
     # thread.start()
@@ -213,7 +213,7 @@ Builder.load_string('''
 
 class My_RecycleGridLayout(RecycleGridLayout):
     screen_history = []  # Stack to manage visited screens
-    def __init__(self, **kwargs): 
+    def __init__(self, **kwargs):
         # print(Window.width)
         super().__init__(**kwargs)
         if Window.width > 800:
@@ -226,13 +226,13 @@ class My_RecycleGridLayout(RecycleGridLayout):
     def on_size(self, *args):
         if Window.width > 800:
             self.cols=5
-        elif Window.width < 300:            
+        elif Window.width < 300:
             self.cols=3
         elif Window.width < 200:
             self.cols=2
         else:
             self.cols=4
-            
+
 # rechable_ips=[]
 # lock=threading.Lock()
 # def ping(ip):
@@ -245,7 +245,7 @@ class My_RecycleGridLayout(RecycleGridLayout):
 #     if response == 0:
 #         with lock:
 #             rechable_ips.append(ip)
-            
+
 # def scan_network(network):
 #     """
 #     Scan the provided network to find active devices.
@@ -254,34 +254,34 @@ class My_RecycleGridLayout(RecycleGridLayout):
 #     print(f"Scanning network: {network}")
 #     # Create a pool of threads for faster execution
 #     threads=[]
-    
+
 #     for ip in ipaddress.IPv4Network(network, strict=False):
 #         t=threading.Thread(target=ping, args=(str(ip),))
 #         threads.append(t)
 #         t.start()
-        
+
 #     for t in threads:
 #         t.join()
 
 class WindowManager(ScreenManager):
     screen_history = []  # Stack to manage visited screens
-    def __init__(self, **kwargs): 
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
         Window.bind(on_keyboard=self.Android_back_click)
-        
+
     def changeScreenAnimation(self, screen_name):
         if self.screen_names.index(screen_name) > self.screen_names.index(self.current):
             self.transition=SlideTransition(direction='left')
         else:
             self.transition=SlideTransition(direction='right')
     def change_screen(self, screen_name):
-        """Navigate to a specific screen and record history."""        
+        """Navigate to a specific screen and record history."""
         self.changeScreenAnimation(screen_name)
-        
+
         if self.current != screen_name:
             self.screen_history.append(self.current)
             self.current = screen_name
-    
+
     def findTabButtonsAndChangeDesign(self):
         # TODO Google a way to select children by id prop
         # print([type(widget) for widget in self.walk(loopback=True)][0].ids)
@@ -299,8 +299,8 @@ class WindowManager(ScreenManager):
                 # print(self.current_screen.download_screen_history)
                 last_dir = self.current_screen.download_screen_history.pop()
                 self.current_screen.setPath(last_dir, False)
-                return True            
-            
+                return True
+
             if len(self.screen_history): # Navigate back to the previous screen
                 last_screen = self.screen_history.pop()
                 self.changeScreenAnimation(last_screen)
@@ -328,11 +328,11 @@ class TabButton(RectangularRippleBehavior,ButtonBehavior,MDBoxLayout):
     screen_manager_current=StringProperty() # current screen name
     # color=ListProperty()
     tabs_buttons_list=[]
-    def __init__(self, **kwargs): 
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # self.ripple
         self.orientation='vertical'
-        self.padding=[dp(0),dp(8),dp(0),dp(5)]        
+        self.padding=[dp(0),dp(8),dp(0),dp(5)]
         self.line_color=(.2, .2, .2, 0)
         self._radius=1
         self.id=self.text
@@ -350,7 +350,7 @@ class TabButton(RectangularRippleBehavior,ButtonBehavior,MDBoxLayout):
                 pos_hint={'center_x': 0.5,'center_y': 0},
                 theme_text_color="Custom",
             )
-        
+
         self.add_widget(self.btn_icon)
         self.add_widget(self.label)
         self.tabs_buttons_list.append(self)
@@ -372,7 +372,7 @@ class TabButton(RectangularRippleBehavior,ButtonBehavior,MDBoxLayout):
             else:
                 self.btn_icon.text_color=self.label.color = [0, 0, 0, 1]
                 self.md_bg_color = (.2, .2, .2, .5)
-        
+
             if self.screen == cur_screen:
                 # print(self.screen,cur_screen)
                 # MDIcon.text_color=Label.color = THEME_COLOR_TUPLE
@@ -391,7 +391,7 @@ class BottomNavigationBar(MDBoxLayout):
         self.size_hint =[ 1, .1]
         self.padding=0
         self.spacing=0
-        
+
         for index in range(len(icons)):
             self.btn = TabButton(
                 # id=str(index),
@@ -403,9 +403,9 @@ class BottomNavigationBar(MDBoxLayout):
                 screen_manager_current=screen_manager.current,
                 on_release=lambda x,cur_index=index: self.setScreen(x,screens[cur_index])
             )
-            self.add_widget(self.btn)    
-    
-    
+            self.add_widget(self.btn)
+
+
     def setScreen(self,btn:TabButton,screen_name):
         self.screen_manager.change_screen(screen_name)
         # btn.designWidgets(self.screen_manager.current)
@@ -414,14 +414,14 @@ class BottomNavigationBar(MDBoxLayout):
 class MySwitch(MDBoxLayout):
     text=StringProperty()
     switch_state=BooleanProperty()
-    
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.size_hint=[1,None]
         self.height='40sp'
         self.padding=[sp(20),0]
         # self.md_bg_color=[1,1,0,1]
-        
+
         self.add_widget(MDLabel(
             halign='left',valign='center',
                                 text_color=[1,1,1,1],
@@ -443,12 +443,12 @@ class MyCard(RecycleDataViewBehavior,RectangularRippleBehavior,ButtonBehavior,MD
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.ripple_effect=False
-           
+
     def myFormat(self, text:str):
         if len(text) > 20:
             return text[0:18] + '...'
         return text
-    
+
 class RV(RecycleView):
     def __init__(self, **kwargs):
         super(RV,self).__init__(**kwargs)
@@ -478,27 +478,27 @@ class Header(MDBoxLayout):
             valign='center',
             shorten_from='center',
             shorten=True,
-            
+
             )
         if self.text_halign == 'left':
             self.header_label.padding=[sp(40),0,0,0]
         else:
             self.header_label.padding=[sp(10),0,sp(10),0]
-            
+
         self.add_widget(self.header_label)
     def chandeTitle(self,text):
         self.header_label.text=text
-        
+
 from kivy.uix.widget import Widget
 
 from kivymd.uix.widget import MDWidget
 from kivymd.app import MDApp
 from kivymd.uix.button import MDButton, MDButtonText
 from kivymd.uix.dialog import MDDialog, MDDialogHeadlineText, MDDialogButtonContainer,MDDialogSupportingText
-        
+
 class DownloadScreen(MDScreen):
     download_screen_history = []  # Stack to directory screens
-    
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name='download'
@@ -516,15 +516,15 @@ class DownloadScreen(MDScreen):
                            title_color=self.theme_cls.backgroundColor,
                            )
         self.layout.add_widget(self.header)
-        
+
         self.screen_scroll_box = RV()
         self.screen_scroll_box.data=self.current_dir_info
         self.setPathInfo()
-        
+
         self.layout.add_widget(self.screen_scroll_box)
         self.add_widget(self.layout)
-        
-    
+
+
     def on_pre_enter(self, *args):
         self.setPathInfo()
         pass
@@ -539,13 +539,13 @@ class DownloadScreen(MDScreen):
         except Exception as e:
             print(e)
     def isDir(self,path:str):
-        
+
         try:
             response=requests.get(f"http://{SERVER_IP}:8000/api/ispath",json={'path':path})
             if response.status_code != 200:
                 return False
             return response.json()['data']
-            
+
         except Exception as e:
             print(f"isDir method: {e}")
             return False
@@ -553,11 +553,11 @@ class DownloadScreen(MDScreen):
         if not self.isDir(path):
             return
         if add_to_history:  # Saving Last directory for screen history
-            self.download_screen_history.append(self.current_dir) 
-            
+            self.download_screen_history.append(self.current_dir)
+
         self.current_dir = path
         self.header.chandeTitle(path)
-        self.setPathInfo()              
+        self.setPathInfo()
     def showDownloadDialog(self,path):
         """Shows Dialog box with choosen path and calls async download if ok press"""
         if (self.isDir(path)):
@@ -580,7 +580,7 @@ class DownloadScreen(MDScreen):
         asyncio.set_event_loop(loop)
         loop.run_until_complete(async_download_file(url, save_path))
 
-        
+
 class SettingsScreen(MDScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -589,7 +589,7 @@ class SettingsScreen(MDScreen):
             # md_bg_color=[1,0,0,1],
             # adaptive_height=True,
             size_hint=[1,.1],
-            
+
             pos_hint={'top':1}
             )
         self.layout.orientation='vertical'
@@ -598,9 +598,9 @@ class SettingsScreen(MDScreen):
         self.header=Header(
             # size_hint=[1,None],height=sp(50),
                            size_hint=[1,1],
-            
+
             text="Settings",text_halign='left')
-        
+
         self.content=MDBoxLayout(orientation='vertical',
                                  size_hint=[1,.8],
                                 #  md_bg_color=[1,0,0,1],
@@ -609,36 +609,36 @@ class SettingsScreen(MDScreen):
                                 padding=[sp(10),0],
             pos_hint={'top':.86}
                                  )
-        
+
         portInput=MDTextField(input_filter='float',theme_text_color= "Custom",text_color_focus=[.9,.9,1,1],text_color_normal=[1,1,1,1],pos_hint={'center_x':.5},size_hint=[.8,None],height=dp(80))
-        verifyBtn=MDButton(    
+        verifyBtn=MDButton(
                            theme_height= "Custom", theme_width= "Custom",
                            on_release=lambda x: Snackbar(confirm_txt='Ok'),
                            pos_hint={'center_x':.5},size_hint=[None,None],size=[sp(120),dp(50)],radius=0)
         verifyBtn.add_widget(MDButtonText(text='Verify',pos_hint= {"center_x": .5, "center_y": .5}
 ))
         self.layout.add_widget(self.header)
-        
-        
+
+
         self.content.add_widget(MySwitch(text='Show hidden files'))
         self.content.add_widget(portInput)
         self.content.add_widget(verifyBtn)
-        
+
         self.add_widget(self.layout)
         self.add_widget(self.content)
-    
+
 class Laner(MDApp):
-    
+
     def build(self):
         self.title='Laner'
-        
+
         # self.death='Fog'
         # self.bind(death=self.change_theme)
-        
+
         self.theme_cls.backgroundColor=THEME_COLOR_TUPLE
         root_layout=MDBoxLayout(orientation='vertical')
         root_layout.md_bg_color=.3,.3,.3,1
-        
+
         my_screen_manager = WindowManager()
         my_screen_manager.add_widget(UploadScreen())
         self.download_screen=DownloadScreen()
@@ -652,12 +652,12 @@ class Laner(MDApp):
         root_layout.add_widget(bottom_navigation_bar)
         # Clock.schedule_once(lambda dt: myDownloadTest())
 
-        
+
         return root_layout
     def change_theme(self, *args):
         print(self.death)
-        
-        
+
+
 
 if __name__ == '__main__':
     Laner().run()

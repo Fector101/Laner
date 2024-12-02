@@ -99,4 +99,4 @@ class Snackbar(MDWidget):
             size_hint_x=0.9,
             background_color=(.85, .95, .88, .9)
         )
-        self.snackbar.open()        
+        self.snackbar.open()
