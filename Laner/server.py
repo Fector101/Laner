@@ -46,7 +46,7 @@ class CustomHandler(SimpleHTTPRequestHandler):
                         img_source=f"http://{SERVER_IP}:8000{each_path[1:].replace(' ','%20')}"
                     elif format_ in my_owned_icons:
                         img_source=f"assets/icons/{format_}.png"
-                        # img_source=f"http://{SERVER_IP}:8000/home/fabian/Documents/my-projects-code/mobile-dev/Laner/Laner/assets/imgs/py.png"
+                        # img_source=f"http://{SERVER_IP}:8000/home/fabian/Documents/my-projects-code/mobile-dev/Laner/Laner/assets/icons/py.png"
                     elif format_ in zip_formats:
                         img_source=f"assets/icons/packed.png"
                     else:
