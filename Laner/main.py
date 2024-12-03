@@ -54,7 +54,6 @@ from kivymd.uix.textfield import MDTextField
 
 from widgets.popup import PopupDialog,Snackbar
 
-import requests
 import os, sys, json
 from kivymd.material_resources import DEVICE_TYPE
 from helper import getSystem_IpAdd
@@ -484,7 +483,7 @@ class Header(MDBoxLayout):
             self.header_label.padding=[sp(10),0,sp(10),0]
 
         self.add_widget(self.header_label)
-    def chandeTitle(self,text):
+    def changeTitle(self,text):
         self.header_label.text=text
 
 from kivy.uix.widget import Widget
@@ -536,7 +535,7 @@ class DownloadScreen(MDScreen):
         loop.close()
     async def asyncSetPathInfo(self):
         try:
-            response = requests.get(f"http://{SERVER_IP}:8000/api/getpathinfo",json={'path':self.current_dir})
+            response = requests.get(f"http://{SERVER_IP}:8000/api/getpathinfo",json={'path':self.current_dir},timeout=5)
             # requests.get(server,data='to be sent',auth=(username,password))
             print(f"Clicked {response}")
             if response.status_code != 200:
@@ -566,7 +565,7 @@ class DownloadScreen(MDScreen):
     def isDir(self,path:str):
 
         try:
-            response=requests.get(f"http://{SERVER_IP}:8000/api/ispath",json={'path':path})
+            response=requests.get(f"http://{SERVER_IP}:8000/api/ispath",json={'path':path},timeout=3)
             if response.status_code != 200:
                 return False
             return response.json()['data']
@@ -581,7 +580,7 @@ class DownloadScreen(MDScreen):
             self.download_screen_history.append(self.current_dir)
 
         self.current_dir = path
-        self.header.chandeTitle(path)
+        self.header.changeTitle(path)
         # self.setPathInfo()
         Clock.schedule_once(lambda dt: self.startSetPathInfo_Thread())
         
@@ -675,7 +674,7 @@ class Laner(MDApp):
 
         my_screen_manager = WindowManager()
         my_screen_manager.add_widget(UploadScreen())
-        download_screen=DownloadScreen()
+        self.download_screen=download_screen=DownloadScreen()
         my_screen_manager.add_widget(download_screen)
         my_screen_manager.add_widget(SettingsScreen())
         my_screen_manager.transition=NoTransition()
