@@ -57,12 +57,13 @@ from widgets.popup import PopupDialog,Snackbar
 import requests
 import os, sys, json
 from kivymd.material_resources import DEVICE_TYPE
+from helper import getSystem_IpAdd
 if DEVICE_TYPE != "mobile":
     Window.size = (400, 1000)
 THEME_COLOR_TUPLE=(.6, .9, .8, 1)
 __DIR__ = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
 MY_DATABASE_PATH = os.path.join(__DIR__, 'data', 'store.json')
-
+download_screen = None
 
 try:
     from jnius import autoclass
@@ -95,10 +96,12 @@ import requests
 # import aiohttp
 # from threading import Thread
 
-SERVER_IP = '192.168.2.4'
+SERVER_IP = getSystem_IpAdd()
 
 my_folder=os.getcwd()
 if platform == 'android':
+    
+    SERVER_IP=''
     from android.permissions import request_permissions, Permission,check_permission
     from android.storage import app_storage_path, primary_external_storage_path
     my_folder=os.path.join(primary_external_storage_path(),'Download','Laner')
@@ -130,7 +133,6 @@ async def async_download_file(url, save_path):
         print("Done")
         with open(file_path, "wb") as file:
             file.write(response.content)
-            # 
         Clock.schedule_once(lambda dt: Snackbar(confirm_txt='Open',h1=f'Successfully Saved { truncateStr(Path(file_path).parts[-1],10) }'))
         # Clock.schedule_once(lambda dt: print(f"File saved at {file_path}"))
     except Exception as e:
@@ -149,10 +151,6 @@ def myDownloadTest():
     url = needed_file.replace(' ', '%20')
     file_name = needed_file.split('/')[-1]
     file_path = os.path.join(my_folder, file_name)
-
-    # Start the download in a new thread
-    # thread = Thread(target=download_file, args=(url, file_path))
-    # thread.start()
     threading.Thread(target=download_file,args=(url, file_path)).start()
 
 
@@ -461,8 +459,8 @@ class UploadScreen(MDScreen):
         self.add_widget(label)
         self.theme_bg_color="Custom"
         self.md_bg_color=self.theme_cls.backgroundColor
-        img=AsyncImage(source=f"http://{SERVER_IP}:8000/home/fabian/Screenshot from 2024-11-23 19-57-50.png".replace(' ','%20'))
-        self.add_widget(img)
+        # img=AsyncImage(source=f"http://{SERVER_IP}:8000/home/fabian/Screenshot from 2024-11-23 19-57-50.png".replace(' ','%20'))
+        # self.add_widget(img)
 
 class Header(MDBoxLayout):
     text=StringProperty()
@@ -519,25 +517,52 @@ class DownloadScreen(MDScreen):
 
         self.screen_scroll_box = RV()
         self.screen_scroll_box.data=self.current_dir_info
-        self.setPathInfo()
+        # self.setPathInfo()
+        Clock.schedule_once(lambda dt: self.startSetPathInfo_Thread())
+        
 
         self.layout.add_widget(self.screen_scroll_box)
         self.add_widget(self.layout)
 
-
-    def on_pre_enter(self, *args):
-        self.setPathInfo()
-        pass
-    def setPathInfo(self):
+    def startSetPathInfo_Thread(self):
+        threading.Thread(target=self.querySetPathInfoAsync).start()
+        
+    def querySetPathInfoAsync(self):
+        # Run the async function in the event loop
+        
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(self.asyncSetPathInfo())
+        loop.close()
+    async def asyncSetPathInfo(self):
         try:
-            response = requests.get(f"http://{SERVER_IP}:8000/api/getpathinfo",json={'path':self.current_dir})   #os.listdir(self.current_dir)
+            response = requests.get(f"http://{SERVER_IP}:8000/api/getpathinfo",json={'path':self.current_dir})
             # requests.get(server,data='to be sent',auth=(username,password))
             print(f"Clicked {response}")
             if response.status_code != 200:
                 return
             self.screen_scroll_box.data=self.current_dir_info=response.json()['data']
+            # Clock.schedule_once(lambda dt: print(f"File saved at {file_path}"))
         except Exception as e:
-            print(e)
+            print(e,"Failed opening Folder async")
+                   
+    def on_pre_enter(self, *args):
+        # self.setPathInfo()
+        Clock.schedule_once(lambda dt: self.startSetPathInfo_Thread())
+        
+        pass
+    # def setPathInfo(self):
+    #     try:
+    #         response = requests.get(f"http://{SERVER_IP}:8000/api/getpathinfo",json={'path':self.current_dir})   #os.listdir(self.current_dir)
+    #         # requests.get(server,data='to be sent',auth=(username,password))
+    #         print(f"Clicked {response}")
+    #         if response.status_code != 200:
+    #             return
+    #         self.screen_scroll_box.data=self.current_dir_info=response.json()['data']
+    #     except Exception as e:
+    #         print(e)
+            
+            
     def isDir(self,path:str):
 
         try:
@@ -557,7 +582,9 @@ class DownloadScreen(MDScreen):
 
         self.current_dir = path
         self.header.chandeTitle(path)
-        self.setPathInfo()
+        # self.setPathInfo()
+        Clock.schedule_once(lambda dt: self.startSetPathInfo_Thread())
+        
     def showDownloadDialog(self,path):
         """Shows Dialog box with choosen path and calls async download if ok press"""
         if (self.isDir(path)):
@@ -610,10 +637,11 @@ class SettingsScreen(MDScreen):
             pos_hint={'top':.86}
                                  )
 
-        portInput=MDTextField(input_filter='float',theme_text_color= "Custom",text_color_focus=[.9,.9,1,1],text_color_normal=[1,1,1,1],pos_hint={'center_x':.5},size_hint=[.8,None],height=dp(80))
+        portInput=MDTextField(theme_text_color= "Custom",text_color_focus=[.9,.9,1,1],text_color_normal=[1,1,1,1],pos_hint={'center_x':.5},size_hint=[.8,None],height=dp(80))
         verifyBtn=MDButton(
                            theme_height= "Custom", theme_width= "Custom",
-                           on_release=lambda x: Snackbar(confirm_txt='Ok'),
+                           on_release=lambda x: self.setIP(portInput.text),
+                        #    on_release=lambda x: Snackbar(confirm_txt='Ok'),
                            pos_hint={'center_x':.5},size_hint=[None,None],size=[sp(120),dp(50)],radius=0)
         verifyBtn.add_widget(MDButtonText(text='Verify',pos_hint= {"center_x": .5, "center_y": .5}
 ))
@@ -626,10 +654,16 @@ class SettingsScreen(MDScreen):
 
         self.add_widget(self.layout)
         self.add_widget(self.content)
-
+    def setIP(self,text):
+        global SERVER_IP
+        SERVER_IP=text
+        Clock.schedule_once(lambda dt: download_screen.startSetPathInfo_Thread())
+        print('My address',text, SERVER_IP)
+        
 class Laner(MDApp):
 
     def build(self):
+        global download_screen
         self.title='Laner'
 
         # self.death='Fog'
@@ -641,10 +675,10 @@ class Laner(MDApp):
 
         my_screen_manager = WindowManager()
         my_screen_manager.add_widget(UploadScreen())
-        self.download_screen=DownloadScreen()
-        my_screen_manager.add_widget(self.download_screen)
+        download_screen=DownloadScreen()
+        my_screen_manager.add_widget(download_screen)
         my_screen_manager.add_widget(SettingsScreen())
-        # my_screen_manager.transition=NoTransition()
+        my_screen_manager.transition=NoTransition()
         my_screen_manager.current='settings'
         bottom_navigation_bar=BottomNavigationBar(my_screen_manager)
 

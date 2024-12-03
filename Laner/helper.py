@@ -1,5 +1,6 @@
 import os
 import json
+import socket
 # from http.server import SimpleHTTPRequestHandler,HTTPServer
 # import socketserver
 # import threading
@@ -22,13 +23,7 @@ def getHomePath():
     USER_HOME_PATH=os.getenv('HOME')
   return USER_HOME_PATH
 
-def findClosestParent(path:str):
-  if getSystemName() == 'Win':
-    number_of_slash=path.count(r'\\')
-  else:# anroid slash same as linux
-    number_of_slash=path.count('/')
-  
-  print(number_of_slash,path)
+def findClosestParent(path:str):...
 
 def scanFolder(inputted_folder_path:str):
   folder_paths=[]
@@ -55,6 +50,13 @@ def writeIntoDB(data):
   with open("public/data.json", mode="w") as new_word:
       new_word.write(dictionary_words)
 # cellphone-link
+def getSystem_IpAdd():
+    try:
+        with socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as s:
+            s.connect(("8.8.8.8",80))
+            return s.getsockname()[0]
+    except Exception as e:
+        return f"Getting IP Error: {e}"
 
 # with open("/home/fabian/Desktop/safe/worked/Application 2/json_maker/DataBase.json") as file:
 #   Dict_Structure = json.load(file)

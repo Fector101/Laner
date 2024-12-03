@@ -1,9 +1,11 @@
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 import os
 import json
-from helper import getHomePath
+from helper import getHomePath,getSystem_IpAdd
+import threading
 
-SERVER_IP = '192.168.2.4'
+
+SERVER_IP = getSystem_IpAdd()
 no = 1
 from socketserver import ThreadingMixIn
 class ThreadingHTTPServer(ThreadingMixIn, HTTPServer):
@@ -178,15 +180,15 @@ class FileSharingServer:
 
         # Create the HTTP server
         self.server = HTTPServer(("", self.port), CustomHandler)
-        self.server.serve_forever()
+        # self.server.serve_forever()
         
         # Start the server in a separate thread
-        # self.server_thread = threading.Thread(target=self.server.serve_forever)
-        # self.server_thread.daemon = True
-        # self.server_thread.start()
+        self.server_thread = threading.Thread(target=self.server.serve_forever)
+        self.server_thread.daemon = True
+        self.server_thread.start()
 
-        print(f"Server started at http://<your_ip>:{self.port}")
-        print(f"API endpoint available at http://<your_ip>:{self.port}/api/getpathinfo")
+        print(f"Server started at http://{SERVER_IP}:{self.port}")
+        print(f"API endpoint available at http://{SERVER_IP}:{self.port}/api/getpathinfo")
 
     def stop(self):
         if self.server:
