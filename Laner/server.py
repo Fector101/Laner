@@ -197,26 +197,26 @@ class FileSharingServer:
             self.server_thread.join()
             print("Server stopped.")
 
-if __name__ == "__main__":
-    # Specify the port and directory
-    port = 8000
-    directory = "/"
+# if __name__ == "__main__":
+#     # Specify the port and directory
+#     port = 8000
+#     directory = "/"
 
-    # Initialize the server
-    server = FileSharingServer(port, directory)
+#     # Initialize the server
+#     server = FileSharingServer(port, directory)
 
-    try:
-        # Start the server
-        server.start()
+#     try:
+#         # Start the server
+#         server.start()
 
-        # Keep the program running until interrupted
-        print("Press Ctrl+C to stop the server.")
-        while True:
-            pass
-    except KeyboardInterrupt:
-        # Stop the server on Ctrl+C
-        print("\nStopping the server...")
-        server.stop()
+#         # Keep the program running until interrupted
+#         print("Press Ctrl+C to stop the server.")
+#         while True:
+#             pass
+#     except KeyboardInterrupt:
+#         # Stop the server on Ctrl+C
+#         print("\nStopping the server...")
+#         server.stop()
 
 
 

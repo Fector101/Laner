@@ -642,7 +642,7 @@ class SettingsScreen(MDScreen):
                            on_release=lambda x: self.setIP(portInput.text),
                         #    on_release=lambda x: Snackbar(confirm_txt='Ok'),
                            pos_hint={'center_x':.5},size_hint=[None,None],size=[sp(120),dp(50)],radius=0)
-        verifyBtn.add_widget(MDButtonText(text='Verify',pos_hint= {"center_x": .5, "center_y": .5}
+        verifyBtn.add_widget(MDButtonText(text='Verify Code',pos_hint= {"center_x": .5, "center_y": .5}
 ))
         self.layout.add_widget(self.header)
 
