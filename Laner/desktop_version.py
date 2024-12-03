@@ -1,8 +1,6 @@
 from kivy.lang import Builder
 from kivymd.app import MDApp
-from http.server import BaseHTTPRequestHandler, SimpleHTTPRequestHandler,HTTPServer
 from kivy.core.window import Window
-import json
 import threading
 from server import FileSharingServer
 from helper import getSystem_IpAdd
@@ -45,10 +43,16 @@ MDBoxLayout:
         on_release: app.start_server()
         theme_text_color: "Custom"
         theme_bg_color: "Custom"
+        theme_width:  "Custom"
+        theme_height:  "Custom"
+        size_hint:[None,None]
+        size:[sp(120),dp(40)]
+        
         MDButtonText:
             id: start_button_id
             color: THEME_COLOR_TUPLE
             text: "Start Server"
+            pos_hint: {"center_x": .5,"center_y": .5}
         
 
     MDLabel:
@@ -56,6 +60,25 @@ MDBoxLayout:
         text: "Server not running"
         halign: "center"
         theme_text_color: "Hint"
+
+    MDButton:
+        id: hide_ip_btn_id
+        pos_hint: {"right": 1}
+        on_release: app.hide_ip()
+        theme_text_color: "Custom"
+        theme_bg_color: "Custom"
+        radius: 3
+        opacity:0
+        theme_width:  "Custom"
+        theme_height:  "Custom"
+        size_hint:[None,None]
+        size:[sp(100),dp(40)]
+        MDButtonText:
+            id: hide_ip_label_id
+            color: THEME_COLOR_TUPLE
+            text: "Hide Code"
+            pos_hint: {"center_x": .5,"center_y": .5}
+
 '''
 
 class FileShareApp(MDApp):
@@ -63,20 +86,22 @@ class FileShareApp(MDApp):
         self.title="Laner"        
         self.server_thread = None
         self.running = False
+        self.hidden_ip = False
+        self.ip = None
         return Builder.load_string(KV)
 
     def start_server(self):
-        print(self.running)
         if self.running:
             self.root.ids.status_label.text = "Server is already running! don't share code"
             self.on_stop()
             return
-        ip=getSystem_IpAdd()
-        if 'Error' in ip:
+        
+        self.ip=getSystem_IpAdd()
+        if 'Error' in self.ip:
             self.root.ids.hint_message.text = "Connect your PC to your Local Network, No need for Internet Capability"
             return
         else:
-            self.root.ids.hint_message.text = f"{getSystem_IpAdd()}"
+            self.root.ids.hint_message.text = "Hidden Code" if self.hidden_ip else self.ip
             self.root.ids.hint_message.font_style="Display"
             self.root.ids.hint_message.theme_font_size= "Primary"
             self.root.ids.hint_message.text_color=(.67,.67,.67,1)
@@ -84,8 +109,7 @@ class FileShareApp(MDApp):
 
 
 
-        # Get port from input or use default
-        # port = self.root.ids.port_input.text
+        # TODO Get port from input or use default OR run loop and return use and log found port
         port = 8000
         # Start the HTTP server in a separate thread
         self.server_thread = threading.Thread(target=self.run_server, args=(port,))
@@ -94,10 +118,9 @@ class FileShareApp(MDApp):
         self.running = True
         
         
+        self.root.ids.hide_ip_btn_id.opacity = 1
         self.root.ids.start_button_id.text = "End Server"
-        self.root.ids.status_label.text = "Server Running don't share code"
-        # print(self.root.ids)
-        
+        self.root.ids.status_label.text = "Server Running don't share code\n Write Extact Code in Link Tab on Your Phone"
         
         
     def run_server(self, port):
@@ -106,30 +129,36 @@ class FileShareApp(MDApp):
         try:
             # Start the server
             self.server.start()
-
-            # Keep the program running until interrupted
             print("Press Ctrl+C to stop the server.")
-            # while True:
-            #     pass
+            
         except KeyboardInterrupt:
             # Stop the server on Ctrl+C
             print("\nStopping the server...")
             self.server.stop()
         
-        # with HTTPServer(("", port), CustomHandler) as server:
-        #     server.serve_forever()
 
     def on_stop(self):
         self.root.ids.hint_message.text = "GoodBye!"
         self.running = False
         self.root.ids.start_button_id.text = "Start Server"
         self.root.ids.status_label.text = "Server Ended !!!"
+        self.root.ids.hide_ip_btn_id.opacity = 0
         
         # Stop the server when the app is closed
-        # print(self.server_thread)
         if self.server_thread:
             self.server_thread.join()
             self.server.stop()
-
+    
+    def hide_ip(self):
+        if not self.running:
+            return
+        if not self.hidden_ip:
+            self.root.ids.hint_message.text = "Hidden Code"
+            self.root.ids.hide_ip_label_id.text = "Show Code"
+        else:
+            self.root.ids.hint_message.text = self.ip
+            self.root.ids.hide_ip_label_id.text = "Hide Code"
+            
+        self.hidden_ip= not self.hidden_ip
 if __name__ == "__main__":
     FileShareApp().run()

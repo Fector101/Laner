@@ -1,109 +1,75 @@
-# from kivymd.uix.button import MDButton
-from kivy.uix.screenmanager import NoTransition
-# from kivymd.uix.button import BaseButton, MDIconButton, MDRectangleFlatButton,MDRectangleFlatIconButton,ButtonContentsIconText
-# from kivy.uix.boxlayout import BoxLayout
-# from kivymd.uix.button import MDRaisedButton
-# from kivymd.uix.relativelayout import MDRelativeLayout
-# from kivymd.uix.behaviors import CircularRippleBehavior
-# from kivy.uix.image import Image
-# from kivymd.uix.button import MDIconButton
-# from kivymd.uix.card import MDCard
-# from kivy.uix.slider import Slider
-# from kivymd.uix.slider import MDSlider
-# from kivy.uix.switch import Switch
-# from kivymd.uix.fitimage import FitImage
-from kivymd.uix.button import MDButton, MDButtonIcon, MDButtonText
-# import socket
-# from multiprocessing.dummy import Pool as ThreadPool
-
+from kivymd.app import MDApp
+from kivymd.uix.button import MDButton, MDButtonText
 from kivy.clock import Clock
-from kivy.uix.recycleboxlayout import RecycleBoxLayout
-from kivy.properties import ( BooleanProperty, ListProperty, BoundedNumericProperty, ColorProperty, DictProperty, NumericProperty, ObjectProperty, OptionProperty, StringProperty, VariableListProperty)
+from kivy.properties import ( BooleanProperty, ListProperty, StringProperty)
 from kivymd.app import MDApp
 from kivy.core.window import Window
 from kivy.properties import StringProperty,ListProperty
 from kivymd.uix.label import MDIcon, MDLabel
 from kivy.metrics import dp,sp
-from kivy.uix.screenmanager import Screen, ScreenManager
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.gridlayout import MDGridLayout
-from kivy.uix.screenmanager import ScreenManager, Screen, SlideTransition
-from kivy.uix.gridlayout import GridLayout
-from kivy.uix.button import Button
-from kivy.uix.scrollview import ScrollView
-from kivy.uix.recycleview import RecycleView,RecycleLayoutManagerBehavior
-from kivy.core.window import Window
-from kivy.app import runTouchApp
-from kivymd.uix.stacklayout import MDStackLayout
+from kivy.uix.screenmanager import ScreenManager, SlideTransition,NoTransition
+from kivy.uix.recycleview import RecycleView
 from kivy.uix.label import Label
 from kivymd.uix.behaviors import RectangularRippleBehavior
 from kivy.uix.behaviors import ButtonBehavior
-from kivymd.app import MDApp
-from kivymd.uix.boxlayout import MDBoxLayout
-from kivy.uix.relativelayout import RelativeLayout
-from kivymd.uix.label import MDLabel
 from kivymd.uix.relativelayout import MDRelativeLayout
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.selectioncontrol import MDSwitch
-from kivymd.uix.screen import MDScreen
-from kivymd.uix.list import MDList
-from kivy.uix.image import AsyncImage
-from kivy.uix.widget import Widget
 from kivy.lang import Builder
 from kivymd.uix.textfield import MDTextField
-
-from widgets.popup import PopupDialog,Snackbar
-
-import os, sys, json
-from kivymd.material_resources import DEVICE_TYPE
-from helper import getSystem_IpAdd
-if DEVICE_TYPE != "mobile":
-    Window.size = (400, 1000)
-THEME_COLOR_TUPLE=(.6, .9, .8, 1)
-__DIR__ = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
-MY_DATABASE_PATH = os.path.join(__DIR__, 'data', 'store.json')
-download_screen = None
-
-try:
-    from jnius import autoclass
-    from android import mActivity
-    # context =  mActivity.getApplicationContext()
-    # SERVICE_NAME = str(context.getPackageName()) + '.Service' + 'Worker'
-    # service = autoclass(SERVICE_NAME)
-    # print(SERVICE_NAME)
-    # service.start(mActivity,'')
-    # print('returned service')
-
-    context =  mActivity.getApplicationContext()
-    SERVICE_NAME = str(context.getPackageName()) + '.Service' + 'Sendshit'
-    service = autoclass(SERVICE_NAME)
-    service.start(mActivity,'')
-    print('returned service')
-except Exception as e:
-    print(f'Foreground service failed {e}')
-
-
-# import ipaddress
-import threading
-import os
 from kivy.uix.recycleview.views import RecycleDataViewBehavior
 from kivy.uix.recyclegridlayout import RecycleGridLayout
-import json
+
+from widgets.popup import PopupDialog,Snackbar
+import threading
 import asyncio
 from kivy.utils import platform
 import requests
-# import aiohttp
-# from threading import Thread
+import os, sys, json
+from kivymd.material_resources import DEVICE_TYPE
+from helper import getSystem_IpAdd, makeAppDownloadsFolder
 
+
+# For Dev
+if DEVICE_TYPE != "mobile":
+    Window.size = (400, 1000)
+
+# TODO For Theme
+THEME_COLOR_TUPLE=(.6, .9, .8, 1)
+__DIR__ = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
+MY_DATABASE_PATH = os.path.join(__DIR__, 'data', 'store.json')
+
+# For Dev PC IP
 SERVER_IP = getSystem_IpAdd()
 
+# So all class have access to download screen special settings
+download_screen = None
+
+# Dev getting Downloads Folder
 my_folder=os.getcwd()
+
 if platform == 'android':
-    
     SERVER_IP=''
+    try:
+        from jnius import autoclass
+        from android import mActivity
+        context =  mActivity.getApplicationContext()
+        SERVICE_NAME = str(context.getPackageName()) + '.Service' + 'Sendshit'
+        service = autoclass(SERVICE_NAME)
+        service.start(mActivity,'')
+        print('returned service')
+    except Exception as e:
+        print(f'Foreground service failed {e}')
+
+    
     from android.permissions import request_permissions, Permission,check_permission
     from android.storage import app_storage_path, primary_external_storage_path
+    
+    #Making/Getting Downloads Folder
     my_folder=os.path.join(primary_external_storage_path(),'Download','Laner')
+    makeAppDownloadsFolder(my_folder)
+    
     print('Asking permission...')
     def check_permissions(permissions):
         for permission in permissions:
@@ -115,12 +81,6 @@ if platform == 'android':
     if check_permissions(permissions):
         request_permissions(permissions)
 
-
-def makeAppDownloadsFolder():
-    if not os.path.exists(my_folder):
-        os.makedirs(my_folder)
-
-makeAppDownloadsFolder()
 
 
 from pathlib import Path
@@ -153,7 +113,6 @@ def myDownloadTest():
     threading.Thread(target=download_file,args=(url, file_path)).start()
 
 
-# size_hint: (.5, None)
 Builder.load_string('''
 <MyCard>:
     radius: dp(5)
@@ -230,35 +189,6 @@ class My_RecycleGridLayout(RecycleGridLayout):
         else:
             self.cols=4
 
-# rechable_ips=[]
-# lock=threading.Lock()
-# def ping(ip):
-#     """
-#     Ping an IP address to check if it is reachable.
-#     Returns the IP address if reachable, otherwise None.
-#     """
-#     # Execute a ping command
-#     response = os.system(f"ping -c 1 -W 1 {ip} > /dev/null 2>&1")
-#     if response == 0:
-#         with lock:
-#             rechable_ips.append(ip)
-
-# def scan_network(network):
-#     """
-#     Scan the provided network to find active devices.
-#     Returns a list of IP addresses of devices that respond to ping.
-#     """
-#     print(f"Scanning network: {network}")
-#     # Create a pool of threads for faster execution
-#     threads=[]
-
-#     for ip in ipaddress.IPv4Network(network, strict=False):
-#         t=threading.Thread(target=ping, args=(str(ip),))
-#         threads.append(t)
-#         t.start()
-
-#     for t in threads:
-#         t.join()
 
 class WindowManager(ScreenManager):
     screen_history = []  # Stack to manage visited screens
@@ -486,13 +416,6 @@ class Header(MDBoxLayout):
     def changeTitle(self,text):
         self.header_label.text=text
 
-from kivy.uix.widget import Widget
-
-from kivymd.uix.widget import MDWidget
-from kivymd.app import MDApp
-from kivymd.uix.button import MDButton, MDButtonText
-from kivymd.uix.dialog import MDDialog, MDDialogHeadlineText, MDDialogButtonContainer,MDDialogSupportingText
-
 class DownloadScreen(MDScreen):
     download_screen_history = []  # Stack to directory screens
 
@@ -619,7 +542,6 @@ class SettingsScreen(MDScreen):
             pos_hint={'top':1}
             )
         self.layout.orientation='vertical'
-        # self.layout.orientation='vertical'
         self.layout.spacing=sp(10)
         self.header=Header(
             # size_hint=[1,None],height=sp(50),
@@ -642,8 +564,7 @@ class SettingsScreen(MDScreen):
                            on_release=lambda x: self.setIP(portInput.text),
                         #    on_release=lambda x: Snackbar(confirm_txt='Ok'),
                            pos_hint={'center_x':.5},size_hint=[None,None],size=[sp(120),dp(50)],radius=0)
-        verifyBtn.add_widget(MDButtonText(text='Verify Code',pos_hint= {"center_x": .5, "center_y": .5}
-))
+        verifyBtn.add_widget(MDButtonText(text='Verify Code',pos_hint= {"center_x": .5, "center_y": .5}))
         self.layout.add_widget(self.header)
 
 
@@ -665,9 +586,6 @@ class Laner(MDApp):
         global download_screen
         self.title='Laner'
 
-        # self.death='Fog'
-        # self.bind(death=self.change_theme)
-
         self.theme_cls.backgroundColor=THEME_COLOR_TUPLE
         root_layout=MDBoxLayout(orientation='vertical')
         root_layout.md_bg_color=.3,.3,.3,1
@@ -683,12 +601,8 @@ class Laner(MDApp):
 
         root_layout.add_widget(my_screen_manager)
         root_layout.add_widget(bottom_navigation_bar)
-        # Clock.schedule_once(lambda dt: myDownloadTest())
-
 
         return root_layout
-    def change_theme(self, *args):
-        print(self.death)
 
 
 

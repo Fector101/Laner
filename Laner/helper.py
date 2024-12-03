@@ -1,15 +1,12 @@
 import os
 import json
 import socket
-# from http.server import SimpleHTTPRequestHandler,HTTPServer
-# import socketserver
-# import threading
 
 # /home/fabian/Documents/my projects code/mobile dev/Laner/venv/lib64/python3.12/site-packages/kivymd/uix/menu/menu.py
 # Run this from VSCode content menu (Run Python) --> /home/fabian/Documents/my projects code/mobile dev/Laner/venv/lib64/python3.12/site-packages/kivymd/icon_definitions.py
 def getSystemName():
   # Windows
-  USER_HOME_PATH=os.getenv('HOMEPATH')  # Can also be editable to downloads path or something else
+  USER_HOME_PATH=os.getenv('HOMEPATH')
   os_name='Win'
   if(USER_HOME_PATH == None):
     USER_HOME_PATH=os.getenv('HOME')
@@ -40,7 +37,6 @@ def scanFolder(inputted_folder_path:str):
     print(e) # Display Error in Log Screen "As is" i mean in the same format it's printed out in console (Will Probably only get error if Access Denied or Folder Moved)
   return {'folders':folder_paths,'files':file_paths}
   
-# os.chdir("public")  # <dev> Ensure this folder exists in your app's root
 def writeIntoDB(data):
   with open("public/data.json") as file:
       Dict_Structure = json.load(file)  
@@ -49,7 +45,6 @@ def writeIntoDB(data):
   dictionary_words = json.dumps(Dict_Structure, indent=4)
   with open("public/data.json", mode="w") as new_word:
       new_word.write(dictionary_words)
-# cellphone-link
 def getSystem_IpAdd():
     try:
         with socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as s:
@@ -58,7 +53,8 @@ def getSystem_IpAdd():
     except Exception as e:
         return f"Getting IP Error: {e}"
 
-# with open("/home/fabian/Desktop/safe/worked/Application 2/json_maker/DataBase.json") as file:
-#   Dict_Structure = json.load(file)
-#   print(Dict_Structure.keys())
   
+
+def makeAppDownloadsFolder(my_folder):
+    if not os.path.exists(my_folder):
+        os.makedirs(my_folder)
