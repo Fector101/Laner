@@ -427,7 +427,7 @@ class DownloadScreen(MDScreen):
         # """ Only set with setPath function"""
         self.current_dir_info:list[dict]=[]
         # """ Only set with setPathInfo function"""
-
+        self.could_not_open_path_msg="Couldn't Open Folder Check Laner on PC"
         self.layout=MDBoxLayout(md_bg_color=[.4,.4,.4,1],orientation='vertical')
         self.header=Header(
                            text=self.current_dir,
@@ -462,10 +462,12 @@ class DownloadScreen(MDScreen):
             # requests.get(server,data='to be sent',auth=(username,password))
             print(f"Clicked {response}")
             if response.status_code != 200:
+                Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
                 return
             self.screen_scroll_box.data=self.current_dir_info=response.json()['data']
             # Clock.schedule_once(lambda dt: print(f"File saved at {file_path}"))
         except Exception as e:
+            Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
             print(e,"Failed opening Folder async")
                    
     def on_pre_enter(self, *args):
@@ -490,10 +492,12 @@ class DownloadScreen(MDScreen):
         try:
             response=requests.get(f"http://{SERVER_IP}:8000/api/ispath",json={'path':path},timeout=3)
             if response.status_code != 200:
+                Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
                 return False
             return response.json()['data']
 
         except Exception as e:
+            Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
             print(f"isDir method: {e}")
             return False
     def setPath(self,path,add_to_history=True):

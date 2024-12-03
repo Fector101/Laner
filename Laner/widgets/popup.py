@@ -61,7 +61,7 @@ class Snackbar(MDWidget):
     h1=StringProperty()
     # caption=StringProperty()
     # cancel_txt=StringProperty()
-    confirm_txt=StringProperty()
+    confirm_txt=StringProperty('')
     # failedCallBack=ObjectProperty()
     # successCallBack=ObjectProperty()
     def __init__(self, **kwargs):

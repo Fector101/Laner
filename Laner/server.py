@@ -38,7 +38,7 @@ class CustomHandler(SimpleHTTPRequestHandler):
                     special_folders=['home','pictures','templates','videos','documents','music','favorites','share','downloads']
                     home_path=getHomePath()
                     if is_dir:
-                        print(os.path.join(home_path,each), '==', os.path.join(request_path[1:],each))
+                        # print(os.path.join(home_path,each), '==', os.path.join(request_path[1:],each))
                         if each.lower() in special_folders and (each.lower() in special_folders or os.path.join(home_path,each) == os.path.join(request_path[1:],each)):
                             # os.path.join(request_path[1:],each): this means getting root path will always be './' not '/'
                             img_source=f"assets/icons/folders/{each.lower()}.png"
@@ -171,11 +171,6 @@ class FileSharingServer:
         self.server_thread = None
 
     def start(self):
-        # Change the working directory to serve files
-        # if not os.path.exists(self.directory):
-        #     os.makedirs(self.directory)
-        # print(os.getcwd())
-        print(self.directory)
         os.chdir(self.directory)
 
         # Create the HTTP server
