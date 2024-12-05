@@ -2,16 +2,15 @@ from kivy.lang import Builder
 from kivymd.app import MDApp
 from kivy.core.window import Window
 import kivymd.icon_definitions
+
+import os
 import sys
-import pathlib
 import threading
+
 from server import FileSharingServer
 from helper import getSystem_IpAdd
-# from kivy.config import Config
-# Config.set('kivy','window_icon','assets/imgs/img.ico')
-Window.size = (500, 500)
-import os
 
+Window.size = (500, 500)
 #:set THEME_COLOR_TUPLE (160/255, 32/255, 240/255,1)
 KV = '''
 #:set THEME_COLOR_TUPLE (0, .7, .6, 1)
@@ -39,7 +38,6 @@ MDBoxLayout:
         text: 'Connect your PC to your HotSpot\\n and Press start to get code'
         theme_font_size: "Custom"
         font_size: '20sp'
-        # size_hint_x: 0.8
         halign: "center"
 
 
@@ -108,7 +106,11 @@ class FileShareApp(MDApp):
         
         self.ip=getSystem_IpAdd()
         if 'Error' in self.ip:
-            self.root.ids.hint_message.text = "Connect your PC to your Local Network, No need for Internet Capability"
+            self.root.ids.hint_message.text = "Connect your PC to your Local Network,\n No need for Internet Capability"
+            self.root.ids.hint_message.font_style="Body"
+            self.root.ids.hint_message.theme_font_size="Custom"
+            self.root.ids.hint_message.font_size='20sp'
+            self.root.ids.hint_message.text_color=(0,0,0,1)
             return
         else:
             self.root.ids.hint_message.text = "Hidden Code" if self.hidden_ip else self.ip
