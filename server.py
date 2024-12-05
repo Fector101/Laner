@@ -82,24 +82,6 @@ class CustomHandler(SimpleHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(json.dumps({'error':"Invaild JSON"}).encode("utf-8"))
 
-        elif self.path == "/api/test":
-            
-            content_length = int(self.headers['Content-Length'])    # This will be None when no path requested (i.e no json= in request)
-            request_data = self.rfile.read(content_length)
-            try:
-                # request_path=json.loads(request_data)['path']
-                self.send_response(200)
-                self.send_header("Content-type", "application/json")
-                self.end_headers()
-                
-                self.wfile.write(json.dumps({'path':'/storage/emulated/0/Download/bitch.txt'}).encode("utf-8"))
-            except json.JSONDecodeError:
-                self.send_response(400)
-                self.send_header("Content-type", "application/json")
-                self.end_headers()
-                self.wfile.write(json.dumps({'error':"Invaild JSON"}).encode("utf-8"))
-            
-
         elif self.path == "/api/ispath":
             
             content_length = int(self.headers['Content-Length'])    # This will be None when no path requested (i.e no json= in request)
@@ -119,50 +101,10 @@ class CustomHandler(SimpleHTTPRequestHandler):
             
         else:
             
-            # content_length = int(self.headers['Content-Length'])    # This will be None when no path requested (i.e no json= in request)
-            # request_data = self.rfile.read(content_length)
-            # print(content_length,'|||',request_data)
-            # Serve files for other requests (e.g., base URL)
+           
             super().do_GET()
         no+=1
-    def do_POST(self):
-        """
-        Post request
-        responses = requests.post(url="http://localhost:8000/api/endpoint_name",json={'path':self.current_dir})
-        print('||||',responses.status_code)
-        print('||||',responses.json())
-        print('||||',responses)
-        """
-        
-        if self.path == "/api/endpoint_name":
-            # Handle the custom endpoint
-            content_length = int(self.headers['Content-Length'])
-            post_data = self.rfile.read(content_length)
-            
-            try:
-                requested_path=json.loads(post_data)['path']
-                self.send_response(200)
-                self.send_header("Content-type", "application/json")
-                self.end_headers()
-
-
-                path_list =os.listdir(requested_path)
-                # print(path_list)
-                dir_info=[]
-                for each in path_list:
-                    dir_info.append({'name':each,'path':os.path.join(requested_path,each)})
-
-                response_data={'data':dir_info}
-                self.wfile.write(json.dumps(response_data).encode("utf-8"))
-            except json.JSONDecodeError:
-                self.send_response(400)
-                self.send_header("Content-type", "application/json")
-                self.end_headers()
-                self.wfile.write(json.dumps({'error':"Invaild JSON"}).encode("utf-8"))
-            
-        else:
-            # Serve files for other requests (e.g., base URL)
-            super().do_GET()
+   
 class FileSharingServer:
     def __init__(self, port=8000, directory="/"):
         self.port = port
@@ -174,7 +116,7 @@ class FileSharingServer:
         os.chdir(self.directory)
 
         # Create the HTTP server
-        self.server = HTTPServer(("", self.port), CustomHandler)
+        self.server = ThreadingHTTPServer(("", self.port), CustomHandler)
         # self.server.serve_forever()
         
         # Start the server in a separate thread

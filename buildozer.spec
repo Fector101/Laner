@@ -61,7 +61,7 @@ icon.filename = %(source.dir)s/assets/imgs/icon.png
 orientation = portrait
 
 # (list) List of service to declare
-services = Sendshit:./test.py
+services = Sendnoti:./foreground.py
 #services = NAME:ENTRYPOINT_TO_PY,NAME2:ENTRYPOINT2_TO_PY
 
 #

@@ -20,14 +20,16 @@ from kivy.lang import Builder
 from kivymd.uix.textfield import MDTextField
 from kivy.uix.recycleview.views import RecycleDataViewBehavior
 from kivy.uix.recyclegridlayout import RecycleGridLayout
+from kivy.utils import platform
+from kivymd.material_resources import DEVICE_TYPE
 
-from widgets.popup import PopupDialog,Snackbar
 import threading
 import asyncio
-from kivy.utils import platform
 import requests
 import os, sys, json
-from kivymd.material_resources import DEVICE_TYPE
+from pathlib import Path
+
+from widgets.popup import PopupDialog,Snackbar
 from helper import getSystem_IpAdd, makeAppDownloadsFolder
 
 
@@ -55,7 +57,7 @@ if platform == 'android':
         from jnius import autoclass
         from android import mActivity
         context =  mActivity.getApplicationContext()
-        SERVICE_NAME = str(context.getPackageName()) + '.Service' + 'Sendshit'
+        SERVICE_NAME = str(context.getPackageName()) + '.Service' + 'Sendnoti'
         service = autoclass(SERVICE_NAME)
         service.start(mActivity,'')
         print('returned service')
@@ -83,7 +85,6 @@ if platform == 'android':
 
 
 
-from pathlib import Path
 async def async_download_file(url, save_path):
     try:
         response = requests.get(url)

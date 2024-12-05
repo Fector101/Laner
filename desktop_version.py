@@ -1,11 +1,16 @@
 from kivy.lang import Builder
 from kivymd.app import MDApp
 from kivy.core.window import Window
+import kivymd.icon_definitions
+import sys
+import pathlib
 import threading
 from server import FileSharingServer
 from helper import getSystem_IpAdd
-
+# from kivy.config import Config
+# Config.set('kivy','window_icon','assets/imgs/img.ico')
 Window.size = (500, 500)
+import os
 
 #:set THEME_COLOR_TUPLE (160/255, 32/255, 240/255,1)
 KV = '''
@@ -83,6 +88,11 @@ MDBoxLayout:
 
 class FileShareApp(MDApp):
     def build(self):
+        icon_path="icon.png"
+        
+        if hasattr(sys, "_MEIPASS"):
+            icon_path=os.path.join(sys._MEIPASS,"assets","imgs","icon.png") 
+        self.icon=icon_path
         self.title="Laner"        
         self.server_thread = None
         self.running = False
