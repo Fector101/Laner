@@ -87,8 +87,8 @@ MDBoxLayout:
 class FileShareApp(MDApp):
     def build(self):
         icon_path="icon.png"
-        
         if hasattr(sys, "_MEIPASS"):
+            print(os.listdir(sys._MEIPASS))
             icon_path=os.path.join(sys._MEIPASS,"assets","imgs","icon.png") 
         self.icon=icon_path
         self.title="Laner"        
