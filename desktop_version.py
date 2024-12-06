@@ -1,7 +1,9 @@
 from kivy.lang import Builder
 from kivymd.app import MDApp
 from kivy.core.window import Window
+# from kivymd.uix.label import label
 import kivymd.icon_definitions
+import time
 
 import os
 import sys
@@ -9,7 +11,7 @@ import threading
 import platform
 
 from server import FileSharingServer
-from helper import getSystem_IpAdd
+from helper import getSystem_IpAdd, makeFolder
 
 Window.size = (500, 500)
 #:set THEME_COLOR_TUPLE (160/255, 32/255, 240/255,1)
@@ -88,11 +90,15 @@ MDBoxLayout:
 class FileShareApp(MDApp):
     def build(self):
         icon_path="icon.png"
+        # print(os.getcwd(),'----||||----')
+        application_folder = os.path.dirname(__file__)
+        #__file__ OR os.path.abspath(__file__) both gives absolute path
+        # os.path.dirname(__file__) OR sys._MEIPASS both give temp folder path
+        # os.path.dirname(__file__) is better since it work in develepoment when app is not packaged
         
-        application_folder = os.path.dirname(os.path.abspath(__file__))
-        print(application_folder,'|||')
+        # print(application_folder,'|||',sys._MEIPASS)
         if hasattr(sys, "_MEIPASS"):
-            print(os.listdir(sys._MEIPASS))
+            makeFolder(os.path.join(application_folder,'thumbnails'))
             icon_path=os.path.join(sys._MEIPASS,"assets","imgs","icon.png") 
         self.icon=icon_path
         self.title="Laner"        
@@ -100,8 +106,10 @@ class FileShareApp(MDApp):
         self.running = False
         self.hidden_ip = False
         self.ip = None
-        return Builder.load_string(KV)
-
+        try:
+            return Builder.load_string(KV)
+        except:
+            time.sleep(200)
     def start_server(self):
         if self.running:
             self.root.ids.status_label.text = "Server is already running! don't share code"
@@ -178,3 +186,21 @@ class FileShareApp(MDApp):
         self.hidden_ip= not self.hidden_ip
 if __name__ == "__main__":
     FileShareApp().run()
+    # try:
+    #     FileShareApp().run()
+    # except:
+    #     time.sleep(200)
+r=['imagelist', 
+   'dropdownitem', 
+   'list', 'sliverappbar', 
+   'chip', 'divider', 
+   'appbar', 'navigationdrawer', 
+   'selectioncontrol', 'bottomsheet', 
+   'pickers', 'expansionpanel', 'button',
+   'refreshlayout', 'navigationbar', 'textfield',
+   'segmentedbutton', 'badge', 'menu', 
+   'progressindicator', 'snackbar', 'slider', 
+   'card', 'dialog', 'tab',
+   'filemanager', 'navigationrail',
+   'swiper', 'tooltip'
+   ]

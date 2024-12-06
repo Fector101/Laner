@@ -1,7 +1,9 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+
 import os
 icon_path=os.path.join("assets","imgs","icon.png")
+
 
 a = Analysis(
     ['desktop_version.py'],
@@ -16,23 +18,6 @@ a = Analysis(
     noarchive=False,
     optimize=0,
 )
-
-
-
-
-excludes = ['.buildozer', '__pycache__', 'lab','venv', 'public','.idea']
-datas = []
-for d in a.datas:
-    skip=False
-    for e in excludes:
-        if e in d[0]:
-            skip=True
-            break
-    if not skip: datas.append(d)
-a.datas = TOC(datas)
-
-
-
 pyz = PYZ(a.pure)
 
 exe = EXE(
@@ -56,4 +41,5 @@ exe = EXE(
     entitlements_file=None,
     onefile=True,
     icon=icon_path,
+
 )

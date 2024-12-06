@@ -55,6 +55,6 @@ def getSystem_IpAdd():
 
   
 
-def makeAppDownloadsFolder(my_folder):
+def makeFolder(my_folder):
     if not os.path.exists(my_folder):
         os.makedirs(my_folder)

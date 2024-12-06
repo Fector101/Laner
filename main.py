@@ -30,7 +30,7 @@ import os, sys, json
 from pathlib import Path
 
 from widgets.popup import PopupDialog,Snackbar
-from helper import getSystem_IpAdd, makeAppDownloadsFolder
+from helper import getSystem_IpAdd, makeFolder
 
 
 # For Dev
@@ -70,7 +70,7 @@ if platform == 'android':
     
     #Making/Getting Downloads Folder
     my_folder=os.path.join(primary_external_storage_path(),'Download','Laner')
-    makeAppDownloadsFolder(my_folder)
+    makeFolder(my_folder)
     
     print('Asking permission...')
     def check_permissions(permissions):
