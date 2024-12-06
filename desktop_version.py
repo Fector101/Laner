@@ -8,7 +8,7 @@ import time
 import os
 import sys
 import threading
-import platform
+# import platform
 
 from server import FileSharingServer
 from helper import getSystem_IpAdd, makeFolder
@@ -96,9 +96,7 @@ class FileShareApp(MDApp):
         # os.path.dirname(__file__) OR sys._MEIPASS both give temp folder path
         # os.path.dirname(__file__) is better since it work in develepoment when app is not packaged
         
-        # print(application_folder,'|||',sys._MEIPASS)
         if hasattr(sys, "_MEIPASS"):
-            makeFolder(os.path.join(application_folder,'thumbnails'))
             icon_path=os.path.join(sys._MEIPASS,"assets","imgs","icon.png") 
         self.icon=icon_path
         self.title="Laner"        

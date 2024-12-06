@@ -54,7 +54,37 @@ def getSystem_IpAdd():
         return f"Getting IP Error: {e}"
 
   
-
+def getAppFolder():
+    return os.path.dirname(__file__)
+    
 def makeFolder(my_folder):
     if not os.path.exists(my_folder):
         os.makedirs(my_folder)
+        
+def sortedDir(dir_info:list):
+    """Sorts objects Alphabetically and Pushes files with dot to the back.
+
+    Args:
+        dir_info (list): a list of objects with a key 'text'
+
+    Returns:
+        list: returns a list sort objects according to 'text' attr
+    """
+    dir_info=sorted(dir_info,key=lambda path: path['text'])
+    
+    # Push files with dot at front to the back
+    items_with_dot=[]
+    items_without_dot=[]
+    for each in dir_info:
+        if each['text'][0] == '.':
+            items_with_dot.append(each)
+        else:
+            items_without_dot.append(each)
+    
+    return [*items_without_dot, *items_with_dot]
+
+def removeFileExtension(file_path:str):
+    return os.path.splitext(os.path.basename(file_path))[0]
+
+def getFileExtension(file_path:str):
+    return os.path.splitext(os.path.basename(file_path))[1]

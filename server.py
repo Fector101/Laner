@@ -1,8 +1,10 @@
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 import os
 import json
-from helper import getHomePath,getSystem_IpAdd
+from helper import getAppFolder, getFileExtension, getHomePath,getSystem_IpAdd, makeFolder, removeFileExtension, sortedDir
 import threading
+
+from workers.thumbmailGen import generate_thumbnail, generateThumbnails
 
 
 SERVER_IP = getSystem_IpAdd()
@@ -27,16 +29,20 @@ class CustomHandler(SimpleHTTPRequestHandler):
                 self.end_headers()
                 path_list:list[str] =os.listdir(request_path)
                 dir_info=[]
+                my_owned_icons=['.py','.js','.css','.html','.json','.deb','.md','.sql','.md','.java']
+                zip_formats=['.zip','.7z','.tar','.bzip2','.gzip','.xz','.lz4','.zstd','.bz2','.gz']
+                video_formats=('.mkv','.mp4', '.avi', '.mkv', '.mov')
+                special_folders=['home','pictures','templates','videos','documents','music','favorites','share','downloads']
+                home_path=getHomePath()
+                videos_paths=[]
+                
                 for each in path_list:
                     each_path=os.path.join(request_path,each)
                     is_dir=os.path.isdir(each_path)
                     img_source=None
-                    format_=each.split(".")[-1].lower()
-                    my_owned_icons=['py','js','css','html','json','deb','md','sql','md','java']
-                    zip_formats=['zip','7z','tar','bzip2','gzip','xz','lz4','zstd','bz2','gz']
-                    video_formats=['mp4','mov','mkv']
-                    special_folders=['home','pictures','templates','videos','documents','music','favorites','share','downloads']
-                    home_path=getHomePath()
+                    format_=getFileExtension(each).lower()
+                    
+                    
                     if is_dir:
                         # print(os.path.join(home_path,each), '==', os.path.join(request_path[1:],each))
                         if each.lower() in special_folders and (each.lower() in special_folders or os.path.join(home_path,each) == os.path.join(request_path[1:],each)):
@@ -44,7 +50,9 @@ class CustomHandler(SimpleHTTPRequestHandler):
                             img_source=f"assets/icons/folders/{each.lower()}.png"
                         else:                        
                             # img_source="assets/icons/folders/folder.png"
-                            img_source=f"http://{SERVER_IP}:8000{each_path[1:].replace(' ','%20')}"
+                            dev_err_folder="/home/fabian/Documents/my-projects-code/mobile-dev/Laner/assets/icons/folders/folder.png"
+                            img_source=f"http://{SERVER_IP}:8000{dev_err_folder}"
+                            # print(img_source)
                             
                     elif each.lower().endswith(('.png','.jpg','.jpeg','.tif','.bmp','.gif')):
                         img_source=f"http://{SERVER_IP}:8000{each_path[1:].replace(' ','%20')}"
@@ -53,31 +61,38 @@ class CustomHandler(SimpleHTTPRequestHandler):
                         # img_source=f"http://{SERVER_IP}:8000/home/fabian/Documents/my-projects-code/mobile-dev/Laner/Laner/assets/imgs/py.png"
                     elif format_ in zip_formats:
                         img_source=f"assets/icons/packed.png"
+                    elif each.lower().endswith(video_formats):
+                        file_path= os.path.join(getAppFolder(),'thumbnails',removeFileExtension(each).replace(' ','%20')+'_thumbnail.jpg')
+                        
+                        # generate_thumbnail(each_path, os.path.join(getAppFolder(),'thumbnails'),1)
+                        # th=threading.Thread(target=generate_thumbnail,args=(each_path, os.path.join(getAppFolder(),'thumbnails'),1))
+                        # th.daemon = True
+                        # th.start()
+                        img_source=f"http://{SERVER_IP}:8000{file_path}"
+                        videos_paths.append(each_path)
+                        # print(videos_paths,'-----||---')
                     else:
-                        img_source="assets/icons/file.png"
-                    
+                        img_source="assets/icons/file.png"                    
                     dir_info.append({
                         'text':each,
                         'path':each_path,
                         'is_dir':is_dir,'icon':img_source
                         })
                 
-                dir_info=sorted(dir_info,key=lambda path: path['text'])
                 
-                # Push files with dot at front to the back
-                items_with_dot=[]
-                items_without_dot=[]
-                for each in dir_info:
-                    if each['text'][0] == '.':
-                        items_with_dot.append(each)
-                    else:
-                        items_without_dot.append(each)
                 
-                dir_info=[*items_without_dot, *items_with_dot]
-                
+                dir_info=sortedDir(dir_info)
                 response_data={'data':dir_info}
+                generateThumbnails(videos_paths, os.path.join(getAppFolder(),'thumbnails'),1,8)
+                # print(videos_paths)
+                # th=threading.Thread(target=generateThumbnails,args=(videos_paths, os.path.join(getAppFolder(),'thumbnails'),1,8))
+                # th.daemon = True
+                # th.start()
                 self.wfile.write(json.dumps(response_data).encode("utf-8"))
                 print('Handled -----')
+                
+                
+                
             except json.JSONDecodeError:
                 self.send_response(400)
                 self.send_header("Content-type", "application/json")
@@ -113,6 +128,7 @@ class FileSharingServer:
         self.directory = directory
         self.server = None
         self.server_thread = None
+        makeFolder(os.path.join(getAppFolder(),'thumbnails'))
 
     def start(self):
         os.chdir(self.directory)
@@ -156,3 +172,5 @@ class FileSharingServer:
 #         # Stop the server on Ctrl+C
 #         print("\nStopping the server...")
 #         server.stop()
+# /home/fabian/Documents/my-projects-code/mobile-dev/Laner/thumbnails/2.%20Reading%20from%20Your%20Database%20with%20Mongoose_thumbnail.jpg
+# /home/fabian/Documents/my-projects-code/mobile-dev/Laner/thumbnails/2.%20Reading%20from%20Your%20Database%20with%20Mongoose_thumbnail.jpg
