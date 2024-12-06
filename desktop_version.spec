@@ -20,7 +20,7 @@ a = Analysis(
 
 
 
-excludes = ['.buildozer', '__pycache__', 'venv', 'public','.idea']
+excludes = ['.buildozer', '__pycache__', 'lab','venv', 'public','.idea']
 datas = []
 for d in a.datas:
     skip=False

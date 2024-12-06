@@ -6,6 +6,7 @@ import kivymd.icon_definitions
 import os
 import sys
 import threading
+import platform
 
 from server import FileSharingServer
 from helper import getSystem_IpAdd
@@ -87,6 +88,9 @@ MDBoxLayout:
 class FileShareApp(MDApp):
     def build(self):
         icon_path="icon.png"
+        
+        application_folder = os.path.dirname(os.path.abspath(__file__))
+        print(application_folder,'|||')
         if hasattr(sys, "_MEIPASS"):
             print(os.listdir(sys._MEIPASS))
             icon_path=os.path.join(sys._MEIPASS,"assets","imgs","icon.png") 
