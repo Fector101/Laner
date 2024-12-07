@@ -19,9 +19,9 @@ def generate_thumbnail(video_path, output_path, time=1.0):
     success, frame = cap.read()
     if success:
         Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-        cv2.imwrite(output_path, frame)
-        # cv2.imwrite(output_path, frame, [cv2.IMWRITE_JPEG_QUALITY,20])
-        print(f"Thumbnail saved at {output_path}")
+        # cv2.imwrite(output_path, frame)
+        cv2.imwrite(output_path, frame, [cv2.IMWRITE_JPEG_QUALITY,10])
+        # print(f"Thumbnail saved at {output_path}")
     else:
         print(f"Failed to capture frame for {video_path}")
 

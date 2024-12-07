@@ -4,7 +4,6 @@ from kivy.clock import Clock
 from kivy.properties import ( BooleanProperty, ListProperty, StringProperty)
 from kivymd.app import MDApp
 from kivy.core.window import Window
-from kivy.properties import StringProperty,ListProperty
 from kivymd.uix.label import MDIcon, MDLabel
 from kivy.metrics import dp,sp
 from kivymd.uix.boxlayout import MDBoxLayout
@@ -368,10 +367,20 @@ class MyCard(RecycleDataViewBehavior,RectangularRippleBehavior,ButtonBehavior,MD
     path=StringProperty()
     icon=StringProperty()
     text=StringProperty()
+    thumbnail_url=StringProperty()
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.ripple_effect=False
+        # print(self.thumbnail_url,'lll')
+        Clock.schedule_once(lambda dt: self.update_image(), 6)
 
+    def on_thumbnail_url(self, instance, value):
+        """Called whenever thumbnail_url changes."""
+        self.update_image()
+
+    def update_image(self):
+        if self.thumbnail_url:
+            self.icon = self.thumbnail_url
     def myFormat(self, text:str):
         if len(text) > 20:
             return text[0:18] + '...'
@@ -466,27 +475,15 @@ class DownloadScreen(MDScreen):
                 Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
                 return
             self.screen_scroll_box.data=self.current_dir_info=response.json()['data']
+            self.screen_scroll_box.refresh_from_data()
             # Clock.schedule_once(lambda dt: print(f"File saved at {file_path}"))
         except Exception as e:
             Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
             print(e,"Failed opening Folder async")
                    
     def on_pre_enter(self, *args):
-        # self.setPathInfo()
         Clock.schedule_once(lambda dt: self.startSetPathInfo_Thread())
-        
-        pass
-    # def setPathInfo(self):
-    #     try:
-    #         response = requests.get(f"http://{SERVER_IP}:8000/api/getpathinfo",json={'path':self.current_dir})   #os.listdir(self.current_dir)
-    #         # requests.get(server,data='to be sent',auth=(username,password))
-    #         print(f"Clicked {response}")
-    #         if response.status_code != 200:
-    #             return
-    #         self.screen_scroll_box.data=self.current_dir_info=response.json()['data']
-    #     except Exception as e:
-    #         print(e)
-            
+   
             
     def isDir(self,path:str):
 

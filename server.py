@@ -35,8 +35,8 @@ class CustomHandler(SimpleHTTPRequestHandler):
                 special_folders=['home','pictures','templates','videos','documents','music','favorites','share','downloads']
                 home_path=getHomePath()
                 videos_paths=[]
-                
                 for each in path_list:
+                    thumbnail_url=''
                     each_path=os.path.join(request_path,each)
                     is_dir=os.path.isdir(each_path)
                     img_source=None
@@ -57,37 +57,38 @@ class CustomHandler(SimpleHTTPRequestHandler):
                     elif each.lower().endswith(('.png','.jpg','.jpeg','.tif','.bmp','.gif')):
                         img_source=f"http://{SERVER_IP}:8000{each_path[1:].replace(' ','%20')}"
                     elif format_ in my_owned_icons:
-                        img_source=f"assets/icons/{format_}.png"
+                        img_source=f"assets/icons/{format_[1:]}.png"
                         # img_source=f"http://{SERVER_IP}:8000/home/fabian/Documents/my-projects-code/mobile-dev/Laner/Laner/assets/imgs/py.png"
                     elif format_ in zip_formats:
                         img_source=f"assets/icons/packed.png"
                     elif each.lower().endswith(video_formats):
-                        file_path= os.path.join(getAppFolder(),'thumbnails',removeFileExtension(each).replace(' ','%20')+'_thumbnail.jpg')
+                        thumbnail_img_path= os.path.join(getAppFolder(),'thumbnails',removeFileExtension(each).replace(' ','%20')+'_thumbnail.jpg')
                         
-                        # generate_thumbnail(each_path, os.path.join(getAppFolder(),'thumbnails'),1)
-                        # th=threading.Thread(target=generate_thumbnail,args=(each_path, os.path.join(getAppFolder(),'thumbnails'),1))
-                        # th.daemon = True
-                        # th.start()
-                        img_source=f"http://{SERVER_IP}:8000{file_path}"
+                        thumbnail_url=f"http://{SERVER_IP}:8000{thumbnail_img_path}"
+                        img_source="assets/icons/file.png"  # TODO Change to video icon png
+                        
                         videos_paths.append(each_path)
                         # print(videos_paths,'-----||---')
                     else:
                         img_source="assets/icons/file.png"                    
-                    dir_info.append({
+                    cur_obj={
                         'text':each,
                         'path':each_path,
-                        'is_dir':is_dir,'icon':img_source
-                        })
+                        'is_dir':is_dir,'icon':img_source,
+                        'thumbnail_url':thumbnail_url
+                        
+                        }
+                    dir_info.append(cur_obj)
                 
                 
                 
                 dir_info=sortedDir(dir_info)
                 response_data={'data':dir_info}
-                generateThumbnails(videos_paths, os.path.join(getAppFolder(),'thumbnails'),1,8)
+                # generateThumbnails(videos_paths, os.path.join(getAppFolder(),'thumbnails'),1,8)
                 # print(videos_paths)
-                # th=threading.Thread(target=generateThumbnails,args=(videos_paths, os.path.join(getAppFolder(),'thumbnails'),1,8))
-                # th.daemon = True
-                # th.start()
+                th=threading.Thread(target=generateThumbnails,args=(videos_paths, os.path.join(getAppFolder(),'thumbnails'),1,10))
+                th.daemon = True
+                th.start()
                 self.wfile.write(json.dumps(response_data).encode("utf-8"))
                 print('Handled -----')
                 
