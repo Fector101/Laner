@@ -88,3 +88,4 @@ def removeFileExtension(file_path:str):
 
 def getFileExtension(file_path:str):
     return os.path.splitext(os.path.basename(file_path))[1]
+  

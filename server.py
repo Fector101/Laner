@@ -100,7 +100,7 @@ class CustomHandler(SimpleHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(json.dumps({'error':"Invaild JSON"}).encode("utf-8"))
 
-        elif self.path == "/api/ispath":
+        elif self.path == "/api/isdir":
             
             content_length = int(self.headers['Content-Length'])    # This will be None when no path requested (i.e no json= in request)
             request_data = self.rfile.read(content_length)
@@ -116,6 +116,24 @@ class CustomHandler(SimpleHTTPRequestHandler):
                 self.send_header("Content-type", "application/json")
                 self.end_headers()
                 self.wfile.write(json.dumps({'error':"Invaild JSON"}).encode("utf-8"))
+            
+
+        # elif self.path == "/api/ispath":
+            
+        #     content_length = int(self.headers['Content-Length'])    # This will be None when no path requested (i.e no json= in request)
+        #     request_data = self.rfile.read(content_length)
+        #     try:
+        #         request_path=json.loads(request_data)['path']
+        #         self.send_response(200)
+        #         self.send_header("Content-type", "application/json")
+        #         self.end_headers()
+                
+        #         self.wfile.write(json.dumps({'data':os.path.isfile(request_path)}).encode("utf-8"))
+        #     except json.JSONDecodeError:
+        #         self.send_response(400)
+        #         self.send_header("Content-type", "application/json")
+        #         self.end_headers()
+        #         self.wfile.write(json.dumps({'error':"Invaild JSON"}).encode("utf-8"))
             
         else:
             

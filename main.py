@@ -368,19 +368,26 @@ class MyCard(RecycleDataViewBehavior,RectangularRippleBehavior,ButtonBehavior,MD
     icon=StringProperty()
     text=StringProperty()
     thumbnail_url=StringProperty()
+    is_dir=BooleanProperty()
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.ripple_effect=False
         # print(self.thumbnail_url,'lll')
-        Clock.schedule_once(lambda dt: self.update_image(), 6)
+        # if not self.is_dir:
+        #     print('polrwda---wdewwniw====')
+        # Clock.schedule_once(lambda dt: self.update_image(), 6)
 
     def on_thumbnail_url(self, instance, value):
         """Called whenever thumbnail_url changes."""
-        self.update_image()
-
+        
+        Clock.schedule_once(lambda dt: self.update_image(), 6)
+        
+      
+        
     def update_image(self):
         if self.thumbnail_url:
             self.icon = self.thumbnail_url
+            
     def myFormat(self, text:str):
         if len(text) > 20:
             return text[0:18] + '...'
@@ -475,7 +482,8 @@ class DownloadScreen(MDScreen):
                 Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
                 return
             self.screen_scroll_box.data=self.current_dir_info=response.json()['data']
-            self.screen_scroll_box.refresh_from_data()
+            # Clock.schedule_once(lambda dt: self.screen_scroll_box.refresh_from_data(), 6)
+            
             # Clock.schedule_once(lambda dt: print(f"File saved at {file_path}"))
         except Exception as e:
             Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
@@ -488,7 +496,7 @@ class DownloadScreen(MDScreen):
     def isDir(self,path:str):
 
         try:
-            response=requests.get(f"http://{SERVER_IP}:8000/api/ispath",json={'path':path},timeout=3)
+            response=requests.get(f"http://{SERVER_IP}:8000/api/isdir",json={'path':path},timeout=3)
             if response.status_code != 200:
                 Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
                 return False
