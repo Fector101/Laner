@@ -37,6 +37,7 @@ class CustomHandler(SimpleHTTPRequestHandler):
                 videos_paths=[]
                 for each in path_list:
                     thumbnail_url=''
+                    thumbnail_path=''
                     each_path=os.path.join(request_path,each)
                     is_dir=os.path.isdir(each_path)
                     img_source=None
@@ -62,9 +63,10 @@ class CustomHandler(SimpleHTTPRequestHandler):
                     elif format_ in zip_formats:
                         img_source=f"assets/icons/packed.png"
                     elif each.lower().endswith(video_formats):
-                        thumbnail_img_path= os.path.join(getAppFolder(),'thumbnails',removeFileExtension(each).replace(' ','%20')+'_thumbnail.jpg')
+                        thumbnail_img_path_4url= os.path.join(getAppFolder(),'thumbnails',removeFileExtension(each).replace(' ','%20')+'_thumbnail.jpg')
+                        thumbnail_path= os.path.join(getAppFolder(),'thumbnails',removeFileExtension(each)+'_thumbnail.jpg')
                         
-                        thumbnail_url=f"http://{SERVER_IP}:8000{thumbnail_img_path}"
+                        thumbnail_url=f"http://{SERVER_IP}:8000{thumbnail_img_path_4url}"
                         img_source="assets/icons/file.png"  # TODO Change to video icon png
                         
                         videos_paths.append(each_path)
@@ -75,7 +77,9 @@ class CustomHandler(SimpleHTTPRequestHandler):
                         'text':each,
                         'path':each_path,
                         'is_dir':is_dir,'icon':img_source,
-                        'thumbnail_url':thumbnail_url
+                        'thumbnail_url':thumbnail_url,
+                        'thumbnail_path':thumbnail_path,
+                        'validated_path':False,
                         
                         }
                     dir_info.append(cur_obj)
@@ -118,22 +122,22 @@ class CustomHandler(SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps({'error':"Invaild JSON"}).encode("utf-8"))
             
 
-        # elif self.path == "/api/ispath":
+        elif self.path == "/api/ispath":
             
-        #     content_length = int(self.headers['Content-Length'])    # This will be None when no path requested (i.e no json= in request)
-        #     request_data = self.rfile.read(content_length)
-        #     try:
-        #         request_path=json.loads(request_data)['path']
-        #         self.send_response(200)
-        #         self.send_header("Content-type", "application/json")
-        #         self.end_headers()
+            content_length = int(self.headers['Content-Length'])    # This will be None when no path requested (i.e no json= in request)
+            request_data = self.rfile.read(content_length)
+            try:
+                request_path=json.loads(request_data)['path']
+                self.send_response(200)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
                 
-        #         self.wfile.write(json.dumps({'data':os.path.isfile(request_path)}).encode("utf-8"))
-        #     except json.JSONDecodeError:
-        #         self.send_response(400)
-        #         self.send_header("Content-type", "application/json")
-        #         self.end_headers()
-        #         self.wfile.write(json.dumps({'error':"Invaild JSON"}).encode("utf-8"))
+                self.wfile.write(json.dumps({'data':os.path.isfile(request_path)}).encode("utf-8"))
+            except json.JSONDecodeError:
+                self.send_response(400)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({'error':"Invaild JSON"}).encode("utf-8"))
             
         else:
             

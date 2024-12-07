@@ -363,11 +363,13 @@ def truncateStr(text:str,limit=20):
         return text[0:limit] + '...'
     return text
 
+validated_paths=[]
 class MyCard(RecycleDataViewBehavior,RectangularRippleBehavior,ButtonBehavior,MDRelativeLayout):
     path=StringProperty()
     icon=StringProperty()
     text=StringProperty()
     thumbnail_url=StringProperty()
+    thumbnail_path=StringProperty()
     is_dir=BooleanProperty()
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -377,16 +379,36 @@ class MyCard(RecycleDataViewBehavior,RectangularRippleBehavior,ButtonBehavior,MD
         #     print('polrwda---wdewwniw====')
         # Clock.schedule_once(lambda dt: self.update_image(), 6)
 
+    def isPath(self,path:str):
+
+        try:
+            response=requests.get(f"http://{SERVER_IP}:8000/api/ispath",json={'path':path},timeout=3)
+            if response.status_code != 200:
+                Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
+                return False
+            print(response.json()['data'])
+            return response.json()['data']
+
+        except Exception as e:
+            Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
+            print(f"isDir method: {e}")
+            return False
+
     def on_thumbnail_url(self, instance, value):
         """Called whenever thumbnail_url changes."""
-        
-        Clock.schedule_once(lambda dt: self.update_image(), 6)
-        
-      
-        
+        self.event = Clock.schedule_interval(lambda dt: self.update_image(), 1)
+                
     def update_image(self):
-        if self.thumbnail_url:
+        global validated_paths
+        if self.thumbnail_url and (self.thumbnail_path in validated_paths or self.isPath(self.thumbnail_path)):
+            if self.thumbnail_path not in validated_paths:
+                validated_paths.append(self.thumbnail_path)
+            
             self.icon = self.thumbnail_url
+            self.event.cancel()
+        elif not self.thumbnail_url:
+            self.event.cancel()
+            
             
     def myFormat(self, text:str):
         if len(text) > 20:
