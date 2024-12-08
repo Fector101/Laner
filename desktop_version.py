@@ -10,8 +10,8 @@ import sys
 import threading
 # import platform
 
-from server import FileSharingServer
-from helper import getSystem_IpAdd, makeFolder
+from workers.server import FileSharingServer
+from workers.helper import getSystem_IpAdd, makeFolder
 
 Window.size = (500, 500)
 #:set THEME_COLOR_TUPLE (160/255, 32/255, 240/255,1)

@@ -1,7 +1,7 @@
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 import os
 import json
-from helper import gen_unique_filname, getAppFolder, getFileExtension, getHomePath,getSystem_IpAdd, makeFolder, removeFileExtension, sortedDir
+from workers.helper import gen_unique_filname, getAppFolder, getFileExtension, getHomePath,getSystem_IpAdd, makeFolder, removeFileExtension, sortedDir
 import threading
 import base64
 from workers.thumbmailGen import generate_thumbnail, generateThumbnails
@@ -70,8 +70,7 @@ class CustomHandler(SimpleHTTPRequestHandler):
                         thumbnail_path = os.path.join(getAppFolder(),'thumbnails',image_path+'_thumbnail.jpg')
                         # print(thumbnail_path)
                         thumbnail_url=f"http://{SERVER_IP}:8000{thumbnail_path}"
-                        img_source="assets/icons/file.png"  # TODO Change to video icon png
-                        
+                        img_source="assets/icons/video.png" 
                         videos_paths.append(each_path)
                         # print(videos_paths,'-----||---')
                     else:

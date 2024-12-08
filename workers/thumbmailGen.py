@@ -2,7 +2,6 @@ import cv2
 import os
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-import base64
 
 from helper import gen_unique_filname
 def generate_thumbnail(video_path, output_path, time=1.0):
