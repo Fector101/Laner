@@ -10,7 +10,7 @@ package.name = lan_ft
 package.domain = org.test
 
 # (str) Source code where the main.py live
-source.dir = ./Laner
+source.dir = ./
 
 # (list) Source files to include (let empty to include all the files)
 source.include_exts = py,png,jpg,kv,atlas,ttf,json
@@ -25,7 +25,7 @@ android.manifest =./AndroidManifest.xml
 #source.exclude_exts = spec
 
 # (list) List of directory to exclude (let empty to not exclude anything)
-source.exclude_dirs = tests, bin, venv, worked, __pycache__, .idea
+source.exclude_dirs = tests, bin, venv, worked, __pycache__, .idea, dist
 
 # (list) List of exclusions using pattern matching
 # Do not prefix with './'

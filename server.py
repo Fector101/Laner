@@ -50,9 +50,9 @@ class CustomHandler(SimpleHTTPRequestHandler):
                             # os.path.join(request_path[1:],each): this means getting root path will always be './' not '/'
                             img_source=f"assets/icons/folders/{each.lower()}.png"
                         else:                        
-                            # img_source="assets/icons/folders/folder.png"
-                            dev_err_folder="/home/fabian/Documents/my-projects-code/mobile-dev/Laner/assets/icons/folders/folder.png"
-                            img_source=f"http://{SERVER_IP}:8000{dev_err_folder}"
+                            img_source="assets/icons/folders/folder.png"
+                            # dev_err_folder="/home/fabian/Documents/my-projects-code/mobile-dev/Laner/assets/icons/folders/folder.png"
+                            # img_source=f"http://{SERVER_IP}:8000{dev_err_folder}"
                             # print(img_source)
                             
                     elif each.lower().endswith(('.png','.jpg','.jpeg','.tif','.bmp','.gif')):
