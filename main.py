@@ -386,7 +386,7 @@ class MyCard(RecycleDataViewBehavior,RectangularRippleBehavior,ButtonBehavior,MD
             if response.status_code != 200:
                 Clock.schedule_once(lambda dt:Snackbar(h1="Dev pinging for thumb valid"))
                 return False
-            print(response.json()['data'])
+            # print(response.json()['data'])
             return response.json()['data']
 
         except Exception as e:
@@ -396,7 +396,7 @@ class MyCard(RecycleDataViewBehavior,RectangularRippleBehavior,ButtonBehavior,MD
 
     def on_thumbnail_url(self, instance, value):
         """Called whenever thumbnail_url changes."""
-        self.event = Clock.schedule_interval(lambda dt: self.update_image(), 3)
+        self.event = Clock.schedule_interval(lambda dt: self.update_image(), 1)
                 
     def update_image(self):
         global validated_paths

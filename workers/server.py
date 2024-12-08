@@ -9,13 +9,15 @@ from workers.thumbmailGen import generate_thumbnail, generateThumbnails
 
 SERVER_IP = getSystem_IpAdd()
 no = 1
+generated_thumbnails=[]
+
 from socketserver import ThreadingMixIn
 class ThreadingHTTPServer(ThreadingMixIn, HTTPServer):
     pass
 
 class CustomHandler(SimpleHTTPRequestHandler):
     def do_GET(self):
-        global no
+        global no, generated_thumbnails
         # print(no)
         if self.path == "/api/getpathinfo":
             content_length = int(self.headers['Content-Length'])    # This will be None when no path requested (i.e no json= in request)
@@ -71,7 +73,9 @@ class CustomHandler(SimpleHTTPRequestHandler):
                         # print(thumbnail_path)
                         thumbnail_url=f"http://{SERVER_IP}:8000{thumbnail_path}"
                         img_source="assets/icons/video.png" 
-                        videos_paths.append(each_path)
+                        if each_path not in generated_thumbnails:
+                            generated_thumbnails.append(each_path)
+                            videos_paths.append(each_path)
                         # print(videos_paths,'-----||---')
                     else:
                         img_source="assets/icons/file.png"                    
