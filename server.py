@@ -1,9 +1,9 @@
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 import os
 import json
-from helper import getAppFolder, getFileExtension, getHomePath,getSystem_IpAdd, makeFolder, removeFileExtension, sortedDir
+from helper import gen_unique_filname, getAppFolder, getFileExtension, getHomePath,getSystem_IpAdd, makeFolder, removeFileExtension, sortedDir
 import threading
-
+import base64
 from workers.thumbmailGen import generate_thumbnail, generateThumbnails
 
 
@@ -16,7 +16,7 @@ class ThreadingHTTPServer(ThreadingMixIn, HTTPServer):
 class CustomHandler(SimpleHTTPRequestHandler):
     def do_GET(self):
         global no
-        print(no)
+        # print(no)
         if self.path == "/api/getpathinfo":
             content_length = int(self.headers['Content-Length'])    # This will be None when no path requested (i.e no json= in request)
             request_data = self.rfile.read(content_length)
@@ -63,10 +63,13 @@ class CustomHandler(SimpleHTTPRequestHandler):
                     elif format_ in zip_formats:
                         img_source=f"assets/icons/packed.png"
                     elif each.lower().endswith(video_formats):
-                        thumbnail_img_path_4url= os.path.join(getAppFolder(),'thumbnails',removeFileExtension(each).replace(' ','%20')+'_thumbnail.jpg')
-                        thumbnail_path= os.path.join(getAppFolder(),'thumbnails',removeFileExtension(each)+'_thumbnail.jpg')
+                        # thumbnail_img_path_4url = os.path.join(getAppFolder(),'thumbnails',removeFileExtension(each).replace(' ','%20')+'_thumbnail.jpg')
                         
-                        thumbnail_url=f"http://{SERVER_IP}:8000{thumbnail_img_path_4url}"
+                        # data_=each_path.encode('utf-8')
+                        image_path = gen_unique_filname(each_path)
+                        thumbnail_path = os.path.join(getAppFolder(),'thumbnails',image_path+'_thumbnail.jpg')
+                        # print(thumbnail_path)
+                        thumbnail_url=f"http://{SERVER_IP}:8000{thumbnail_path}"
                         img_source="assets/icons/file.png"  # TODO Change to video icon png
                         
                         videos_paths.append(each_path)
@@ -122,12 +125,14 @@ class CustomHandler(SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps({'error':"Invaild JSON"}).encode("utf-8"))
             
 
-        elif self.path == "/api/ispath":
+        elif self.path == "/api/isfile":
             
             content_length = int(self.headers['Content-Length'])    # This will be None when no path requested (i.e no json= in request)
             request_data = self.rfile.read(content_length)
             try:
                 request_path=json.loads(request_data)['path']
+                # print('Here+++',os.path.basename(request_path).encode('utf-8'),os.path.basename(request_path))
+                # print('here+++++',base64.urlsafe_b64decode(os.path.basename(request_path).replace('_thumbnail.jpg','').encode('utf-8')).decode("utf-8"))
                 self.send_response(200)
                 self.send_header("Content-type", "application/json")
                 self.end_headers()
@@ -154,6 +159,9 @@ class FileSharingServer:
         makeFolder(os.path.join(getAppFolder(),'thumbnails'))
 
     def start(self):
+        global SERVER_IP
+        SERVER_IP = getSystem_IpAdd()
+        
         os.chdir(self.directory)
 
         # Create the HTTP server

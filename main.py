@@ -379,28 +379,28 @@ class MyCard(RecycleDataViewBehavior,RectangularRippleBehavior,ButtonBehavior,MD
         #     print('polrwda---wdewwniw====')
         # Clock.schedule_once(lambda dt: self.update_image(), 6)
 
-    def isPath(self,path:str):
+    def isFile(self,path:str):
 
         try:
-            response=requests.get(f"http://{SERVER_IP}:8000/api/ispath",json={'path':path},timeout=3)
+            response=requests.get(f"http://{SERVER_IP}:8000/api/isfile",json={'path':path},timeout=3)
             if response.status_code != 200:
-                Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
+                Clock.schedule_once(lambda dt:Snackbar(h1="Dev pinging for thumb valid"))
                 return False
             print(response.json()['data'])
             return response.json()['data']
 
         except Exception as e:
-            Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
+            Clock.schedule_once(lambda dt:Snackbar(h1="Dev pinging for thumb valid"))
             print(f"isDir method: {e}")
             return False
 
     def on_thumbnail_url(self, instance, value):
         """Called whenever thumbnail_url changes."""
-        self.event = Clock.schedule_interval(lambda dt: self.update_image(), 1)
+        self.event = Clock.schedule_interval(lambda dt: self.update_image(), 3)
                 
     def update_image(self):
         global validated_paths
-        if self.thumbnail_url and (self.thumbnail_path in validated_paths or self.isPath(self.thumbnail_path)):
+        if self.thumbnail_url and (self.thumbnail_path in validated_paths or self.isFile(self.thumbnail_path)):
             if self.thumbnail_path not in validated_paths:
                 validated_paths.append(self.thumbnail_path)
             

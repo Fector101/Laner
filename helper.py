@@ -88,4 +88,8 @@ def removeFileExtension(file_path:str):
 
 def getFileExtension(file_path:str):
     return os.path.splitext(os.path.basename(file_path))[1]
-  
+import hashlib
+def gen_unique_filname(file_path:str):
+  hash_obj=hashlib.sha256(file_path.encode('utf-8'))
+  unique_name=hash_obj.hexdigest()
+  return unique_name

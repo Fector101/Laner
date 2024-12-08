@@ -2,7 +2,9 @@ import cv2
 import os
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+import base64
 
+from helper import gen_unique_filname
 def generate_thumbnail(video_path, output_path, time=1.0):
     """
     Generate a thumbnail from a single video.
@@ -26,7 +28,7 @@ def generate_thumbnail(video_path, output_path, time=1.0):
         print(f"Failed to capture frame for {video_path}")
 
     cap.release()
-
+# generate_thumbnail("/home/fabian/Videos/I Probarly don't know this Stuff - (The Complete 2021 Web Development Bootcamp)/22. EJS/group .mp4/10. Understanding Node Module Exports How to Pass Functions and Data between Files.mp4",'/home/fabian/Documents/my-projects-code/mobile-dev/Laner/stan/tets.jpg')
 def generateThumbnails(video_paths, output_dir, time=1.0, max_threads=4):
     """
     Generate thumbnails from multiple videos in parallel.
@@ -36,9 +38,13 @@ def generateThumbnails(video_paths, output_dir, time=1.0, max_threads=4):
     :param time: Time (in seconds) to capture the thumbnail frame.
     :param max_threads: Maximum number of threads to use for parallel processing.
     """
-    def process_video(video_path):
-        video_name = Path(video_path).stem
-        output_path = f"{output_dir}/{video_name}_thumbnail.jpg"
+    def process_video(video_path:str):
+        # video_name = Path(video_path).stem
+        # thumbnail_name = base64.urlsafe_b64encode(video_path.encode('utf-8')).decode()
+        thumbnail_name = gen_unique_filname(video_path)
+        print(video_path,'|||',thumbnail_name)
+        
+        output_path = f"{output_dir}/{thumbnail_name}_thumbnail.jpg"
         generate_thumbnail(video_path, output_path, time)
 
     with ThreadPoolExecutor(max_threads) as executor:
