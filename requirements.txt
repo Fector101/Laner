@@ -1,0 +1,4 @@
+kivy
+kivymd
+opencv-python
+pyinstaller
