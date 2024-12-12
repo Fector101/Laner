@@ -30,7 +30,7 @@ class Header(MDBoxLayout):
         self.md_bg_color = (.2, .2, .2, .5)
         self.header_label=MDLabel(
             text_color=self.title_color,
-            text=self.text,
+            text='~ '+self.text if self.text == 'Home' else self.text,
             halign=self.text_halign,
             valign='center',
             shorten_from='center',
@@ -44,7 +44,8 @@ class Header(MDBoxLayout):
 
         self.add_widget(self.header_label)
     def changeTitle(self,text):
-        self.header_label.text=text
+        self.header_label.text='~ '+ text if text == 'Home' else text
+        
 
 
 class RV(RecycleView):
@@ -65,11 +66,11 @@ async def async_download_file(url, save_path):
         print(e,"Failed Download")
         
 class DisplayFolderScreen(MDScreen):
-    screen_history = []
     current_dir = StringProperty('.')
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.screen_history = []
         self.current_dir_info:list[dict]=[]
         self.could_not_open_path_msg="Couldn't Open Folder Check Laner on PC"
         self.layout=MDBoxLayout(md_bg_color=[.4,.4,.4,1],orientation='vertical')
@@ -108,7 +109,6 @@ class DisplayFolderScreen(MDScreen):
                 Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
                 return
             self.current_dir_info=[]
-            print(getHiddenFilesDisplay_State())
             for each_name in response.json()['data']:
                 if not getHiddenFilesDisplay_State() and each_name['text'][0] != '.':
                     self.current_dir_info.append(each_name)
