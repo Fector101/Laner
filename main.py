@@ -27,7 +27,7 @@ import os, sys, json
 
 from widgets.popup import Snackbar
 from widgets.templates import DisplayFolderScreen, Header
-from workers.helper import getSystem_IpAdd, makeDownloadFolder,SHOW_HIDDEN_FILES, setHiddenFilesDisplay
+from workers.helper import getSERVER_IP, makeDownloadFolder, setHiddenFilesDisplay, setSERVER_IP
 
 # For Dev
 if DEVICE_TYPE != "mobile":
@@ -38,17 +38,12 @@ THEME_COLOR_TUPLE=(.6, .9, .8, 1)
 __DIR__ = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
 MY_DATABASE_PATH = os.path.join(__DIR__, 'data', 'store.json')
 
-# For Dev PC IP
-SERVER_IP = getSystem_IpAdd()
-
-# So all class have access to download screen special settings
-download_screen = None
 
 #Making/Getting Downloads Folder
 my_downloads_folder=makeDownloadFolder()
 
 if platform == 'android':
-    SERVER_IP=''
+    setSERVER_IP('')
     try:
         from jnius import autoclass
         from android import mActivity # type: ignore
@@ -344,9 +339,9 @@ class MyCard(RecycleDataViewBehavior,RectangularRippleBehavior,ButtonBehavior,MD
     def isFile(self,path:str):
 
         try:
-            response=requests.get(f"http://{SERVER_IP}:8000/api/isfile",json={'path':path},timeout=3)
+            response=requests.get(f"http://{getSERVER_IP()}:8000/api/isfile",json={'path':path},timeout=2)
             if response.status_code != 200:
-                Clock.schedule_once(lambda dt:Snackbar(h1="Dev pinging for thumb valid"))
+                # Clock.schedule_once(lambda dt:Snackbar(h1="Dev pinging for thumb valid"))
                 return False
             # print(response.json()['data'])
             return response.json()['data']
@@ -390,6 +385,7 @@ class SettingsScreen(MDScreen):
             )
         self.layout.orientation='vertical'
         self.layout.spacing=sp(10)
+        
         self.header=Header(
             # size_hint=[1,None],height=sp(50),
                            size_hint=[1,1],
@@ -426,15 +422,21 @@ class SettingsScreen(MDScreen):
     def on_checkbox_active(self,checkbox, value):
         setHiddenFilesDisplay(value)
     def setIP(self,text):
-        global SERVER_IP
-        SERVER_IP=text
-        Clock.schedule_once(lambda dt: download_screen.startSetPathInfo_Thread())
-        print('My address',text, SERVER_IP)
+        setSERVER_IP(text)
+        try:
+            response=requests.get(f"http://{text}:8000/ping",json={'passcode':'blah blah'},timeout=.2)
+            if response.status_code == 200:
+                Snackbar(h1="Verification Successfull")
+            else:
+                Snackbar(h1="Bad Code check \"Laner PC\" for right one")
+        except:
+            Snackbar(h1="Bad Code check \"Laner PC\" for right one")
+            
+        print('My address',text, getSERVER_IP())
         
 class Laner(MDApp):
 
     def build(self):
-        global download_screen
         self.title='Laner'
         
         self.theme_cls.backgroundColor=THEME_COLOR_TUPLE
@@ -443,8 +445,7 @@ class Laner(MDApp):
 
         self.my_screen_manager = WindowManager()
         self.my_screen_manager.add_widget(DisplayFolderScreen(name='upload',current_dir='Home'))
-        self.download_screen=download_screen=DisplayFolderScreen(name='download',current_dir='.')
-        self.my_screen_manager.add_widget(download_screen)
+        self.my_screen_manager.add_widget(DisplayFolderScreen(name='download',current_dir='.'))
         self.my_screen_manager.add_widget(SettingsScreen())
         self.my_screen_manager.transition=NoTransition()
         self.my_screen_manager.current='settings'

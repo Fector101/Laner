@@ -138,3 +138,10 @@ def setHiddenFilesDisplay(state):
   SHOW_HIDDEN_FILES=state
 def getHiddenFilesDisplay_State():
   return SHOW_HIDDEN_FILES
+
+SERVER_IP=getSystem_IpAdd()
+def setSERVER_IP(value):
+  global SERVER_IP
+  SERVER_IP=value
+def getSERVER_IP():
+  return SERVER_IP

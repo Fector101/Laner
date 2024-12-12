@@ -1,3 +1,3 @@
 # Laner
 
-A Mobile/Desktop app mainly for viewing PC files on Phone and can also (Phone Files on PC).
+A Mobile/Desktop app mainly for Accessing PC files on Phone.

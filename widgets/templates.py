@@ -14,10 +14,10 @@ import os
 from pathlib import Path
 
 from widgets.popup import PopupDialog,Snackbar
-from workers.helper import getSystem_IpAdd, makeDownloadFolder, truncateStr,getHiddenFilesDisplay_State
+from workers.helper import getSERVER_IP, getSystem_IpAdd, makeDownloadFolder, truncateStr,getHiddenFilesDisplay_State
 
 
-SERVER_IP = getSystem_IpAdd()
+
 my_downloads_folder=makeDownloadFolder()
 
 
@@ -102,7 +102,7 @@ class DisplayFolderScreen(MDScreen):
         loop.close()
     async def asyncSetPathInfo(self):
         try:
-            response = requests.get(f"http://{SERVER_IP}:8000/api/getpathinfo",json={'path':self.current_dir},timeout=5)
+            response = requests.get(f"http://{getSERVER_IP()}:8000/api/getpathinfo",json={'path':self.current_dir},timeout=5)
             # requests.get(server,data='to be sent',auth=(username,password))
             print(f"Clicked {response}")
             if response.status_code != 200:
@@ -128,7 +128,7 @@ class DisplayFolderScreen(MDScreen):
     def isDir(self,path:str):
 
         try:
-            response=requests.get(f"http://{SERVER_IP}:8000/api/isdir",json={'path':path},timeout=3)
+            response=requests.get(f"http://{getSERVER_IP()}:8000/api/isdir",json={'path':path},timeout=3)
             if response.status_code != 200:
                 Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
                 return False
@@ -157,7 +157,7 @@ class DisplayFolderScreen(MDScreen):
         file_name = os.path.basename(path.replace('\\', '/'))
         def failedCallBack():...
         def successCallBack():
-            needed_file = f"http://{SERVER_IP}:8000/{path}"
+            needed_file = f"http://{getSERVER_IP()}:8000/{path}"
             url = needed_file.replace(' ', '%20').replace('\\', '/')
             
             saving_path = os.path.join(my_downloads_folder, file_name)
@@ -166,7 +166,7 @@ class DisplayFolderScreen(MDScreen):
         PopupDialog(
                 failedCallBack=failedCallBack,successCallBack=successCallBack,
                 h1="Verify Download",
-                caption=f"{file_name} Will be saved in \"Laner\" Folder in your device \"Downloads\"",
+                caption=f"{file_name} -- Will be saved in \"Laner\" Folder in your device \"Downloads\"",
                 cancel_txt="Cancel",confirm_txt="Ok",
         )
     def b_c(self,url, save_path):
