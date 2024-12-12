@@ -117,7 +117,7 @@ Builder.load_string('''
     radius: dp(5)
     size_hint:(1,1)
     theme_bg_color: "Custom"
-    on_release: app.download_screen.setPath(self.path)
+    on_release: app.my_screen_manager.current_screen.setPath(self.path)
     
     AsyncImage:
         id: test_stuff
@@ -137,7 +137,7 @@ Builder.load_string('''
         height: '35sp'
         md_bg_color: [.7,.6,.9,1]
         pos_hint: {"top": .979, "right": .97}
-        on_release: app.download_screen.showDownloadDialog(root.path)
+        on_release: app.my_screen_manager.current_screen.showDownloadDialog(root.path)
         
         MDButtonIcon:
             icon: "download"
@@ -220,10 +220,10 @@ class WindowManager(ScreenManager):
     def Android_back_click(self, window, key, *largs):
         """Handle the Android back button."""
         if key == 27:  # Back button key code
-            if self.current == 'download' and len(self.current_screen.download_screen_history):
+            if self.current != 'settings' and len(self.current_screen.screen_history):
                 # might switch to "if []:" since it works on python but "if len([]):" is more understandable
-                # print(self.current_screen.download_screen_history)
-                last_dir = self.current_screen.download_screen_history.pop()
+                # print(self.current_screen.screen_history)
+                last_dir = self.current_screen.screen_history.pop()
                 self.current_screen.setPath(last_dir, False)
                 return True
 
@@ -310,7 +310,7 @@ class BottomNavigationBar(MDBoxLayout):
 
         self.screen_manager=screen_manager
         icons = ['home', 'download', 'connection']
-        for_label_text = ['Home','Download','Link']
+        for_label_text = ['Home','Storage','Link']
         screens=screen_manager.screen_names
         self.size_hint =[ 1, .1]
         self.padding=0
@@ -417,16 +417,114 @@ class RV(RecycleView):
     def __init__(self, **kwargs):
         super(RV,self).__init__(**kwargs)
 
-class UploadScreen(MDScreen):
+class HomeScreen(MDScreen):
+    screen_history = []  # Stack to directory screens
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name='upload'
-        label=MDLabel(text="Upload Screen",halign='center')
-        self.add_widget(label)
-        self.theme_bg_color="Custom"
-        self.md_bg_color=self.theme_cls.backgroundColor
-        # img=AsyncImage(source=f"http://{SERVER_IP}:8000/home/fabian/Screenshot from 2024-11-23 19-57-50.png".replace(' ','%20'))
-        # self.add_widget(img)
+        # self.size_hint=[1,1]
+        self.current_dir = 'Home'
+        # """ Only set with setPath function"""
+        self.current_dir_info:list[dict]=[]
+        # """ Only set with setPathInfo function"""
+        self.could_not_open_path_msg="Couldn't Open Folder Check Laner on PC"
+        self.layout=MDBoxLayout(md_bg_color=[.4,.4,.4,1],orientation='vertical')
+        self.header=Header(
+                           text=self.current_dir,
+                           size_hint=[1,.1],
+                           text_halign='center',
+                           title_color=self.theme_cls.backgroundColor,
+                           )
+        self.layout.add_widget(self.header)
+
+        self.screen_scroll_box = RV()
+        self.screen_scroll_box.data=self.current_dir_info
+        # self.setPathInfo()
+        Clock.schedule_once(lambda dt: self.startSetPathInfo_Thread())
+        
+
+        self.layout.add_widget(self.screen_scroll_box)
+        self.add_widget(self.layout)
+
+    def startSetPathInfo_Thread(self):
+        threading.Thread(target=self.querySetPathInfoAsync).start()
+        
+    def querySetPathInfoAsync(self):
+        # Run the async function in the event loop
+        
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(self.asyncSetPathInfo())
+        loop.close()
+    async def asyncSetPathInfo(self):
+        try:
+            response = requests.get(f"http://{SERVER_IP}:8000/api/getpathinfo",json={'path':self.current_dir},timeout=5)
+            # requests.get(server,data='to be sent',auth=(username,password))
+            print(f"Clicked {response}")
+            if response.status_code != 200:
+                Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
+                return
+            self.screen_scroll_box.data=self.current_dir_info=response.json()['data']
+            # Clock.schedule_once(lambda dt: self.screen_scroll_box.refresh_from_data(), 6)
+            
+            # Clock.schedule_once(lambda dt: print(f"File saved at {file_path}"))
+        except Exception as e:
+            Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
+            print(e,"Failed opening Folder async")
+                   
+    def on_pre_enter(self, *args):
+        Clock.schedule_once(lambda dt: self.startSetPathInfo_Thread())
+   
+            
+    def isDir(self,path:str):
+
+        try:
+            response=requests.get(f"http://{SERVER_IP}:8000/api/isdir",json={'path':path},timeout=3)
+            if response.status_code != 200:
+                Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
+                return False
+            return response.json()['data']
+
+        except Exception as e:
+            Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
+            print(f"isDir method: {e}")
+            return False
+    def setPath(self,path,add_to_history=True):
+        if not self.isDir(path):
+            return
+        if add_to_history:  # Saving Last directory for screen history
+            self.screen_history.append(self.current_dir)
+
+        self.current_dir = path
+        self.header.changeTitle(path)
+        # self.setPathInfo()
+        Clock.schedule_once(lambda dt: self.startSetPathInfo_Thread())
+        
+    def showDownloadDialog(self,path:str):
+        """Shows Dialog box with choosen path and calls async download if ok press"""
+        if (self.isDir(path)):
+            return
+        
+        file_name = os.path.basename(path.replace('\\', '/'))
+        def failedCallBack():...
+        def successCallBack():
+            needed_file = f"http://{SERVER_IP}:8000/{path}"
+            url = needed_file.replace(' ', '%20').replace('\\', '/')
+            
+            saving_path = os.path.join(my_folder, file_name)
+            threading.Thread(target=self.b_c,args=(url, saving_path)).start()
+        PopupDialog(
+        failedCallBack=failedCallBack,successCallBack=successCallBack,
+        h1="Verify Download",
+        caption=f"{file_name} Will be saved in \"Laner\" Folder in your device \"Downloads\"",
+        # caption=f"{truncateStr(path.replace('\\', '/').split('/')[-1])} Will be saved in \"Laner\" Folder in your device \"Downloads\"",
+        cancel_txt="Cancel",confirm_txt="Ok",
+        )
+    def b_c(self,url, save_path):
+        loop=asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(async_download_file(url, save_path))
 
 class Header(MDBoxLayout):
     text=StringProperty()
@@ -453,8 +551,8 @@ class Header(MDBoxLayout):
     def changeTitle(self,text):
         self.header_label.text=text
 
-class DownloadScreen(MDScreen):
-    download_screen_history = []  # Stack to directory screens
+class StorageScreen(MDScreen):
+    screen_history = []  # Stack to directory screens
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -530,7 +628,7 @@ class DownloadScreen(MDScreen):
         if not self.isDir(path):
             return
         if add_to_history:  # Saving Last directory for screen history
-            self.download_screen_history.append(self.current_dir)
+            self.screen_history.append(self.current_dir)
 
         self.current_dir = path
         self.header.changeTitle(path)
@@ -618,21 +716,21 @@ class Laner(MDApp):
     def build(self):
         global download_screen
         self.title='Laner'
-
+        
         self.theme_cls.backgroundColor=THEME_COLOR_TUPLE
         root_layout=MDBoxLayout(orientation='vertical')
         root_layout.md_bg_color=.3,.3,.3,1
 
-        my_screen_manager = WindowManager()
-        my_screen_manager.add_widget(UploadScreen())
-        self.download_screen=download_screen=DownloadScreen()
-        my_screen_manager.add_widget(download_screen)
-        my_screen_manager.add_widget(SettingsScreen())
-        my_screen_manager.transition=NoTransition()
-        my_screen_manager.current='settings'
-        bottom_navigation_bar=BottomNavigationBar(my_screen_manager)
+        self.my_screen_manager = WindowManager()
+        self.my_screen_manager.add_widget(HomeScreen())
+        self.download_screen=download_screen=StorageScreen()
+        self.my_screen_manager.add_widget(download_screen)
+        self.my_screen_manager.add_widget(SettingsScreen())
+        self.my_screen_manager.transition=NoTransition()
+        self.my_screen_manager.current='settings'
+        bottom_navigation_bar=BottomNavigationBar(self.my_screen_manager)
 
-        root_layout.add_widget(my_screen_manager)
+        root_layout.add_widget(self.my_screen_manager)
         root_layout.add_widget(bottom_navigation_bar)
 
         return root_layout

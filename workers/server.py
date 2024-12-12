@@ -33,6 +33,8 @@ class CustomHandler(SimpleHTTPRequestHandler):
             request_path=self.getRequestBody('path')
             if (request_path == None):
                 return
+            elif (request_path == 'Home'):
+              request_path = getHomePath()
             try:
                 path_list:list[str] =os.listdir(request_path)
                 dir_info=[]
@@ -111,6 +113,8 @@ class CustomHandler(SimpleHTTPRequestHandler):
         elif self.path == "/api/isdir":
             request_path=self.getRequestBody('path')
             if (request_path != None):
+                if (request_path == 'Home'):
+                    request_path = getHomePath()
                 self.wfile.write(json.dumps({'data':os.path.isdir(request_path)}).encode("utf-8"))
             
         elif self.path == "/api/isfile":
