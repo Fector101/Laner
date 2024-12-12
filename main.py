@@ -263,7 +263,7 @@ class TabButton(RectangularRippleBehavior,ButtonBehavior,MDBoxLayout):
         self._radius=1
         self.id=self.text
         self.spacing='-5sp'
-
+        self.size_hint=[1,1]
         self.label= Label(
             text=self.text, halign='center',
             font_name='assets/fonts/Helvetica.ttf',
@@ -293,11 +293,9 @@ class TabButton(RectangularRippleBehavior,ButtonBehavior,MDBoxLayout):
             Bool_theme = json.load(change_mode1)
             if Bool_theme['Dark Mode']:
                 self.btn_icon.text_color=self.label.color = [1, 1, 1, 1]
-                self.md_bg_color = (.2, .2, .2, .5)
 
             else:
                 self.btn_icon.text_color=self.label.color = [0, 0, 0, 1]
-                self.md_bg_color = (.2, .2, .2, .5)
 
             if self.screen == cur_screen:
                 # print(self.screen,cur_screen)
@@ -317,6 +315,7 @@ class BottomNavigationBar(MDBoxLayout):
         self.size_hint =[ 1, .1]
         self.padding=0
         self.spacing=0
+        self.md_bg_color = (.2, .2, .2, .5)
 
         for index in range(len(icons)):
             self.btn = TabButton(
