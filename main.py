@@ -13,23 +13,19 @@ from kivymd.uix.behaviors import RectangularRippleBehavior
 from kivy.uix.behaviors import ButtonBehavior
 from kivymd.uix.relativelayout import MDRelativeLayout
 from kivymd.uix.screen import MDScreen
-from kivymd.uix.selectioncontrol import MDSwitch
 from kivy.lang import Builder
 from kivymd.uix.textfield import MDTextField
 from kivy.uix.recycleview.views import RecycleDataViewBehavior
 from kivy.uix.recyclegridlayout import RecycleGridLayout
 from kivy.uix.checkbox import CheckBox
-from kivy.uix.bubble import Bubble
 
 from kivy.utils import platform # OS
 from kivymd.material_resources import DEVICE_TYPE # if mobile or PC
 
-import threading
-import asyncio
 import requests
 import os, sys, json
 
-from widgets.popup import PopupDialog,Snackbar
+from widgets.popup import Snackbar
 from widgets.templates import DisplayFolderScreen, Header
 from workers.helper import getSystem_IpAdd, makeDownloadFolder,SHOW_HIDDEN_FILES, setHiddenFilesDisplay
 
@@ -55,7 +51,7 @@ if platform == 'android':
     SERVER_IP=''
     try:
         from jnius import autoclass
-        from android import mActivity
+        from android import mActivity # type: ignore
         context =  mActivity.getApplicationContext()
         SERVICE_NAME = str(context.getPackageName()) + '.Service' + 'Sendnoti'
         service = autoclass(SERVICE_NAME)
@@ -65,8 +61,8 @@ if platform == 'android':
         print(f'Foreground service failed {e}')
 
     
-    from android.permissions import request_permissions, Permission,check_permission
-    from android.storage import app_storage_path, primary_external_storage_path
+    from android.permissions import request_permissions, Permission,check_permission # type: ignore
+    from android.storage import app_storage_path, primary_external_storage_path # type: ignore
     
     
     print('Asking permission...')
@@ -81,22 +77,6 @@ if platform == 'android':
         request_permissions(permissions)
 
 
-
-
-def download_file(url, save_path):
-
-    # Run the async function in the event loop
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(async_download_file(url, save_path))
-    loop.close()
-
-def myDownloadTest():
-    needed_file = f"http://{SERVER_IP}:8000/home/fabian/Downloads/code_1.95.2-1730981514_amd64.deb"
-    url = needed_file.replace(' ', '%20')
-    file_name = needed_file.split('/')[-1]
-    file_path = os.path.join(my_downloads_folder, file_name)
-    threading.Thread(target=download_file,args=(url, file_path)).start()
 
 
 Builder.load_string('''
