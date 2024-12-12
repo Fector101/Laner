@@ -1,9 +1,10 @@
+from kivy.utils import platform
 import os
 import json
 import socket
 import sys
 import hashlib
-import subprocess
+# import subprocess
 
 # /home/fabian/Documents/my projects code/mobile dev/Laner/venv/lib64/python3.12/site-packages/kivymd/uix/menu/menu.py
 # Run this from VSCode content menu (Run Python) --> /home/fabian/Documents/my projects code/mobile dev/Laner/venv/lib64/python3.12/site-packages/kivymd/icon_definitions.py
@@ -48,13 +49,18 @@ def writeIntoDB(data):
   dictionary_words = json.dumps(Dict_Structure, indent=4)
   with open("public/data.json", mode="w") as new_word:
       new_word.write(dictionary_words)
+      
+old_ip=None
 def getSystem_IpAdd():
-    try:
-        with socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as s:
-            s.connect(("8.8.8.8",80))
-            return s.getsockname()[0]
-    except Exception as e:
-        return f"Getting IP Error: {e}"
+  global old_ip
+  try:
+    with socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as s:
+      s.connect(("8.8.8.8",80))
+      old_ip = s.getsockname()[0]
+      return s.getsockname()[0] or old_ip
+  except Exception as e:
+    print(f"Getting IP Error: {e}")
+    return None or old_ip
 
   
 def getAppFolder():
@@ -66,8 +72,8 @@ def getAppFolder():
   return os.path.splitdrive(path__)[1]
     
 def makeFolder(my_folder):
-    if not os.path.exists(my_folder):
-        os.makedirs(my_folder)
+  if not os.path.exists(my_folder):
+    os.makedirs(my_folder)
         
 def sortedDir(dir_info:list):
     """Sorts objects Alphabetically and Pushes files with dot to the back.
@@ -92,10 +98,10 @@ def sortedDir(dir_info:list):
     return [*items_without_dot, *items_with_dot]
 
 def removeFileExtension(file_path:str):
-    return os.path.splitext(os.path.basename(file_path))[0]
+  return os.path.splitext(os.path.basename(file_path))[0]
 
 def getFileExtension(file_path:str):
-    return os.path.splitext(os.path.basename(file_path))[1]
+  return os.path.splitext(os.path.basename(file_path))[1]
 def gen_unique_filname(file_path:str):
   hash_obj=hashlib.sha256(file_path.encode('utf-8'))
   unique_name=hash_obj.hexdigest()
@@ -103,6 +109,24 @@ def gen_unique_filname(file_path:str):
 
 def removeFirstDot(path:str):
   if path[0] == '.':
-      return path[1:]
+    return path[1:]
   else:
-      return path
+    return path
+
+
+def makeDownloadFolder():
+  """Makes downlod folder and returns path
+  """
+  folder_path = os.getcwd()
+  if platform == 'android':
+    from android.storage import app_storage_path, primary_external_storage_path # type: ignore
+    folder_path=os.path.join(primary_external_storage_path(),'Download','Laner')
+    makeFolder(folder_path)
+  return folder_path
+
+
+
+def truncateStr(text:str,limit=20):
+  if len(text) > limit:
+      return text[0:limit] + '...'
+  return text
