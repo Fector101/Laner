@@ -18,8 +18,11 @@ from kivy.lang import Builder
 from kivymd.uix.textfield import MDTextField
 from kivy.uix.recycleview.views import RecycleDataViewBehavior
 from kivy.uix.recyclegridlayout import RecycleGridLayout
-from kivy.utils import platform
-from kivymd.material_resources import DEVICE_TYPE
+from kivy.uix.checkbox import CheckBox
+from kivy.uix.bubble import Bubble
+
+from kivy.utils import platform # OS
+from kivymd.material_resources import DEVICE_TYPE # if mobile or PC
 
 import threading
 import asyncio
@@ -28,7 +31,7 @@ import os, sys, json
 
 from widgets.popup import PopupDialog,Snackbar
 from widgets.templates import DisplayFolderScreen, Header
-from workers.helper import getSystem_IpAdd, makeDownloadFolder
+from workers.helper import getSystem_IpAdd, makeDownloadFolder,SHOW_HIDDEN_FILES, setHiddenFilesDisplay
 
 # For Dev
 if DEVICE_TYPE != "mobile":
@@ -115,6 +118,7 @@ Builder.load_string('''
         theme_bg_color:  "Custom"
         theme_height:  "Custom"
         theme_width:  "Custom"
+        opacity: 0 if root.is_dir else 1
         radius: '15sp'
         size_hint:  [None, None]
         width:  '35sp'
@@ -294,6 +298,8 @@ class BottomNavigationBar(MDBoxLayout):
 
         self.screen_manager=screen_manager
         icons = ['home', 'download', 'connection']
+        # icons = ['home', 'server-network-outline', 'connection']
+        
         for_label_text = ['Home','Storage','Link']
         screens=screen_manager.screen_names
         self.size_hint =[ 1, .1]
@@ -322,7 +328,7 @@ class BottomNavigationBar(MDBoxLayout):
 
 class MySwitch(MDBoxLayout):
     text=StringProperty()
-    switch_state=BooleanProperty()
+    switch_state=BooleanProperty(False)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -335,10 +341,9 @@ class MySwitch(MDBoxLayout):
             halign='left',valign='center',
                                 text_color=[1,1,1,1],
                                 text=self.text))
-        self.add_widget(MDSwitch(
-            pos_hint={'right':.9,'top':.9},
-                                #  theme_bg_color='Custom',md_bg_color=[1,0,.5,1]
-                                 ))
+        self.checkbox_=CheckBox(size_hint=(None,1),width='40sp',color=[.6, .9, .8, 2], active=self.switch_state, group='1',pos_hint={'right':1})
+        self.add_widget(self.checkbox_)
+        
 
 validated_paths=[]
 class MyCard(RecycleDataViewBehavior,RectangularRippleBehavior,ButtonBehavior,MDRelativeLayout):
@@ -429,13 +434,17 @@ class SettingsScreen(MDScreen):
         verifyBtn.add_widget(MDButtonText(text='Verify Code',pos_hint= {"center_x": .5, "center_y": .5}))
         self.layout.add_widget(self.header)
         # TODO Get PC name when connection verifed and display connected to ...
-
-        self.content.add_widget(MySwitch(text='Show hidden files'))
+        self.my_switch=MySwitch(text='Show hidden files')
+        self.my_switch.checkbox_.bind(active=self.on_checkbox_active)
+        
+        self.content.add_widget(self.my_switch)
         self.content.add_widget(portInput)
         self.content.add_widget(verifyBtn)
 
         self.add_widget(self.layout)
         self.add_widget(self.content)
+    def on_checkbox_active(self,checkbox, value):
+        setHiddenFilesDisplay(value)
     def setIP(self,text):
         global SERVER_IP
         SERVER_IP=text

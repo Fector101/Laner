@@ -5,7 +5,7 @@ from kivy.uix.recycleview import RecycleView
 from kivy.metrics import dp,sp
 from kivy.properties import ( ListProperty, StringProperty)
 from kivy.clock import Clock
-
+# from app_settings import SHOW_HIDDEN_FILES
 
 import threading
 import asyncio
@@ -14,7 +14,7 @@ import os
 from pathlib import Path
 
 from widgets.popup import PopupDialog,Snackbar
-from workers.helper import getSystem_IpAdd, makeDownloadFolder, truncateStr
+from workers.helper import getSystem_IpAdd, makeDownloadFolder, truncateStr,getHiddenFilesDisplay_State
 
 
 SERVER_IP = getSystem_IpAdd()
@@ -61,8 +61,8 @@ async def async_download_file(url, save_path):
             file.write(response.content)
         Clock.schedule_once(lambda dt: Snackbar(confirm_txt='Open',h1=f'Successfully Saved { truncateStr(Path(file_path).parts[-1],10) }'))
     except Exception as e:
-        Clock.schedule_once(lambda dt: Snackbar(confirm_txt='Open',h1="Failed to Write to My Downloads Folder"))
-        print(e,"Failed to Write to My Downloads Folder")
+        Clock.schedule_once(lambda dt: Snackbar(confirm_txt='Open',h1="Download Failed try Checking Laner on PC"))
+        print(e,"Failed Download")
         
 class DisplayFolderScreen(MDScreen):
     screen_history = []
@@ -70,7 +70,6 @@ class DisplayFolderScreen(MDScreen):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        # self.name='upload'
         self.current_dir_info:list[dict]=[]
         self.could_not_open_path_msg="Couldn't Open Folder Check Laner on PC"
         self.layout=MDBoxLayout(md_bg_color=[.4,.4,.4,1],orientation='vertical')
@@ -84,7 +83,6 @@ class DisplayFolderScreen(MDScreen):
 
         self.screen_scroll_box = RV()
         self.screen_scroll_box.data=self.current_dir_info
-        # self.setPathInfo()
         Clock.schedule_once(lambda dt: self.startSetPathInfo_Thread())
         
 
@@ -109,10 +107,16 @@ class DisplayFolderScreen(MDScreen):
             if response.status_code != 200:
                 Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
                 return
-            self.screen_scroll_box.data=self.current_dir_info=response.json()['data']
-            # Clock.schedule_once(lambda dt: self.screen_scroll_box.refresh_from_data(), 6)
-            
-            # Clock.schedule_once(lambda dt: print(f"File saved at {file_path}"))
+            self.current_dir_info=[]
+            print(getHiddenFilesDisplay_State())
+            for each_name in response.json()['data']:
+                if not getHiddenFilesDisplay_State() and each_name['text'][0] != '.':
+                    self.current_dir_info.append(each_name)
+                elif getHiddenFilesDisplay_State():
+                    self.current_dir_info.append(each_name)
+                    
+            self.screen_scroll_box.data=self.current_dir_info
+
         except Exception as e:
             Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
             print(e,"Failed opening Folder async")

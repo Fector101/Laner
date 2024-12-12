@@ -130,3 +130,11 @@ def truncateStr(text:str,limit=20):
   if len(text) > limit:
       return text[0:limit] + '...'
   return text
+
+
+SHOW_HIDDEN_FILES=False
+def setHiddenFilesDisplay(state):
+  global SHOW_HIDDEN_FILES
+  SHOW_HIDDEN_FILES=state
+def getHiddenFilesDisplay_State():
+  return SHOW_HIDDEN_FILES
