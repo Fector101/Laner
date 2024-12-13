@@ -1,4 +1,4 @@
-from kivy.utils import platform
+import subprocess
 import os
 import json
 import socket
@@ -49,18 +49,21 @@ def writeIntoDB(data):
   dictionary_words = json.dumps(Dict_Structure, indent=4)
   with open("public/data.json", mode="w") as new_word:
       new_word.write(dictionary_words)
-      
-old_ip=None
+
+import re
 def getSystem_IpAdd():
-  global old_ip
   try:
-    with socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as s:
-      s.connect(("8.8.8.8",80))
-      old_ip = s.getsockname()[0]
-      return s.getsockname()[0] or old_ip
+    # hostname=socket.gethostname()
+    # ip_addr = ip_addr if ip_addr not in ['127.0.0.1','127.0.1.1'] else None
+    ip_addr=subprocess.run(['ifconfig'],capture_output=True,text=True)
+    output=ip_addr.stdout
+    ip_pattern = re.compile(r'inet\s([\d.]+)')
+    ip_addresses=ip_pattern.findall(output)
+    ip_addresses=[ip for ip in ip_addresses if ip != '127.0.0.1']
+    return ip_addresses[0]
   except Exception as e:
     print(f"Getting IP Error: {e}")
-    return None or old_ip
+    return None
 
   
 def getAppFolder():
@@ -117,6 +120,8 @@ def removeFirstDot(path:str):
 def makeDownloadFolder():
   """Makes downlod folder and returns path
   """
+  from kivy.utils import platform
+  
   folder_path = os.getcwd()
   if platform == 'android':
     from android.storage import app_storage_path, primary_external_storage_path # type: ignore

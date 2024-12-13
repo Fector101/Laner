@@ -3,8 +3,8 @@ from kivymd.app import MDApp
 from kivy.core.window import Window
 # from kivymd.uix.label import label
 import kivymd.icon_definitions
+from kivy.config import Config
 import time
-
 import os
 import sys
 import threading
@@ -13,7 +13,15 @@ import threading
 from workers.server import FileSharingServer
 from workers.helper import getSystem_IpAdd, makeFolder
 
+
+
 Window.size = (500, 500)
+# def windowShow():
+#     Window.show()
+#     Config.set('graphics','window_state','show')
+# Config.set('graphics','window_state','hidden')
+# Window.hide()
+
 #:set THEME_COLOR_TUPLE (160/255, 32/255, 240/255,1)
 KV = '''
 #:set THEME_COLOR_TUPLE (0, .7, .6, 1)
@@ -109,13 +117,14 @@ class FileShareApp(MDApp):
         except:
             time.sleep(200)
     def start_server(self):
+        
         if self.running:
             self.root.ids.status_label.text = "Server is already running! don't share code"
             self.on_stop()
             return
         
         self.ip=getSystem_IpAdd()
-        if 'Error' in self.ip:
+        if self.ip == None:
             self.root.ids.hint_message.text = "Connect your PC to your Local Network,\n No need for Internet Capability"
             self.root.ids.hint_message.font_style="Body"
             self.root.ids.hint_message.theme_font_size="Custom"
@@ -182,6 +191,11 @@ class FileShareApp(MDApp):
             self.root.ids.hide_ip_label_id.text = "Hide Code"
             
         self.hidden_ip= not self.hidden_ip
+    def on_stop(self):
+        # import tray
+        return super().on_stop()
+        print(999,'-----||||------')
+
 if __name__ == "__main__":
     FileShareApp().run()
     # try:
