@@ -49,21 +49,48 @@ def writeIntoDB(data):
   dictionary_words = json.dumps(Dict_Structure, indent=4)
   with open("public/data.json", mode="w") as new_word:
       new_word.write(dictionary_words)
-
+import subprocess
+import platform
 import re
+import shutil
+
 def getSystem_IpAdd():
-  try:
-    # hostname=socket.gethostname()
-    # ip_addr = ip_addr if ip_addr not in ['127.0.0.1','127.0.1.1'] else None
-    ip_addr=subprocess.run(['ifconfig'],capture_output=True,text=True)
-    output=ip_addr.stdout
-    ip_pattern = re.compile(r'inet\s([\d.]+)')
-    ip_addresses=ip_pattern.findall(output)
-    ip_addresses=[ip for ip in ip_addresses if ip != '127.0.0.1']
-    return ip_addresses[0]
-  except Exception as e:
-    print(f"Getting IP Error: {e}")
-    return None
+    def tryOtherFormat(standard_output):
+      ip_pattern = re.compile(r'IPv4 address.*?:\s*([\d.]+)')
+      return ip_pattern.findall(standard_output)
+    os_name = platform.system()
+    if os_name == 'Linux' or os_name == 'Darwin':  # Linux or macOS
+        if shutil.which('ifconfig'):
+            command = ['ifconfig']
+            ip_pattern = re.compile(r'inet\s([\d.]+)')
+        elif shutil.which('ip'):  # Fallback to 'ip addr' if 'ifconfig' is missing
+            command = ['ip', 'addr']
+            ip_pattern = re.compile(r'inet\s([\d.]+)')
+        else:
+            raise FileNotFoundError("Neither 'ifconfig' nor 'ip' command found on the system")
+    elif os_name == 'Windows':
+        command = ['ipconfig']
+        ip_pattern = re.compile(r'IPv4 Address.*?:\s*([\d.]+)')
+    else:
+        raise OSError("Unsupported operating system")
+
+    # Run the command and capture output
+    result = subprocess.run(command, capture_output=True, text=True)
+    # print('peek',result.stdout)
+    # Extract IP addresses
+    ip_addresses = ip_pattern.findall(result.stdout)
+    ip_addresses = tryOtherFormat(result.stdout) if os_name == 'Windows' and len(ip_addresses) == 0 else ip_addresses
+    # Exclude loopback addresses like 127.0.0.1
+    ip_addresses = [ip for ip in ip_addresses if not ip.startswith('127.')]
+
+    return ip_addresses[0] if len(ip_addresses) else None
+
+# Print the results
+try:
+    print("Extracted IP addresses:", getSystem_IpAdd())
+except Exception as e:
+    print(f"Error: {e}")
+
 
   
 def getAppFolder():

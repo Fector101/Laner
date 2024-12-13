@@ -35,6 +35,7 @@ class CustomHandler(SimpleHTTPRequestHandler):
                 return
             elif (request_path == 'Home'):
               request_path = getHomePath()
+            print('dev home path',request_path)
             try:
                 path_list:list[str] =os.listdir(request_path)
                 dir_info=[]
