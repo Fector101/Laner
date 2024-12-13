@@ -305,31 +305,31 @@
 #         self.hidden_ip = False
 #         self.ip = None
 
-#         # System Tray
-#         # self.create_system_tray()
+    #     # System Tray
+    #     # self.create_system_tray()
 
-#     def create_system_tray(self):
-#         self.tray = QSystemTrayIcon(self)
+    # def create_system_tray(self):
+    #     self.tray = QSystemTrayIcon(self)
         
-#         icon_path = "icon.png"
-#         if hasattr(sys, "_MEIPASS"):
-#             icon_path = os.path.join(sys._MEIPASS, "assets", "imgs", "icon.png")
+    #     icon_path = "icon.png"
+    #     if hasattr(sys, "_MEIPASS"):
+    #         icon_path = os.path.join(sys._MEIPASS, "assets", "imgs", "icon.png")
         
-#         self.tray.setIcon(QIcon(icon_path))
+    #     self.tray.setIcon(QIcon(icon_path))
         
-#         # Create tray menu
-#         tray_menu = QMenu()
+    #     # Create tray menu
+    #     tray_menu = QMenu()
         
-#         show_action = QAction("Show", self)
-#         show_action.triggered.connect(self.show)
-#         tray_menu.addAction(show_action)
+    #     show_action = QAction("Show", self)
+    #     show_action.triggered.connect(self.show)
+    #     tray_menu.addAction(show_action)
         
-#         quit_action = QAction("Quit", self)
-#         quit_action.triggered.connect(self.close)
-#         tray_menu.addAction(quit_action)
+    #     quit_action = QAction("Quit", self)
+    #     quit_action.triggered.connect(self.close)
+    #     tray_menu.addAction(quit_action)
         
-#         self.tray.setContextMenu(tray_menu)
-#         self.tray.show()
+    #     self.tray.setContextMenu(tray_menu)
+    #     self.tray.show()
 
 #     def start_server(self):
 #         if self.running:
@@ -396,16 +396,24 @@
 #     main()
 
 
-import sys
+import sys,os
 import threading
 import time
 from PyQt5.QtWidgets import (
-    QApplication, QMainWindow, QVBoxLayout, QLabel, QPushButton, QWidget
+    QApplication, QMainWindow, QVBoxLayout, QLabel, QPushButton, QWidget,
+    QSystemTrayIcon,QMenu,QAction
 )
-from PyQt5.QtGui import QFont
+from PyQt5.QtGui import QFont,QIcon
 from PyQt5.QtCore import Qt
 from workers.server import FileSharingServer
 from workers.helper import getSystem_IpAdd
+
+
+
+# from PyQt5.QtGui import QIcon
+# from PyQt5.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QLabel, 
+#                              QPushButton, , QMenu, QAction, QWidget)
+# from PyQt5.QtCore import Qt, QThread, pyqtSignal
 
 
 class FileShareApp(QMainWindow):
@@ -463,6 +471,32 @@ class FileShareApp(QMainWindow):
         self.hide_ip_button.setStyleSheet("background-color: white; color: rgb(0, 179, 153);")
         self.hide_ip_button.setVisible(False)
         self.layout.addWidget(self.hide_ip_button, alignment=Qt.AlignRight)
+        
+        # System Tray
+        self.create_system_tray()
+
+    def create_system_tray(self):
+        self.tray = QSystemTrayIcon(self)
+        
+        icon_path = "icon.png"
+        if hasattr(sys, "_MEIPASS"):
+            icon_path = os.path.join(sys._MEIPASS, "assets", "imgs", "icon.png")
+        
+        self.tray.setIcon(QIcon(icon_path))
+        
+        # Create tray menu
+        tray_menu = QMenu()
+        
+        show_action = QAction("Show", self)
+        show_action.triggered.connect(self.show)
+        tray_menu.addAction(show_action)
+        
+        quit_action = QAction("Quit", self)
+        quit_action.triggered.connect(self.close)
+        tray_menu.addAction(quit_action)
+        
+        self.tray.setContextMenu(tray_menu)
+        self.tray.show()
 
     def start_server(self):
         if self.running:
