@@ -51,26 +51,26 @@ window.setWindowTitle("Your App")
 if __name__ == '__main__':
     app.exec_()
     
-    # server_thread = threading.Thread(target=app.exec_)
-    # server_thread.daemon = True
-    # server_thread.start()
-    # startApp()
+#     # server_thread = threading.Thread(target=app.exec_)
+#     # server_thread.daemon = True
+#     # server_thread.start()
+#     # startApp()
     
-    # server_thread = threading.Thread(target=startApp)
-    # server_thread.daemon = True
-    # server_thread.start()
+#     # server_thread = threading.Thread(target=startApp)
+#     # server_thread.daemon = True
+#     # server_thread.start()
     
-# from desktop_version import windowShow
-# # from desktop_version import FileShareApp,windowShow
-# def start():
-#     windowShow()    
+# # from desktop_version import windowShow
+# # # from desktop_version import FileShareApp,windowShow
+# # def start():
+# #     windowShow()    
 
 
-def startApp():
-    from desktop_version import FileShareApp,Window
-    FileShareApp().run()
+# def startApp():
+#     from desktop_version import FileShareApp,Window
+#     sFileShareApp().run()
     
     
-def showApp():
-    from desktop_version import Window
-    Window.show()
+# def showApp():
+#     from desktop_version import Window
+#     Window.show()
