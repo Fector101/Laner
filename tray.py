@@ -1,60 +1,76 @@
-import threading
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
-
-import sys
-
-# from workers.helper import getAppFolder
-
-app = QApplication([]) 
-app.setQuitOnLastWindowClosed(False) 
-
-# Adding an icon 
 import os
-icon_path="./icon.png"#os.path.join(getAppFolder(),"assets","imgs","icon.png") 
-print(icon_path)
-print(os.getcwd())
-icon = QIcon(icon_path)
-print(icon)
-# Adding item on the menu bar 
-tray = QSystemTrayIcon() 
-tray.setIcon(icon) 
-tray.setVisible(True) 
+from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QApplication, QSystemTrayIcon, QMenu, QAction
 
-# Creating the options 
-menu = QMenu() 
-option1 = QAction("Quick Connect") 
-option2 = QAction("Show Code") 
-def startApp():
-    from desktop_version import FileShareApp
-    FileShareApp().run()
-    
-    
-    
-option2.triggered.connect(startApp) 
-option3 = QAction("End Connection") 
-menu.addAction(option1) 
-menu.addAction(option2) 
+# You'll need to define the showApp function first
+def showApp():
+    # Add code to show your main window
+    # For example, if you have a main window called 'window':
+    window.show()
+
+# Create the application
+app = QApplication([])
+app.setQuitOnLastWindowClosed(False)
+
+# Path to your icon
+icon_path = "./icon.png"
+
+# Create the system tray icon
+tray = QSystemTrayIcon()
+tray.setIcon(QIcon(icon_path))
+tray.setVisible(True)
+
+# Create the menu
+menu = QMenu()
+
+# Add menu options
+option1 = QAction("Quick Connect", parent=menu)
+option2 = QAction("Show Code", parent=menu)
+option2.triggered.connect(showApp)  # Connect to show app function
+option3 = QAction("End Connection", parent=menu)
+
+# Add actions to menu
+menu.addAction(option1)
+menu.addAction(option2)
 menu.addAction(option3)
 
-# To quit the app 
-quit = QAction("Quit") 
-quit.triggered.connect(app.quit) 
-menu.addAction(quit) 
+# Add quit option
+quit_action = QAction("Quit", parent=menu)
+quit_action.triggered.connect(app.quit)
+menu.addAction(quit_action)
 
-# Adding options to the System Tray 
-tray.setContextMenu(menu) 
+# Set context menu for tray
+tray.setContextMenu(menu)
 
+# Create your main window (this is an example, replace with your actual window)
+from PyQt5.QtWidgets import QMainWindow
+window = QMainWindow()
+window.setWindowTitle("Your App")
 
-
-
+# Fix indentation and add main block
 if __name__ == '__main__':
+    app.exec_()
+    
+    # server_thread = threading.Thread(target=app.exec_)
+    # server_thread.daemon = True
+    # server_thread.start()
+    # startApp()
+    
     # server_thread = threading.Thread(target=startApp)
     # server_thread.daemon = True
     # server_thread.start()
-    app.exec_()
     
 # from desktop_version import windowShow
 # # from desktop_version import FileShareApp,windowShow
 # def start():
 #     windowShow()    
+
+
+def startApp():
+    from desktop_version import FileShareApp,Window
+    FileShareApp().run()
+    
+    
+def showApp():
+    from desktop_version import Window
+    Window.show()

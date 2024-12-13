@@ -1,7 +1,6 @@
 from kivy.lang import Builder
 from kivymd.app import MDApp
 from kivy.core.window import Window
-# from kivymd.uix.label import label
 import kivymd.icon_definitions
 from kivy.config import Config
 import time
@@ -11,16 +10,11 @@ import threading
 # import platform
 
 from workers.server import FileSharingServer
-from workers.helper import getSystem_IpAdd, makeFolder
+from workers.helper import getSystem_IpAdd
 
 
 
 Window.size = (500, 500)
-# def windowShow():
-#     Window.show()
-#     Config.set('graphics','window_state','show')
-# Config.set('graphics','window_state','hidden')
-# Window.hide()
 
 #:set THEME_COLOR_TUPLE (160/255, 32/255, 240/255,1)
 KV = '''
@@ -192,10 +186,10 @@ class FileShareApp(MDApp):
             
         self.hidden_ip= not self.hidden_ip
     def on_stop(self):
-        # import tray
         return super().on_stop()
-        print(999,'-----||||------')
-
+def startApp():
+    from tray import app
+    app.exec_()
 if __name__ == "__main__":
     FileShareApp().run()
     # try:
