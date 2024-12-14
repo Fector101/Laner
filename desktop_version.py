@@ -155,7 +155,10 @@ class FileShareApp(QMainWindow):
             self.hide_ip_button.setText("Hide Code")
 
         self.hidden_ip = not self.hidden_ip
-
+    def closeEvent(self, event):
+        print('peek',event)
+        self.hide()
+        event.ignore()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

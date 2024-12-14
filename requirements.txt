@@ -2,3 +2,5 @@ kivy
 kivymd
 opencv-python
 pyinstaller
+opencv-python-headless
+PyQt5
