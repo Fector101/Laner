@@ -87,7 +87,7 @@ class FileShareApp(QMainWindow):
         tray_menu.addAction(show_action)
         
         quit_action = QAction("Quit", self)
-        quit_action.triggered.connect(self.close)
+        quit_action.triggered.connect(QApplication.quit)
         tray_menu.addAction(quit_action)
         
         self.tray.setContextMenu(tray_menu)
