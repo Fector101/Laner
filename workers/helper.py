@@ -92,16 +92,62 @@ except Exception as e:
     print(f"Error: {e}")
 
 
-  
+
 def getAppFolder():
-  path__=None
-  if hasattr(sys, "_MEIPASS"):
-    path__= sys._MEIPASS
-  else:
-    path__= os.path.dirname(__file__)
-  return os.path.splitdrive(path__)[1]
-    
-def makeFolder(my_folder):
+    """
+    Returns the correct application folder path, whether running on native Windows,
+    Wine, or directly in Linux.
+    """
+    if hasattr(sys, "_MEIPASS"):
+        # PyInstaller creates a temp folder (_MEIPASS)
+        path__ = os.path.abspath(sys._MEIPASS)
+    else:
+        # Running from source code
+        path__ = os.path.abspath(os.path.dirname(__file__))
+
+    # Normalize path for Wine compatibility
+    if is_wine():
+        path__ = wine_path_to_unix(path__)
+
+    return path__
+
+def is_wine():
+    """
+    Detect if the application is running under Wine.
+    """
+    # Check environment variables set by Wine
+    if "WINELOADER" in os.environ:
+        return True
+
+    # Check platform.system for specific hints
+    if platform.system().lower() == "windows":
+        # If running in "Windows" mode but in a Linux environment, it's likely Wine
+        return "XDG_SESSION_TYPE" in os.environ or "HOME" in os.environ
+
+    return False
+
+def wine_path_to_unix(win_path):
+    """
+    Converts a Windows-style path to a Unix-style path in Wine.
+    """
+    # Wine maps Windows paths under ~/.wine/drive_c
+    unix_path = win_path.replace("\\", "/")
+    if unix_path.startswith("C:/"):
+        wine_home_folder=os.environ['WINEHOMEDIR'].replace("\\","/").split(':/') if 'WINEHOMEDIR' in os.environ else ''
+        wine_home_folder=wine_home_folder[1] if len(wine_home_folder) > 0 else ''
+        if wine_home_folder:
+          unix_path = unix_path.replace("C:/",'/'+wine_home_folder+"/.wine/drive_c/")
+        else:
+          wine_home_folder=os.environ['WINECONFIGDIR'].replace("\\","/").split(':/') if 'WINECONFIGDIR' in os.environ else ''
+          wine_home_folder=wine_home_folder[1] if len(wine_home_folder) > 0 else ''
+          unix_path = unix_path.replace("C:/", '/'+wine_home_folder+"/drive_c/")
+    return os.path.normpath(unix_path)
+  
+  
+def makeFolder(my_folder:str):
+  if is_wine():
+    my_folder = my_folder.replace('\\','/')
+
   if not os.path.exists(my_folder):
     os.makedirs(my_folder)
         

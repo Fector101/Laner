@@ -16,6 +16,7 @@ class FileShareApp(QMainWindow):
         self.setWindowTitle("Laner")
         self.setGeometry(100, 100, 500, 500)
         self.server_thread = None
+        # self.server = None
         self.running = False
         self.hidden_ip = False
         self.ip = None
