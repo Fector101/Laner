@@ -43,7 +43,7 @@ class FileShareApp(QMainWindow):
         # Hint Message Label
         self.hint_message = QLabel("Connect your PC to your HotSpot\nand Press Start to get the code")
         self.hint_message.setAlignment(Qt.AlignCenter)
-        self.hint_message.setFont(QFont("Arial", 14))
+        self.hint_message.setFont(QFont("Arial", 20))
         self.layout.addWidget(self.hint_message)
 
         # Start Button
@@ -103,6 +103,8 @@ class FileShareApp(QMainWindow):
         if self.ip is None:
             self.hint_message.setText("Connect your PC to your Local Network.\nNo need for Internet Capability.")
             self.hint_message.setStyleSheet("color: black;")
+            self.hint_message.setFont(QFont("Arial", 20))
+            
             return
         else:
             self.hint_message.setText("Hidden Code" if self.hidden_ip else self.ip)
@@ -114,6 +116,7 @@ class FileShareApp(QMainWindow):
         self.server_thread.daemon = True
         self.server_thread.start()
         self.running = True
+        self.hint_message.setFont(QFont("Arial", 34))
 
         self.hide_ip_button.setVisible(True)
         self.start_button.setText("End Server")
@@ -133,6 +136,7 @@ class FileShareApp(QMainWindow):
 
     def on_stop(self):
         self.hint_message.setText("Goodbye!")
+        
         self.running = False
         self.start_button.setText("Start Server")
         self.status_label.setText("Server Ended!")
