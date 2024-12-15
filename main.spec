@@ -6,7 +6,7 @@ icon_path=os.path.join("assets","imgs","icon.png")
 
 
 a = Analysis(
-    ['desktop_version.py'],
+    ['main.py'],
     pathex=[],
     binaries=[],
     datas=[("assets",'assets')],
