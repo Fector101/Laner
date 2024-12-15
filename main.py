@@ -18,12 +18,13 @@ from kivymd.uix.textfield import MDTextField
 from kivy.uix.recycleview.views import RecycleDataViewBehavior
 from kivy.uix.recyclegridlayout import RecycleGridLayout
 from kivy.uix.checkbox import CheckBox
-
+from kivy.uix.image import AsyncImage,Image
 from kivy.utils import platform # OS
 from kivymd.material_resources import DEVICE_TYPE # if mobile or PC
 
 import requests
 import os, sys, json
+from plyer import filechooser
 
 from widgets.popup import Snackbar
 from widgets.templates import DisplayFolderScreen, Header
@@ -42,34 +43,34 @@ MY_DATABASE_PATH = os.path.join(__DIR__, 'data', 'store.json')
 #Making/Getting Downloads Folder
 my_downloads_folder=makeDownloadFolder()
 
-if platform == 'android':
-    setSERVER_IP('')
-    try:
-        from jnius import autoclass
-        from android import mActivity # type: ignore
-        context =  mActivity.getApplicationContext()
-        SERVICE_NAME = str(context.getPackageName()) + '.Service' + 'Sendnoti'
-        service = autoclass(SERVICE_NAME)
-        service.start(mActivity,'')
-        print('returned service')
-    except Exception as e:
-        print(f'Foreground service failed {e}')
+# if platform == 'android':
+setSERVER_IP('')
+try:
+    from jnius import autoclass
+    from android import mActivity # type: ignore
+    context =  mActivity.getApplicationContext()
+    SERVICE_NAME = str(context.getPackageName()) + '.Service' + 'Sendnoti'
+    service = autoclass(SERVICE_NAME)
+    service.start(mActivity,'')
+    print('returned service')
+except Exception as e:
+    print(f'Foreground service failed {e}')
 
-    
-    from android.permissions import request_permissions, Permission,check_permission # type: ignore
-    from android.storage import app_storage_path, primary_external_storage_path # type: ignore
-    
-    
-    print('Asking permission...')
-    def check_permissions(permissions):
-        for permission in permissions:
-            if check_permission(permission) != True:
-                return False
-        return True
 
-    permissions=[Permission.WRITE_EXTERNAL_STORAGE,Permission.READ_EXTERNAL_STORAGE]
-    if check_permissions(permissions):
-        request_permissions(permissions)
+from android.permissions import request_permissions, Permission,check_permission # type: ignore
+from android.storage import app_storage_path, primary_external_storage_path # type: ignore
+
+
+print('Asking permission...')
+def check_permissions(permissions):
+    for permission in permissions:
+        if check_permission(permission) != True:
+            return False
+    return True
+
+permissions=[Permission.READ_EXTERNAL_STORAGE,Permission.WRITE_EXTERNAL_STORAGE]
+# if check_permissions(permissions):
+request_permissions(permissions)
 
 
 
@@ -393,7 +394,7 @@ class SettingsScreen(MDScreen):
             text="Settings",text_halign='left')
 
         self.content=MDBoxLayout(orientation='vertical',
-                                 size_hint=[1,.8],
+                                #  size_hint=[1,1],
                                 #  md_bg_color=[1,0,0,1],
                                 adaptive_height=True,
                                 spacing=sp(20),
@@ -416,9 +417,25 @@ class SettingsScreen(MDScreen):
         self.content.add_widget(self.my_switch)
         self.content.add_widget(portInput)
         self.content.add_widget(verifyBtn)
-
+        btn=MDButton(size_hint=[None,None],size=[100,50])
+        # btn1=MDButton(size_hint=[None,None],size=[100,50])
+        self.img=Image(source='assets/icons/video.png',mipmap=True,size_hint=[1,None],height=sp(200),pos_hint= {"center_x": .5, "center_y": .7})
+        self.content.add_widget(self.img)
+        # btn.on_release=self.test
+        btn.on_release=self.testx
+        self.content.add_widget(btn)
         self.add_widget(self.layout)
         self.add_widget(self.content)
+    def testx(self):
+        print("trying to ask")
+        permissions=[Permission.READ_EXTERNAL_STORAGE,Permission.WRITE_EXTERNAL_STORAGE]
+        request_permissions(permissions)
+
+    def test(self):
+        def test1(file_path):
+            print(file_path)
+            self.img.source=file_path[0]
+        filechooser.open_file(on_selection=test1)
     def on_checkbox_active(self,checkbox, value):
         setHiddenFilesDisplay(value)
     def setIP(self,text):
@@ -444,9 +461,9 @@ class Laner(MDApp):
         root_layout.md_bg_color=.3,.3,.3,1
 
         self.my_screen_manager = WindowManager()
+        self.my_screen_manager.add_widget(SettingsScreen())
         self.my_screen_manager.add_widget(DisplayFolderScreen(name='upload',current_dir='Home'))
         self.my_screen_manager.add_widget(DisplayFolderScreen(name='download',current_dir='.'))
-        self.my_screen_manager.add_widget(SettingsScreen())
         self.my_screen_manager.transition=NoTransition()
         self.my_screen_manager.current='settings'
         bottom_navigation_bar=BottomNavigationBar(self.my_screen_manager)

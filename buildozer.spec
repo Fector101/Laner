@@ -15,7 +15,6 @@ source.dir = ./
 # (list) Source files to include (let empty to include all the files)
 source.include_exts = py,png,jpg,kv,atlas,ttf,json
 
-android.manifest =./AndroidManifest.xml
 
 
 # (list) List of inclusions using pattern matching
@@ -25,7 +24,7 @@ android.manifest =./AndroidManifest.xml
 #source.exclude_exts = spec
 
 # (list) List of directory to exclude (let empty to not exclude anything)
-source.exclude_dirs = tests, bin, venv, worked, __pycache__, .idea, dist, for-download
+source.exclude_dirs = tests, bin, venv,lab, worked, __pycache__, .idea, dist, for-download,laner-linux
 
 # (list) List of exclusions using pattern matching
 # Do not prefix with './'
@@ -44,7 +43,7 @@ version = 1.0
 #requirements = python3,kivy,kivymd,materialyoucolor,asynckivy,asyncgui,aiohttp,multidict,attrs,yarl,propcache,async_timeout
 
 #requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,materialyoucolor,asynckivy,asyncgui,jnius
-requirements = python3,kivy,kivymd,materialyoucolor,asynckivy,asyncgui,pyjnius
+requirements = python3,kivy,kivymd,materialyoucolor,asynckivy,asyncgui,pyjnius,plyer
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -61,7 +60,7 @@ icon.filename = %(source.dir)s/assets/imgs/icon.png
 orientation = portrait
 
 # (list) List of service to declare
-services = Sendnoti:./foreground.py
+services = Sendnoti:./services/foreground.py
 #services = NAME:ENTRYPOINT_TO_PY,NAME2:ENTRYPOINT2_TO_PY
 
 #
@@ -104,7 +103,8 @@ fullscreen = 0
 # (list) Permissions
 # (See https://python-for-android.readthedocs.io/en/latest/buildoptions/#build-options-1 for all the supported syntaxes and properties)
 #android.permissions = android.permission.INTERNET,WRITE_EXTERNAL_STORAGE
-android.permissions = android.permission.INTERNET, FOREGROUND_SERVICE, READ_EXTERNAL_STORAGE,RECEIVE_BOOT_COMPLETED,NOTIFICATION
+android.permissions = android.permission.INTERNET, FOREGROUND_SERVICE, READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE,MANAGE_EXTERNAL_STORAGE
+# android.permissions = android.permission.INTERNET, FOREGROUND_SERVICE, READ_EXTERNAL_STORAGE,RECEIVE_BOOT_COMPLETED,NOTIFICATION
 
 # (list) features (adds uses-feature -tags to manifest)
 #android.features = android.hardware.usb.host
