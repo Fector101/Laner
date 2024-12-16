@@ -24,7 +24,7 @@ from kivymd.material_resources import DEVICE_TYPE # if mobile or PC
 
 import requests
 import os, sys, json
-from plyer import filechooser
+from plyer import filechooser,notification
 
 from widgets.popup import Snackbar
 from widgets.templates import DisplayFolderScreen, Header
@@ -43,34 +43,35 @@ MY_DATABASE_PATH = os.path.join(__DIR__, 'data', 'store.json')
 #Making/Getting Downloads Folder
 my_downloads_folder=makeDownloadFolder()
 
-# if platform == 'android':
-setSERVER_IP('')
-try:
-    from jnius import autoclass
-    from android import mActivity # type: ignore
-    context =  mActivity.getApplicationContext()
-    SERVICE_NAME = str(context.getPackageName()) + '.Service' + 'Sendnoti'
-    service = autoclass(SERVICE_NAME)
-    service.start(mActivity,'')
-    print('returned service')
-except Exception as e:
-    print(f'Foreground service failed {e}')
+if platform == 'android':
+    setSERVER_IP('')
+    try:
+        from jnius import autoclass
+        from android import mActivity # type: ignore
+        context =  mActivity.getApplicationContext()
+        SERVICE_NAME = str(context.getPackageName()) + '.Service' + 'Sendnoti'
+        service = autoclass(SERVICE_NAME)
+        service.start(mActivity,'')
+        print('returned service')
+    except Exception as e:
+        print(f'Foreground service failed {e}')
 
 
-from android.permissions import request_permissions, Permission,check_permission # type: ignore
-from android.storage import app_storage_path, primary_external_storage_path # type: ignore
+    from android.permissions import request_permissions, Permission,check_permission # type: ignore
+    from android.storage import app_storage_path, primary_external_storage_path # type: ignore
 
 
-print('Asking permission...')
-def check_permissions(permissions):
-    for permission in permissions:
-        if check_permission(permission) != True:
-            return False
-    return True
+    print('Asking permission...')
+    def check_permissions(permissions):
+        for permission in permissions:
+            if check_permission(permission) != True:
+                return False
+        return True
 
-permissions=[Permission.READ_EXTERNAL_STORAGE,Permission.WRITE_EXTERNAL_STORAGE]
-# if check_permissions(permissions):
-request_permissions(permissions)
+    permissions=[Permission.POST_NOTIFICATIONS]
+    # permissions=[Permission.POST_NOTIFICATIONS,Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE]
+    # if check_permissions(permissions):
+    request_permissions(permissions)
 
 
 
@@ -418,18 +419,57 @@ class SettingsScreen(MDScreen):
         self.content.add_widget(portInput)
         self.content.add_widget(verifyBtn)
         btn=MDButton(size_hint=[None,None],size=[100,50])
-        # btn1=MDButton(size_hint=[None,None],size=[100,50])
+        btn1=MDButton(size_hint=[None,None],size=[100,50])
         self.img=Image(source='assets/icons/video.png',mipmap=True,size_hint=[1,None],height=sp(200),pos_hint= {"center_x": .5, "center_y": .7})
         self.content.add_widget(self.img)
-        # btn.on_release=self.test
-        btn.on_release=self.testx
+        btn.on_release=self.test
+        btn1.on_release=self.testx
         self.content.add_widget(btn)
+        self.content.add_widget(btn1)
         self.add_widget(self.layout)
         self.add_widget(self.content)
     def testx(self):
         print("trying to ask")
-        permissions=[Permission.READ_EXTERNAL_STORAGE,Permission.WRITE_EXTERNAL_STORAGE]
-        request_permissions(permissions)
+        try:
+            from jnius import autoclass
+
+            def send_notification(title, message):
+                # Get the required Java classes
+                PythonActivity = autoclass('org.kivy.android.PythonActivity')
+                NotificationManager = autoclass('android.app.NotificationManager')
+                NotificationChannel = autoclass('android.app.NotificationChannel')
+                NotificationCompatBuilder = autoclass('androidx.core.app.NotificationCompat$Builder')
+
+                # Get the app's context and notification manager
+                context = PythonActivity.mActivity
+                notification_manager = context.getSystemService(context.NOTIFICATION_SERVICE)
+
+                # Notification Channel (Required for Android 8.0+)
+                channel_id = "default_channel"
+                if notification_manager.getNotificationChannel(channel_id) is None:
+                    channel = NotificationChannel(
+                        channel_id,
+                        "Default Channel",
+                        NotificationManager.IMPORTANCE_DEFAULT
+                    )
+                    notification_manager.createNotificationChannel(channel)
+
+                # Build the notification
+                notification = NotificationCompatBuilder(context, channel_id)
+                notification.setContentTitle(title)
+                notification.setContentText(message)
+                notification.setSmallIcon(autoclass("android.R$drawable").ic_dialog_info)  # Use a valid drawable
+
+                # Show the notification
+                notification_manager.notify(1, notification.build())
+
+            # Call the function
+            send_notification("Hello!", "This is a notification from Kivy.")
+
+        except Exception as e:
+            print("Fisrt Noti: ",e)
+        # permissions=[Permission.READ_EXTERNAL_STORAGE,Permission.WRITE_EXTERNAL_STORAGE]
+        # request_permissions(permissions)
 
     def test(self):
         def test1(file_path):

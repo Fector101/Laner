@@ -103,14 +103,14 @@ fullscreen = 0
 # (list) Permissions
 # (See https://python-for-android.readthedocs.io/en/latest/buildoptions/#build-options-1 for all the supported syntaxes and properties)
 #android.permissions = android.permission.INTERNET,WRITE_EXTERNAL_STORAGE
-android.permissions = android.permission.INTERNET, FOREGROUND_SERVICE, READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE,MANAGE_EXTERNAL_STORAGE
+android.permissions = android.permission.INTERNET, FOREGROUND_SERVICE,POST_NOTIFICATIONS, READ_EXTERNAL_STORAGE, MANAGE_EXTERNAL_STORAGE
 # android.permissions = android.permission.INTERNET, FOREGROUND_SERVICE, READ_EXTERNAL_STORAGE,RECEIVE_BOOT_COMPLETED,NOTIFICATION
 
 # (list) features (adds uses-feature -tags to manifest)
 #android.features = android.hardware.usb.host
 
 # (int) Target Android API, should be as high as possible.
-android.api = 34
+android.api = 31
 
 # (int) Minimum API your APK / AAB will support.
 #android.minapi = 21
@@ -212,11 +212,11 @@ android.service = True
 
 # (list) Gradle dependencies to add
 #android.gradle_dependencies =
-
+android.gradle_dependencies = androidx.core:core:1.6.0
 # (bool) Enable AndroidX support. Enable when 'android.gradle_dependencies'
 # contains an 'androidx' package, or any package from Kotlin source.
 # android.enable_androidx requires android.api >= 28
-#android.enable_androidx = True
+android.enable_androidx = True
 
 # (list) add java compile options
 # this can for example be necessary when importing certain java libraries using the 'android.gradle_dependencies' option
