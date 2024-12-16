@@ -458,8 +458,8 @@ class SettingsScreen(MDScreen):
                 notification = NotificationCompatBuilder(context, channel_id)
                 notification.setContentTitle(title)
                 notification.setContentText(message)
-                notification.setSmallIcon(autoclass("android.R$drawable").ic_dialog_info)  # Use a valid drawable
-
+                # notification.setSmallIcon(autoclass("android.R$drawable").ic_dialog_info)  # Use a valid drawable
+                notification.setSmallIcon(context.getApplicationInfo().icon)
                 # Show the notification
                 notification_manager.notify(1, notification.build())
 
