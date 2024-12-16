@@ -43,7 +43,7 @@ version = 1.0
 #requirements = python3,kivy,kivymd,materialyoucolor,asynckivy,asyncgui,aiohttp,multidict,attrs,yarl,propcache,async_timeout
 
 #requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,materialyoucolor,asynckivy,asyncgui,jnius
-requirements = python3,kivy,kivymd,materialyoucolor,asynckivy,asyncgui,pyjnius,plyer
+requirements = python3,kivy,kivymd,materialyoucolor,asynckivy,asyncgui,pyjnius,plyer,docutils
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes

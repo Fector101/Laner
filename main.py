@@ -1,3 +1,4 @@
+from kivy.uix.filechooser import FileChooserListView
 from kivymd.app import MDApp
 from kivymd.uix.button import MDButton, MDButtonText
 from kivy.clock import Clock
@@ -21,14 +22,16 @@ from kivy.uix.checkbox import CheckBox
 from kivy.uix.image import AsyncImage,Image
 from kivy.utils import platform # OS
 from kivymd.material_resources import DEVICE_TYPE # if mobile or PC
+from kivymd.uix.filemanager import MDFileManager
 
 import requests
 import os, sys, json
-from plyer import filechooser,notification
+from plyer import filechooser
 
 from widgets.popup import Snackbar
 from widgets.templates import DisplayFolderScreen, Header
 from workers.helper import getSERVER_IP, makeDownloadFolder, setHiddenFilesDisplay, setSERVER_IP
+from kivy.uix.floatlayout import FloatLayout
 
 # For Dev
 if DEVICE_TYPE != "mobile":
@@ -42,8 +45,10 @@ MY_DATABASE_PATH = os.path.join(__DIR__, 'data', 'store.json')
 
 #Making/Getting Downloads Folder
 my_downloads_folder=makeDownloadFolder()
-
+ROOT='/home'
 if platform == 'android':
+    from kivymd.toast import toast
+    
     setSERVER_IP('')
     try:
         from jnius import autoclass
@@ -61,6 +66,9 @@ if platform == 'android':
     from android.storage import app_storage_path, primary_external_storage_path # type: ignore
 
 
+    ROOT=primary_external_storage_path() if primary_external_storage_path() else '.'
+    print(primary_external_storage_path(),'|ROOT|',ROOT)
+
     print('Asking permission...')
     def check_permissions(permissions):
         for permission in permissions:
@@ -68,8 +76,8 @@ if platform == 'android':
                 return False
         return True
 
-    permissions=[Permission.POST_NOTIFICATIONS]
-    # permissions=[Permission.POST_NOTIFICATIONS,Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE]
+    # permissions=[Permission.POST_NOTIFICATIONS]
+    permissions=[Permission.POST_NOTIFICATIONS,Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE]
     # if check_permissions(permissions):
     request_permissions(permissions)
 
@@ -387,6 +395,7 @@ class SettingsScreen(MDScreen):
             )
         self.layout.orientation='vertical'
         self.layout.spacing=sp(10)
+        self.filechooser=None
         
         self.header=Header(
             # size_hint=[1,None],height=sp(50),
@@ -420,7 +429,7 @@ class SettingsScreen(MDScreen):
         self.content.add_widget(verifyBtn)
         btn=MDButton(size_hint=[None,None],size=[100,50])
         btn1=MDButton(size_hint=[None,None],size=[100,50])
-        self.img=Image(source='assets/icons/video.png',mipmap=True,size_hint=[1,None],height=sp(200),pos_hint= {"center_x": .5, "center_y": .7})
+        self.img=AsyncImage(source='assets/icons/video.png',nocache=False,mipmap=True,size_hint=[1,None],height=sp(200),pos_hint= {"center_x": .5, "center_y": .7})
         self.content.add_widget(self.img)
         btn.on_release=self.test
         btn1.on_release=self.testx
@@ -429,7 +438,7 @@ class SettingsScreen(MDScreen):
         self.add_widget(self.layout)
         self.add_widget(self.content)
     def testx(self):
-        print("trying to ask")
+        print("sending new notification")
         try:
             from jnius import autoclass
 
@@ -461,7 +470,8 @@ class SettingsScreen(MDScreen):
                 # notification.setSmallIcon(autoclass("android.R$drawable").ic_dialog_info)  # Use a valid drawable
                 notification.setSmallIcon(context.getApplicationInfo().icon)
                 # Show the notification
-                notification_manager.notify(1, notification.build())
+                import random
+                notification_manager.notify(random.randint(0,100), notification.build())
 
             # Call the function
             send_notification("Hello!", "This is a notification from Kivy.")
@@ -473,9 +483,28 @@ class SettingsScreen(MDScreen):
 
     def test(self):
         def test1(file_path):
-            print(file_path)
+            print(file_path,'img path')
             self.img.source=file_path[0]
+            # from PIL import Image as PILImage
+            # img=PILImage.open(file_path)
+            # file_name=os.path.basename(file_path)
+            # ext_and_name=os.path.splitext(file_name)
+            # new_path=os.path.join('.',f"{ext_and_name[1]}{ext_and_name[0]}")
+            # img.save(new_path,optimize=True,quality=80)
+            # exit_manager()
+            # self.img.reload()
+        def exit_manager(path=''):
+            # self.filechooser.close()
+            print('exit path------------|',path)
+            toast('Toast more profess')
         filechooser.open_file(on_selection=test1)
+        # layout=FloatLayout()
+        # self.filechooser=MDFileManager(exit_manager=exit_manager, select_path=test1)#rootpath=ROOT)
+        # self.filechooser.show(ROOT)
+        # filechooser.bind(on_selection=test1)
+        # layout.add_widget(filechooser)
+        # self.add_widget(layout)
+        
     def on_checkbox_active(self,checkbox, value):
         setHiddenFilesDisplay(value)
     def setIP(self,text):
