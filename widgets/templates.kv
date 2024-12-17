@@ -1,0 +1,26 @@
+#:import asynckivy asynckivy
+
+<MyBtmSheet>
+    _on_open: asynckivy.start(self.generate_content())
+
+<TypeMapElement>
+    orientation: "vertical"
+    adaptive_height: True
+    spacing: "8dp"
+
+    MDIconButton:
+        id: icon
+        icon: root.icon
+        theme_bg_color: "Custom"
+        md_bg_color: "#EDF1F9" if not root.selected else app.theme_cls.primaryColor
+        pos_hint: {"center_x": .5}
+        theme_icon_color: "Custom"
+        icon_color: "white" if root.selected else "black"
+        on_release: root.set_active_element(root, root.title.lower())
+
+    MDLabel:
+        text: root.title
+        pos_hint: {"center_x": .5}
+        halign: "center"
+        adaptive_height: True
+           

@@ -3,7 +3,7 @@ from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.label import MDLabel
 from kivy.uix.recycleview import RecycleView
 from kivy.metrics import dp,sp
-from kivy.properties import ( ListProperty, StringProperty)
+from kivy.properties import ( ListProperty, StringProperty, BooleanProperty,ColorProperty,ObjectProperty,NumericProperty)
 from kivy.clock import Clock
 # from app_settings import SHOW_HIDDEN_FILES
 
@@ -12,12 +12,36 @@ import asyncio
 import requests
 import os
 from pathlib import Path
+from plyer import filechooser
 
 from widgets.popup import PopupDialog,Snackbar
-from workers.helper import getSERVER_IP, getSystem_IpAdd, makeDownloadFolder, truncateStr,getHiddenFilesDisplay_State
+from workers.helper import getAppFolder, getSERVER_IP, getSystem_IpAdd, is_wine, makeDownloadFolder, truncateStr,getHiddenFilesDisplay_State, wine_path_to_unix
+
+from kivy.lang import Builder
+
+# TODO Fix get app folder worker/helper.py returning app folder as /Laner/workers/
+import sys
+from kivymd.uix.button import MDExtendedFabButton,MDExtendedFabButtonIcon,MDExtendedFabButtonText
+def getAppFolder1():
+    """
+    Returns the correct application folder path, whether running on native Windows,
+    Wine, or directly in Linux.
+    """
+    if hasattr(sys, "_MEIPASS"):
+        # PyInstaller creates a temp folder (_MEIPASS)
+        path__ = os.path.abspath(sys._MEIPASS)
+    else:
+        # Running from source code
+        path__ = os.path.abspath(os.path.dirname(__file__))
+        
+    if is_wine():
+        path__ = wine_path_to_unix(path__)
+    return path__
+with open(os.path.join(getAppFolder1(),"templates.kv"), encoding="utf-8") as kv_file:
+    Builder.load_string(kv_file.read(), filename="MyBtmSheet.kv")
 
 
-
+from kivy.utils import get_color_from_hex
 my_downloads_folder=makeDownloadFolder()
 
 
@@ -27,7 +51,7 @@ class Header(MDBoxLayout):
     title_color=ListProperty([1,1,1,1])
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.md_bg_color = (.2, .2, .2, .5)
+        self.md_bg_color = (.1, .1, .1, .5)
         self.header_label=MDLabel(
             text_color=self.title_color,
             text='~ '+self.text if self.text == 'Home' else self.text,
@@ -73,7 +97,7 @@ class DisplayFolderScreen(MDScreen):
         self.screen_history = []
         self.current_dir_info:list[dict]=[]
         self.could_not_open_path_msg="Couldn't Open Folder Check Laner on PC"
-        self.layout=MDBoxLayout(md_bg_color=[.4,.4,.4,1],orientation='vertical')
+        self.layout=MDBoxLayout(orientation='vertical')
         self.header=Header(
                            text=self.current_dir,
                            size_hint=[1,.1],
@@ -88,8 +112,45 @@ class DisplayFolderScreen(MDScreen):
         
 
         self.layout.add_widget(self.screen_scroll_box)
+        # icon.theme_text_color="Custom"
+        # icon.text_color=[1,0,0,1]
+        THEME_COLOR=(.12, .65, .46, 1)
+        # THEME_COLOR=(.12, .85, .6, 1)
+        self.upload_btn=MDExtendedFabButton(
+                #FF0000
+                MDExtendedFabButtonIcon(icon="upload",theme_text_color="Custom",text_color=THEME_COLOR),
+                MDExtendedFabButtonText(text="Upload",text_color=(.12, .55, .4, 1),theme_text_color="Custom"),
+                pos_hint={"center_x": .82, "center_y": .19},
+                # on_release=lambda x:self.choose_file()
+        )
+        # self.upload_btn.md_bg_color=[1,0,0,1]
         self.add_widget(self.layout)
-
+        self.add_widget(self.upload_btn)
+    def choose_file(self):
+        print('printing tstex')
+        def test1(file_path):
+            print(file_path,'img path')
+            # if file_path:
+                # self.img.source=file_path[0]
+        filechooser.open_file(on_selection=test1)
+    def on_touch_down(self,touch):
+        # print(touch,*touch.pos)
+        if self.upload_btn.collide_point(*touch.pos):
+            print('entered')
+            if self.upload_btn.fab_state == "collapse":
+                self.upload_btn.fab_state = "expand"
+            else:
+                self.upload_btn.fab_state = "collapse"
+    def on_touch_up(self,touch,*args):
+        print(touch,*touch.pos,self.upload_btn.pos,args)
+        if self.upload_btn.collide_point(*touch.pos):
+            if self.upload_btn.fab_state == "collapse":
+                print('touch up -----1')
+                self.choose_file()
+            
+                
+                
+            
     def startSetPathInfo_Thread(self):
         threading.Thread(target=self.querySetPathInfoAsync).start()
         
@@ -140,6 +201,8 @@ class DisplayFolderScreen(MDScreen):
             return False
     def setPath(self,path,add_to_history=True):
         if not self.isDir(path):
+            self.manager.btm_sheet.set_state("toggle")
+            
             return
         if add_to_history:  # Saving Last directory for screen history
             self.screen_history.append(self.current_dir)
@@ -151,7 +214,7 @@ class DisplayFolderScreen(MDScreen):
         
     def showDownloadDialog(self,path:str):
         """Shows Dialog box with choosen path and calls async download if ok press"""
-        if (self.isDir(path)):
+        if (self.isDir(path)):            
             return
         
         file_name = os.path.basename(path.replace('\\', '/'))
@@ -173,3 +236,82 @@ class DisplayFolderScreen(MDScreen):
         loop=asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         loop.run_until_complete(async_download_file(url, save_path))
+
+import asynckivy
+# from asynckivy
+from kivymd.uix.bottomsheet.bottomsheet import MDBottomSheet,MDBottomSheetDragHandle,MDBottomSheetDragHandleTitle,MDBottomSheetDragHandleButton
+
+from kivy.properties import BoundedNumericProperty
+
+class TypeMapElement(MDBoxLayout):
+    selected = BooleanProperty(False)
+    icon = StringProperty()
+    title = StringProperty()
+    
+    def set_active_element(self, instance, type_map):
+        # print(self.parent.children, instance, type_map)
+        for element in self.parent.children:
+            if instance == element:
+                element.selected = True
+                self.current_map = type_map
+            else:
+                element.selected = False
+
+class MyBtmSheet(MDBottomSheet):
+    sheet_type="standard"
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # super(MyBtmSheet,self).__init__(**kwargs)
+        self.size_hint_y=None
+        self.height='150dp'
+        
+        self.drag_sheet= MDBottomSheetDragHandle(
+                            
+                            
+                            drag_handle_color= "grey"
+                            )
+        self.drag_sheet.add_widget(
+            MDBottomSheetDragHandleTitle(
+                # text= "Select type map",
+                pos_hint= {"center_y": .5}
+            )
+        )
+        self.drag_sheet.add_widget(
+            MDBottomSheetDragHandleButton(
+                               icon= "close",
+                               ripple_effect= False,
+                               on_release= lambda x: self.set_state("toggle")
+                               )
+        )
+
+        self.content = MDBoxLayout(padding=[0, 0, 0, "16dp"])
+        self.add_widget(self.drag_sheet)
+        # self.generate_content()
+        self.add_widget(self.content)
+        # self.on_open=asynckivy.start(self.generate_content())
+        
+    async def generate_content(self):        
+        
+        icons = {
+            "Download": "download",
+            "Open with": "apps",
+            "Share": "share",
+        }
+        map_sources = {
+        "street": "https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}",
+        "sputnik": "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+        "hybrid": "https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
+        }
+        # await asynckivy.sleep(0)
+        # print("test----|",self,'|||',self.content)
+        # print(self.content.children)
+        if not self.children:
+            for i, title in enumerate(icons.keys()):
+                await asynckivy.sleep(0)
+                self.content.add_widget(
+                    TypeMapElement(
+                        title=title.capitalize(),
+                        icon=icons[title],
+                        selected=not i,
+                    )
+                )

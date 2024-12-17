@@ -2,8 +2,7 @@ from kivy.uix.filechooser import FileChooserListView
 from kivymd.app import MDApp
 from kivymd.uix.button import MDButton, MDButtonText
 from kivy.clock import Clock
-from kivy.properties import ( BooleanProperty, ListProperty, StringProperty)
-from kivymd.app import MDApp
+from kivy.properties import (ObjectProperty, BooleanProperty, ListProperty, StringProperty)
 from kivy.core.window import Window
 from kivymd.uix.label import MDIcon, MDLabel
 from kivy.metrics import dp,sp
@@ -14,16 +13,18 @@ from kivymd.uix.behaviors import RectangularRippleBehavior
 from kivy.uix.behaviors import ButtonBehavior
 from kivymd.uix.relativelayout import MDRelativeLayout
 from kivymd.uix.screen import MDScreen
+from kivymd.uix.screenmanager import MDScreenManager
 from kivy.lang import Builder
 from kivymd.uix.textfield import MDTextField
 from kivy.uix.recycleview.views import RecycleDataViewBehavior
 from kivy.uix.recyclegridlayout import RecycleGridLayout
-from kivy.uix.checkbox import CheckBox
+from kivymd.uix.selectioncontrol import MDCheckbox
 from kivy.uix.image import AsyncImage,Image
 from kivy.utils import platform # OS
 from kivymd.material_resources import DEVICE_TYPE # if mobile or PC
 from kivymd.uix.filemanager import MDFileManager
-
+from kivymd.uix.navigationdrawer import (MDNavigationDrawer,
+                MDNavigationLayout)
 import requests
 import os, sys, json
 from plyer import filechooser
@@ -136,6 +137,7 @@ Builder.load_string('''
         padding:"10dp"
         size_hint: (1, None)
         height: self.minimum_height
+ 
 ''')
 
 
@@ -162,10 +164,18 @@ class My_RecycleGridLayout(RecycleGridLayout):
             self.cols=4
 
 
-class WindowManager(ScreenManager):
+class WindowManager(MDScreenManager):
     screen_history = []  # Stack to manage visited screens
-    def __init__(self, **kwargs):
+    def __init__(self, btm_sheet,**kwargs):
+    # def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.btm_sheet=btm_sheet
+        self.md_bg_color=[.2,.2,.2,1]
+        self.add_widget(DisplayFolderScreen(name='upload',current_dir='Home'))
+        self.add_widget(DisplayFolderScreen(name='download',current_dir='.'))
+        self.add_widget(SettingsScreen())
+        self.transition=NoTransition()
+        self.current='settings'
         Window.bind(on_keyboard=self.Android_back_click)
 
     def changeScreenAnimation(self, screen_name):
@@ -187,7 +197,8 @@ class WindowManager(ScreenManager):
         # test = [type(widget) for widget in self.walk(loopback=True)][0].ids
         # print(test)
         # print(test.att())
-        tabs_buttons_list=self.parent.children[0].children
+        # print(self.parent.children,self.parent.children[1].children)
+        tabs_buttons_list=self.parent.children[1].children
         for each_btn in tabs_buttons_list:
             each_btn.checkWidgetDesign(self.current)
     def Android_back_click(self, window, key, *largs):
@@ -231,12 +242,13 @@ class TabButton(RectangularRippleBehavior,ButtonBehavior,MDBoxLayout):
         super().__init__(**kwargs)
         # self.ripple
         self.orientation='vertical'
-        self.padding=[dp(0),dp(8),dp(0),dp(5)]
+        self.padding=[dp(0),dp(11),dp(0),dp(5)]
         self.line_color=(.2, .2, .2, 0)
         self._radius=1
         self.id=self.text
-        self.spacing='-5sp'
-        self.size_hint=[1,1]
+        self.spacing="-8sp"
+        self.size_hint=[None,1]
+        self.width=Window.width/3
         self.label= Label(
             text=self.text, halign='center',
             font_name='assets/fonts/Helvetica.ttf',
@@ -246,7 +258,7 @@ class TabButton(RectangularRippleBehavior,ButtonBehavior,MDBoxLayout):
                 icon=self.icon,
                 # font_size__='40sp',
                 # size_hint=[.5,.5],
-                pos_hint={'center_x': 0.5,'center_y': 0},
+                pos_hint={'center_x': 0.5},
                 theme_text_color="Custom",
             )
 
@@ -275,12 +287,15 @@ class TabButton(RectangularRippleBehavior,ButtonBehavior,MDBoxLayout):
                 # MDIcon.text_color=Label.color = THEME_COLOR_TUPLE
                 self.btn_icon.text_color=self.label.color = self.theme_cls.backgroundColor
 
-
-class BottomNavigationBar(MDBoxLayout):
+class BottomNavigationBar(MDNavigationDrawer):
     screen = StringProperty()
     def __init__(self, screen_manager:WindowManager,**kwargs):
         super(BottomNavigationBar, self).__init__(**kwargs)
-
+        self.drawer_type='standard'
+        self.set_state('open')
+        self.radius=0
+        
+        
         self.screen_manager=screen_manager
         icons = ['home', 'download', 'connection']
         # icons = ['home', 'server-network-outline', 'connection']
@@ -290,7 +305,8 @@ class BottomNavigationBar(MDBoxLayout):
         self.size_hint =[ 1, .1]
         self.padding=0
         self.spacing=0
-        self.md_bg_color = (.2, .2, .2, .5)
+        # self.md_bg_color = (.1, .1, .1, .5)
+        self.md_bg_color = (.1, .1, .1, 1)
 
         for index in range(len(icons)):
             self.btn = TabButton(
@@ -326,7 +342,10 @@ class MySwitch(MDBoxLayout):
             halign='left',valign='center',
                                 text_color=[1,1,1,1],
                                 text=self.text))
-        self.checkbox_=CheckBox(size_hint=(None,1),width='40sp',color=[.6, .9, .8, 2], active=self.switch_state, group='1',pos_hint={'right':1})
+        self.checkbox_=MDCheckbox(size_hint=(None,None),size=['40sp','40sp'],color_active=[.6, .9, .8, 2],color_inactive=[.6, .9, .8, .5],radius=0,active=self.switch_state,
+        # self.checkbox_=MDCheckbox(size_hint=(None,None),size=['40sp','40sp'],icon_color=[.6, .9, .8, 2],theme_icon_color='Custom',theme_bg_color='Custom', _md_bg_color=[1,0,0,1],radius=0,active=self.switch_state,
+                                  pos_hint={'right':1,'top':.8}
+                                  )
         self.add_widget(self.checkbox_)
         
 
@@ -427,13 +446,13 @@ class SettingsScreen(MDScreen):
         self.content.add_widget(self.my_switch)
         self.content.add_widget(portInput)
         self.content.add_widget(verifyBtn)
-        btn=MDButton(size_hint=[None,None],size=[100,50])
+        # btn=MDButton(size_hint=[None,None],size=[100,50])
         btn1=MDButton(size_hint=[None,None],size=[100,50])
         self.img=AsyncImage(source='assets/icons/video.png',nocache=False,mipmap=True,size_hint=[1,None],height=sp(200),pos_hint= {"center_x": .5, "center_y": .7})
         self.content.add_widget(self.img)
-        btn.on_release=self.test
+        # btn.on_release=self.test
         btn1.on_release=self.testx
-        self.content.add_widget(btn)
+        # self.content.add_widget(btn)
         self.content.add_widget(btn1)
         self.add_widget(self.layout)
         self.add_widget(self.content)
@@ -481,10 +500,11 @@ class SettingsScreen(MDScreen):
         # permissions=[Permission.READ_EXTERNAL_STORAGE,Permission.WRITE_EXTERNAL_STORAGE]
         # request_permissions(permissions)
 
-    def test(self):
-        def test1(file_path):
-            print(file_path,'img path')
-            self.img.source=file_path[0]
+    # def test(self):
+    #     def test1(file_path):
+    #         print(file_path,'img path')
+    #         if file_path:
+    #             self.img.source=file_path[0]
             # from PIL import Image as PILImage
             # img=PILImage.open(file_path)
             # file_name=os.path.basename(file_path)
@@ -497,7 +517,9 @@ class SettingsScreen(MDScreen):
             # self.filechooser.close()
             print('exit path------------|',path)
             toast('Toast more profess')
-        filechooser.open_file(on_selection=test1)
+        # filechooser.open_file(on_selection=test1)
+        
+        # print(self.manager.btm_sheet)#.set_state("toggle")
         # layout=FloatLayout()
         # self.filechooser=MDFileManager(exit_manager=exit_manager, select_path=test1)#rootpath=ROOT)
         # self.filechooser.show(ROOT)
@@ -514,34 +536,49 @@ class SettingsScreen(MDScreen):
             if response.status_code == 200:
                 Snackbar(h1="Verification Successfull")
             else:
-                Snackbar(h1="Bad Code check \"Laner PC\" for right one")
-        except:
+                Snackbar(h1="Bad Code check 'Laner PC' for right one")
+        except Exception as e:
+            print("here---|",e)
             Snackbar(h1="Bad Code check \"Laner PC\" for right one")
             
         print('My address',text, getSERVER_IP())
-        
-class Laner(MDApp):
 
+
+from widgets.templates import MyBtmSheet
+class TypeMapElement(MDBoxLayout):
+    selected = BooleanProperty(False)
+    icon = StringProperty()
+    title = StringProperty()
+
+class Laner(MDApp):
+    btm_sheet=''
     def build(self):
         self.title='Laner'
-        
         self.theme_cls.backgroundColor=THEME_COLOR_TUPLE
-        root_layout=MDBoxLayout(orientation='vertical')
-        root_layout.md_bg_color=.3,.3,.3,1
-
-        self.my_screen_manager = WindowManager()
-        self.my_screen_manager.add_widget(SettingsScreen())
-        self.my_screen_manager.add_widget(DisplayFolderScreen(name='upload',current_dir='Home'))
-        self.my_screen_manager.add_widget(DisplayFolderScreen(name='download',current_dir='.'))
-        self.my_screen_manager.transition=NoTransition()
-        self.my_screen_manager.current='settings'
+        
+        root_screen=MDScreen()
+        nav_layout=MDNavigationLayout()
+    
+        self.btm_sheet=MyBtmSheet()
+        self.my_screen_manager = WindowManager(self.btm_sheet)
         bottom_navigation_bar=BottomNavigationBar(self.my_screen_manager)
 
-        root_layout.add_widget(self.my_screen_manager)
-        root_layout.add_widget(bottom_navigation_bar)
+        # nav_layout.add_widget(self.my_screen_manager)
+        # # root_layout.add_widget(bottom_navigation_bar)
 
-        return root_layout
-
+        nav_layout.add_widget(self.my_screen_manager)
+        nav_layout.add_widget(bottom_navigation_bar)
+        # nav_layout.add_widget(MDBottomSheet(
+        #     sheet_type='standard',
+        #     size_hint_y= None,
+        #     height= "150dp"
+            
+        # ))
+        nav_layout.add_widget(self.btm_sheet)
+        
+        root_screen.add_widget(nav_layout)
+        return root_screen
+    
 
 
 if __name__ == '__main__':
