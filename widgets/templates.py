@@ -21,7 +21,7 @@ from kivy.lang import Builder
 
 # TODO Fix get app folder worker/helper.py returning app folder as /Laner/workers/
 import sys
-from kivymd.uix.button import MDExtendedFabButton,MDExtendedFabButtonIcon,MDExtendedFabButtonText
+from kivymd.uix.button import MDFabButton,MDExtendedFabButtonIcon,MDExtendedFabButtonText
 def getAppFolder1():
     """
     Returns the correct application folder path, whether running on native Windows,
@@ -116,11 +116,13 @@ class DisplayFolderScreen(MDScreen):
         # icon.text_color=[1,0,0,1]
         THEME_COLOR=(.12, .65, .46, 1)
         # THEME_COLOR=(.12, .85, .6, 1)
-        self.upload_btn=MDExtendedFabButton(
+        self.upload_btn=MDFabButton(
                 #FF0000
-                MDExtendedFabButtonIcon(icon="upload",theme_text_color="Custom",text_color=THEME_COLOR),
-                MDExtendedFabButtonText(text="Upload",text_color=(.12, .55, .4, 1),theme_text_color="Custom"),
-                pos_hint={"center_x": .82, "center_y": .19},
+                icon="upload",
+                style= "standard"
+                # MDExtendedFabButtonIcon(,theme_text_color="Custom",text_color=THEME_COLOR),
+                # MDExtendedFabButtonText(text="Upload",text_color=(.12, .55, .4, 1),theme_text_color="Custom"),
+                # pos_hint={"center_x": .82, "center_y": .19},
                 # on_release=lambda x:self.choose_file()
         )
         # self.upload_btn.md_bg_color=[1,0,0,1]
@@ -133,20 +135,20 @@ class DisplayFolderScreen(MDScreen):
             # if file_path:
                 # self.img.source=file_path[0]
         filechooser.open_file(on_selection=test1)
-    def on_touch_down(self,touch):
-        # print(touch,*touch.pos)
-        if self.upload_btn.collide_point(*touch.pos):
-            print('entered')
-            if self.upload_btn.fab_state == "collapse":
-                self.upload_btn.fab_state = "expand"
-            else:
-                self.upload_btn.fab_state = "collapse"
-    def on_touch_up(self,touch,*args):
-        print(touch,*touch.pos,self.upload_btn.pos,args)
-        if self.upload_btn.collide_point(*touch.pos):
-            if self.upload_btn.fab_state == "collapse":
-                print('touch up -----1')
-                self.choose_file()
+    # def on_touch_down(self,touch):
+    #     # print(touch,*touch.pos)
+    #     if self.upload_btn.collide_point(*touch.pos):
+    #         print('entered')
+    #         if self.upload_btn.fab_state == "collapse":
+    #             self.upload_btn.fab_state = "expand"
+    #         else:
+    #             self.upload_btn.fab_state = "collapse"
+    # def on_touch_up(self,touch,*args):
+    #     print(touch,*touch.pos,self.upload_btn.pos,args)
+    #     if self.upload_btn.collide_point(*touch.pos):
+    #         if self.upload_btn.fab_state == "collapse":
+    #             print('touch up -----1')
+    #             self.choose_file()
             
                 
                 

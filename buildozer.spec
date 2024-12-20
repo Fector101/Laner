@@ -68,7 +68,7 @@ services = Sendnoti:./services/foreground.py
 #
 
 #
-# author = © Copyright Info
+author = Fabian © Copyright Info
 
 # change the major version of python used by the app
 osx.python_version = 3

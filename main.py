@@ -95,7 +95,7 @@ Builder.load_string('''
     AsyncImage:
         id: test_stuff
         source: root.icon
-        size_hint: [.9,.7]
+        size_hint: [.8,.6] if root.icon=='assets/icons/file.png' else [.9,.7]
         fit_mode: 'contain'
         mipmap: True
         pos_hint: {"top":1}
@@ -136,7 +136,7 @@ Builder.load_string('''
         spacing:18
         padding:"10dp"
         size_hint: (1, None)
-        height: self.minimum_height
+        height: self.minimum_height + 140
  
 ''')
 
@@ -305,8 +305,9 @@ class BottomNavigationBar(MDNavigationDrawer):
         self.size_hint =[ 1, .1]
         self.padding=0
         self.spacing=0
-        # self.md_bg_color = (.1, .1, .1, .5)
+        # self.md_bg_color = (.1, 1, 0, .5)
         self.md_bg_color = (.1, .1, .1, 1)
+        self.pos=[0,-3]
 
         for index in range(len(icons)):
             self.btn = TabButton(
@@ -431,10 +432,10 @@ class SettingsScreen(MDScreen):
             pos_hint={'top':.86}
                                  )
 
-        portInput=MDTextField(theme_text_color= "Custom",text_color_focus=[.9,.9,1,1],text_color_normal=[1,1,1,1],pos_hint={'center_x':.5},size_hint=[.8,None],height=dp(80))
+        self.portInput=MDTextField(theme_text_color= "Custom",text_color_focus=[.9,.9,1,1],text_color_normal=[1,1,1,1],pos_hint={'center_x':.5},size_hint=[.8,None],height=dp(80))
         verifyBtn=MDButton(
                            theme_height= "Custom", theme_width= "Custom",
-                           on_release=lambda x: self.setIP(portInput.text),
+                           on_release=lambda x: self.setIP(self.portInput.text),
                         #    on_release=lambda x: Snackbar(confirm_txt='Ok'),
                            pos_hint={'center_x':.5},size_hint=[None,None],size=[sp(120),dp(50)],radius=0)
         verifyBtn.add_widget(MDButtonText(text='Verify Code',pos_hint= {"center_x": .5, "center_y": .5}))
@@ -444,7 +445,7 @@ class SettingsScreen(MDScreen):
         self.my_switch.checkbox_.bind(active=self.on_checkbox_active)
         
         self.content.add_widget(self.my_switch)
-        self.content.add_widget(portInput)
+        self.content.add_widget(self.portInput)
         self.content.add_widget(verifyBtn)
         # btn=MDButton(size_hint=[None,None],size=[100,50])
         btn1=MDButton(size_hint=[None,None],size=[100,50])
@@ -459,41 +460,27 @@ class SettingsScreen(MDScreen):
     def testx(self):
         print("sending new notification")
         try:
-            from jnius import autoclass
-
-            def send_notification(title, message):
-                # Get the required Java classes
-                PythonActivity = autoclass('org.kivy.android.PythonActivity')
-                NotificationManager = autoclass('android.app.NotificationManager')
-                NotificationChannel = autoclass('android.app.NotificationChannel')
-                NotificationCompatBuilder = autoclass('androidx.core.app.NotificationCompat$Builder')
-
-                # Get the app's context and notification manager
-                context = PythonActivity.mActivity
-                notification_manager = context.getSystemService(context.NOTIFICATION_SERVICE)
-
-                # Notification Channel (Required for Android 8.0+)
-                channel_id = "default_channel"
-                if notification_manager.getNotificationChannel(channel_id) is None:
-                    channel = NotificationChannel(
-                        channel_id,
-                        "Default Channel",
-                        NotificationManager.IMPORTANCE_DEFAULT
-                    )
-                    notification_manager.createNotificationChannel(channel)
-
-                # Build the notification
-                notification = NotificationCompatBuilder(context, channel_id)
-                notification.setContentTitle(title)
-                notification.setContentText(message)
-                # notification.setSmallIcon(autoclass("android.R$drawable").ic_dialog_info)  # Use a valid drawable
-                notification.setSmallIcon(context.getApplicationInfo().icon)
-                # Show the notification
-                import random
-                notification_manager.notify(random.randint(0,100), notification.build())
 
             # Call the function
-            send_notification("Hello!", "This is a notification from Kivy.")
+            import time
+            from android_notify.core import send_notification
+            from android_notify.styles import NotificationStyles
+
+            # send_notification("Hello", "This is a basic notification.")
+
+            # send_notification("Big Text", "This is a notification with a lot of text to show.", style=NotificationStyles.BIG_TEXT)
+            
+            try:
+                send_notification("Big Picture", "Here's a notification with a picture.", style=NotificationStyles.BIG_PICTURE, img_path='assets/imgs/icon.png')
+            except Exception as e:
+                print('My shit failed',e)
+
+            # send_notification(
+            #     "Inbox Style",
+            #     "Line 1\nLine 2\nLine 3\nLine 4",
+            #     style=NotificationStyles.INBOX
+            # )
+            # send_notification("Hello!", self.portInput.text if self.portInput.text else "This is a notification from Kivy.")
 
         except Exception as e:
             print("Fisrt Noti: ",e)
