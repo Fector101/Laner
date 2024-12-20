@@ -79,9 +79,10 @@ def send_notification(title, message, style=None, img_path=None, channel_id="def
     elif style == "big_picture" and img_path:
         try:
             bitmap = BitmapFactory.decodeStream(context.getContentResolver().openInputStream(img))
+            # bitmap = BitmapFactory.decodeFile(img_path)
             builder.setLargeIcon(bitmap)
-            big_picture_style = NotificationCompatBigPictureStyle()
-            big_picture_style.bigPicture(bitmap).bigLargeIcon(None)
+            big_picture_style = NotificationCompatBigPictureStyle().bigPicture(bitmap)
+            # big_picture_style.bigPicture(bitmap).bigLargeIcon(None)
             # big_picture_style.bigLargeIcon(bitmap) # This just changes dropdown app icon
             
             builder.setStyle(big_picture_style)
