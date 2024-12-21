@@ -1,3 +1,4 @@
+
 from jnius import autoclass
 import random
 import os
@@ -32,27 +33,38 @@ def send_notification(title, message, style=None, img_path=None, channel_id="def
     :param channel_id: Notification channel ID.
     """
     # TODO check if running on android short circuit and return message if not
-    print('My running....')
+    
     # Get the required Java classes
+    # Notification Base
     PythonActivity = autoclass('org.kivy.android.PythonActivity')
-    NotificationManager = autoclass('android.app.NotificationManager')
     NotificationChannel = autoclass('android.app.NotificationChannel')
+    
+    
+    NotificationManagerCompat = autoclass('androidx.core.app.NotificationManagerCompat')
+    NotificationCompat = autoclass('androidx.core.app.NotificationCompat')
+    
+    # Notification Design
     NotificationCompatBuilder = autoclass('androidx.core.app.NotificationCompat$Builder')
     NotificationCompatBigTextStyle = autoclass('androidx.core.app.NotificationCompat$BigTextStyle')
     NotificationCompatBigPictureStyle = autoclass('androidx.core.app.NotificationCompat$BigPictureStyle')
     NotificationCompatInboxStyle = autoclass('androidx.core.app.NotificationCompat$InboxStyle')
+    
     BitmapFactory = autoclass('android.graphics.BitmapFactory')
+    BuildVersion = autoclass('android.os.Build$VERSION')
 
     # Get the app's context and notification manager
     context = PythonActivity.mActivity
     notification_manager = context.getSystemService(context.NOTIFICATION_SERVICE)
 
+    importance= NotificationManagerCompat.IMPORTANCE_HIGH #autoclass('android.app.NotificationManager').IMPORTANCE_HIGH also works #NotificationManager.IMPORTANCE_DEFAULT
+    
     # Notification Channel (Required for Android 8.0+)
-    if notification_manager.getNotificationChannel(channel_id) is None:
+    if BuildVersion.SDK_INT >= 26:
+        print('entered....')
         channel = NotificationChannel(
             channel_id,
             "Default Channel",
-            NotificationManager.IMPORTANCE_DEFAULT
+            importance
         )
         notification_manager.createNotificationChannel(channel)
 
@@ -62,6 +74,8 @@ def send_notification(title, message, style=None, img_path=None, channel_id="def
     builder.setContentText(message)
     builder.setSmallIcon(context.getApplicationInfo().icon)
 
+    builder.setDefaults(NotificationCompat.DEFAULT_ALL) 
+    builder.setPriority(NotificationCompat.PRIORITY_HIGH)
     
     # Get Image
     img=img_path
@@ -93,6 +107,12 @@ def send_notification(title, message, style=None, img_path=None, channel_id="def
         for line in message.split("\n"):
             inbox_style.addLine(line)
         builder.setStyle(inbox_style)
-
+    elif style == "large_icon" and img_path:
+        try:
+            bitmap = BitmapFactory.decodeStream(context.getContentResolver().openInputStream(img))
+            builder.setLargeIcon(bitmap)
+        except Exception as e:
+            print('Failed Large Icon...', e)
+    
     # Show the notification
     notification_manager.notify(random.randint(0, 100), builder.build())

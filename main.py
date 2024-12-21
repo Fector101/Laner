@@ -304,7 +304,7 @@ class BottomNavigationBar(MDNavigationDrawer):
         screens=screen_manager.screen_names
         self.size_hint =[ 1, .1]
         self.padding=0
-        self.spacing=0
+        self.spacing=-8
         # self.md_bg_color = (.1, 1, 0, .5)
         self.md_bg_color = (.1, .1, .1, 1)
         self.pos=[0,-3]
@@ -459,28 +459,29 @@ class SettingsScreen(MDScreen):
         self.add_widget(self.content)
     def testx(self):
         print("sending new notification")
-        try:
 
-            # Call the function
-            import time
-            from android_notify.core import send_notification
-            from android_notify.styles import NotificationStyles
+        from android_notify.core import send_notification
+        from android_notify.styles import NotificationStyles
 
-            # send_notification("Hello", "This is a basic notification.")
-
-            # send_notification("Big Text", "This is a notification with a lot of text to show.", style=NotificationStyles.BIG_TEXT)
             
-            try:
+        i=self.portInput.text
+        try:
+            if i=='1':
+                send_notification("Hello", "This is a basic notification.")
+            elif i=='2':
+                send_notification("Big Text", "This is a notification with a lot of text to show.", style=NotificationStyles.BIG_TEXT)
+            elif i=='3':
+                send_notification("Large Icon", "Here's a notification with a picture.", style=NotificationStyles.LARGE_ICON, img_path='assets/icons/sql.png')
+            elif i == '4':
                 send_notification("Big Picture", "Here's a notification with a picture.", style=NotificationStyles.BIG_PICTURE, img_path='assets/imgs/icon.png')
-            except Exception as e:
-                print('My shit failed',e)
-
-            # send_notification(
-            #     "Inbox Style",
-            #     "Line 1\nLine 2\nLine 3\nLine 4",
-            #     style=NotificationStyles.INBOX
-            # )
-            # send_notification("Hello!", self.portInput.text if self.portInput.text else "This is a notification from Kivy.")
+            elif i == '5':
+                send_notification(
+                    "Inbox Style",
+                    "Line 1\nLine 2\nLine 3\nLine 4",
+                    style=NotificationStyles.INBOX
+                )
+            else:
+                send_notification("Hello!", i if i else "This is a notification from Kivy.")
 
         except Exception as e:
             print("Fisrt Noti: ",e)
