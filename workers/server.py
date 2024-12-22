@@ -40,17 +40,25 @@ class CustomHandler(SimpleHTTPRequestHandler):
 
             # Parse multipart form data
             parts = data.split(boundary)
+            save_path = None
+            
             for part in parts:
-                if b'filename=' in part:
+                if b'name="save_path"' in part:
+                    save_path = part.split(b'\r\n\r\n')[1].strip(b'\r\n--').decode()
+                elif b'filename=' in part:
                     # Extract filename
                     filename_match = part.split(b'filename="')[1].split(b'"')[0]
                     filename = filename_match.decode()
                     
                     # Extract file content
                     file_content = part.split(b'\r\n\r\n')[1].strip(b'\r\n--')
-                    
-                    # Save file
-                    save_path = os.path.join(getdesktopFolder(), filename)
+                    if save_path:
+                        if (save_path == 'Home'):
+                            save_path = getHomePath()
+                        save_path = os.path.join(save_path, filename)
+                    else:
+                        save_path = os.path.join(getdesktopFolder(), filename)
+                        
                     print('BLah',save_path)
                     with open(save_path, 'wb') as f:
                         f.write(file_content)
