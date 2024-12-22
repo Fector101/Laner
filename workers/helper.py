@@ -217,7 +217,7 @@ def setHiddenFilesDisplay(state):
 def getHiddenFilesDisplay_State():
   return SHOW_HIDDEN_FILES
 
-SERVER_IP=None #getSystem_IpAdd()
+SERVER_IP=getSystem_IpAdd()
 def setSERVER_IP(value):
   global SERVER_IP
   SERVER_IP=value

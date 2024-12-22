@@ -35,8 +35,8 @@ from workers.helper import getSERVER_IP, makeDownloadFolder, setHiddenFilesDispl
 from kivy.uix.floatlayout import FloatLayout
 
 # For Dev
-# if DEVICE_TYPE != "mobile":
-#     Window.size = (400, 600)
+if DEVICE_TYPE != "mobile":
+    Window.size = (400, 600)
 
 # TODO For Theme
 THEME_COLOR_TUPLE=(.6, .9, .8, 1)
@@ -131,7 +131,7 @@ Builder.load_string('''
     viewclass: 'MyCard'
     size_hint: (1, .9)
     My_RecycleGridLayout:
-        default_size: 1, '40sp'
+        default_size: 1, '140sp' # children widgets default size
         default_size_hint: 1, None
         cols:4
         spacing:18
@@ -147,22 +147,22 @@ class My_RecycleGridLayout(RecycleGridLayout):
     def __init__(self, **kwargs):
         # print(Window.width)
         super().__init__(**kwargs)
-    #     if Window.width > 800:
-    #         self.cols=5
-    #     else:
-    #         try:
-    #             self.cols= int(str(Window.width)[0]) -2
-    #         except:
-    #             self.cols=2
-    # def on_size(self, *args):
-    #     if Window.width > 800:
-    #         self.cols=5
-    #     elif Window.width < 300:
-    #         self.cols=3
-    #     elif Window.width < 200:
-    #         self.cols=2
-    #     else:
-    #         self.cols=4
+        if Window.width > 800:
+            self.cols=5
+        else:
+            try:
+                self.cols= int(str(Window.width)[0]) -2
+            except:
+                self.cols=2
+    def on_size(self, *args):
+        if Window.width > 800:
+            self.cols=5
+        elif Window.width < 300:
+            self.cols=3
+        elif Window.width < 200:
+            self.cols=2
+        else:
+            self.cols=4
 
 
 class WindowManager(MDScreenManager):
@@ -176,7 +176,7 @@ class WindowManager(MDScreenManager):
         self.add_widget(DisplayFolderScreen(name='download',current_dir='.'))
         self.add_widget(SettingsScreen())
         self.transition=NoTransition()
-        self.current='upload'#'settings'
+        self.current='settings'
         Window.bind(on_keyboard=self.Android_back_click)
 
     def changeScreenAnimation(self, screen_name):

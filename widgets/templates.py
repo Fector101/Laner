@@ -107,11 +107,11 @@ class DisplayFolderScreen(MDScreen):
         self.current_dir_info:list[dict]=[]
         self.could_not_open_path_msg="Couldn't Open Folder Check Laner on PC"
         self.size_hint=[1,None]
-        self.height=Window.height-sp(47)   # Bottom nav height
+        self.height=Window.height-sp(45)   # Bottom nav height
         self.pos_hint={'top':1}
         # print(Window.height)
         
-        self.md_bg_color=[1,1,0,1]
+        # self.md_bg_color=[1,1,0,1]
         self.layout=MDBoxLayout(orientation='vertical')
         self.header=Header(
                            text=self.current_dir,
@@ -138,7 +138,7 @@ class DisplayFolderScreen(MDScreen):
                 # MDExtendedFabButtonIcon(,theme_text_color="Custom",text_color=THEME_COLOR),
                 # MDExtendedFabButtonText(text="Upload",text_color=(.12, .55, .4, 1),theme_text_color="Custom"),
                 pos_hint={"center_x": .82, "center_y": .19},
-                # on_release=lambda x:self.choose_file()
+                on_release=lambda x:self.choose_file()
         )
         # self.upload_btn.md_bg_color=[1,0,0,1]
         
@@ -146,27 +146,25 @@ class DisplayFolderScreen(MDScreen):
         container_for_group_label=MDRelativeLayout(
             height='35sp',
             adaptive_width=True,
-            md_bg_color=[.15,.15,.15,1],size_hint=[1,None])
-        group_label_container= MDBoxLayout(height='35sp',pos_hint={'center_x': 0.5},adaptive_width=True,spacing=sp(10),size_hint_y=None)
-        group_label_container.add_widget(DetailsLabel(text='11 files, '))
-        group_label_container.add_widget(DetailsLabel(text='5 folders, '))
-        group_label_container.add_widget(DetailsLabel(text='35 mb, '))
-        container_for_group_label.add_widget(group_label_container)
-        self.add_widget(self.upload_btn)
+            md_bg_color=[.15,.15,.15,1],size_hint=[1,None]
+            )
+        self.details_label=DetailsLabel(text='11 files and 5 folders')
+        # DetailsLabel(text='Folders: 0 Files: 0')
+        
+        container_for_group_label.add_widget(self.details_label)
         self.add_widget(self.layout)
         self.add_widget(container_for_group_label)
+        self.add_widget(self.upload_btn)
     def choose_file(self):
         print('printing tstex')
         def test1(file_path):
-            print(file_path,'img path')
+            print(file_path,'choosen path')
             # if file_path:
                 # self.img.source=file_path[0]
         filechooser.open_file(on_selection=test1)
-
-            
-                
-                
-            
+        # filechooser.open_file(on_selection=lambda x: print(x))
+        
+                    
     def startSetPathInfo_Thread(self):
         threading.Thread(target=self.querySetPathInfoAsync).start()
         
@@ -186,11 +184,34 @@ class DisplayFolderScreen(MDScreen):
                 Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
                 return
             self.current_dir_info=[]
-            for each_name in response.json()['data']:
-                if not getHiddenFilesDisplay_State() and each_name['text'][0] != '.':
-                    self.current_dir_info.append(each_name)
-                elif getHiddenFilesDisplay_State():
-                    self.current_dir_info.append(each_name)
+            no_of_files=0
+            no_of_folders=0
+            def increase_no_of_files():
+                nonlocal no_of_files
+                no_of_files+=1
+            def increase_no_of_folders():
+                nonlocal no_of_folders
+                no_of_folders+=1
+            
+            file_data = response.json()['data']
+            show_hidden = getHiddenFilesDisplay_State()
+            
+            for item in file_data:
+                # Skip hidden files if not showing them
+                if not show_hidden and item['text'].startswith('.'):
+                    continue
+                    
+                self.current_dir_info.append(item)
+                
+                # Update counters
+                if item['is_dir']:
+                    increase_no_of_folders()
+                else:
+                    increase_no_of_files()
+                    
+            parse_for_files='files' if no_of_files > 1 else 'file'
+            parse_for_folders='folders' if no_of_folders > 1 else 'folder'
+            self.details_label.text=f'{no_of_files} {parse_for_files} and {no_of_folders} {parse_for_folders}'
                     
             self.screen_scroll_box.data=self.current_dir_info
 
@@ -199,7 +220,7 @@ class DisplayFolderScreen(MDScreen):
             print(e,"Failed opening Folder async")
                    
     def on_pre_enter(self, *args):
-        # Clock.schedule_once(lambda dt: self.startSetPathInfo_Thread())
+        Clock.schedule_once(lambda dt: self.startSetPathInfo_Thread())
         ...
    
             
