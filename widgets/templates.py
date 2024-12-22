@@ -158,7 +158,12 @@ class DisplayFolderScreen(MDScreen):
         
     def uploadFile(self,file_path):
         try:
-            response = requests.post(f"http://{getSERVER_IP()}:8000/api/upload",files={'file':open(file_path,'rb')},timeout=5)
+            response = requests.post(
+                f"http://{getSERVER_IP()}:8000/api/upload",
+                files={'file': open(file_path, 'rb')},
+                data={'save_path': self.current_dir},
+                timeout=5
+            )
             if response.status_code != 200:
                 Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
                 return
