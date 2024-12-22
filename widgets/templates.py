@@ -148,9 +148,9 @@ class DisplayFolderScreen(MDScreen):
             adaptive_width=True,
             md_bg_color=[.15,.15,.15,1],size_hint=[1,None])
         group_label_container= MDBoxLayout(height='35sp',pos_hint={'center_x': 0.5},adaptive_width=True,spacing=sp(10),size_hint_y=None)
-        group_label_container.add_widget(DetailsLabel(text='11 files, ',size_hint=[.3,1]))
-        group_label_container.add_widget(DetailsLabel(text='5 folders, ',size_hint=[.3,1]))
-        group_label_container.add_widget(DetailsLabel(text='35 mb, ',size_hint=[.3,1]))
+        group_label_container.add_widget(DetailsLabel(text='11 files, '))
+        group_label_container.add_widget(DetailsLabel(text='5 folders, '))
+        group_label_container.add_widget(DetailsLabel(text='35 mb, '))
         container_for_group_label.add_widget(group_label_container)
         self.add_widget(self.upload_btn)
         self.add_widget(self.layout)
