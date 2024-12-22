@@ -35,8 +35,8 @@ from workers.helper import getSERVER_IP, makeDownloadFolder, setHiddenFilesDispl
 from kivy.uix.floatlayout import FloatLayout
 
 # For Dev
-if DEVICE_TYPE != "mobile":
-    Window.size = (400, 1000)
+# if DEVICE_TYPE != "mobile":
+#     Window.size = (400, 600)
 
 # TODO For Theme
 THEME_COLOR_TUPLE=(.6, .9, .8, 1)
@@ -131,8 +131,9 @@ Builder.load_string('''
     viewclass: 'MyCard'
     size_hint: (1, .9)
     My_RecycleGridLayout:
-        default_size: 1, '140sp'
+        default_size: 1, '40sp'
         default_size_hint: 1, None
+        cols:4
         spacing:18
         padding:"10dp"
         size_hint: (1, None)
@@ -146,22 +147,22 @@ class My_RecycleGridLayout(RecycleGridLayout):
     def __init__(self, **kwargs):
         # print(Window.width)
         super().__init__(**kwargs)
-        if Window.width > 800:
-            self.cols=5
-        else:
-            try:
-                self.cols= int(str(Window.width)[0]) -2
-            except:
-                self.cols=2
-    def on_size(self, *args):
-        if Window.width > 800:
-            self.cols=5
-        elif Window.width < 300:
-            self.cols=3
-        elif Window.width < 200:
-            self.cols=2
-        else:
-            self.cols=4
+    #     if Window.width > 800:
+    #         self.cols=5
+    #     else:
+    #         try:
+    #             self.cols= int(str(Window.width)[0]) -2
+    #         except:
+    #             self.cols=2
+    # def on_size(self, *args):
+    #     if Window.width > 800:
+    #         self.cols=5
+    #     elif Window.width < 300:
+    #         self.cols=3
+    #     elif Window.width < 200:
+    #         self.cols=2
+    #     else:
+    #         self.cols=4
 
 
 class WindowManager(MDScreenManager):
@@ -175,7 +176,7 @@ class WindowManager(MDScreenManager):
         self.add_widget(DisplayFolderScreen(name='download',current_dir='.'))
         self.add_widget(SettingsScreen())
         self.transition=NoTransition()
-        self.current='settings'
+        self.current='upload'#'settings'
         Window.bind(on_keyboard=self.Android_back_click)
 
     def changeScreenAnimation(self, screen_name):
@@ -242,11 +243,11 @@ class TabButton(RectangularRippleBehavior,ButtonBehavior,MDBoxLayout):
         super().__init__(**kwargs)
         # self.ripple
         self.orientation='vertical'
-        self.padding=[dp(0),dp(22),dp(0),dp(5)]
+        self.padding=[dp(0),dp(11),dp(0),dp(5)]
         self.line_color=(.2, .2, .2, 0)
         self._radius=1
         self.id=self.text
-        self.spacing="-18sp"
+        # self.spacing="-18sp"
         self.size_hint=[None,1]
         self.width=Window.width/3
         self.label= Label(
@@ -303,7 +304,7 @@ class BottomNavigationBar(MDNavigationDrawer):
         for_label_text = ['Home','Storage','Link']
         screens=screen_manager.screen_names
         self.size_hint =[ 1, None]
-        self.height='60sp'
+        self.height='50sp'
         self.padding=0
         self.spacing=0
         # self.md_bg_color = (.1, 1, 0, .5)

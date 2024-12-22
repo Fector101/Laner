@@ -5,6 +5,7 @@ from kivy.uix.recycleview import RecycleView
 from kivy.metrics import dp,sp
 from kivy.properties import ( ListProperty, StringProperty, BooleanProperty,ColorProperty,ObjectProperty,NumericProperty)
 from kivy.clock import Clock
+from kivy.core.window import Window
 # from app_settings import SHOW_HIDDEN_FILES
 
 import threading
@@ -88,6 +89,14 @@ async def async_download_file(url, save_path):
     except Exception as e:
         Clock.schedule_once(lambda dt: Snackbar(confirm_txt='Open',h1="Download Failed try Checking Laner on PC"))
         print(e,"Failed Download")
+     
+from kivy.uix.label import Label
+from kivymd.uix.relativelayout import MDRelativeLayout
+
+class DetailsLabel(Label):
+    pass
+        
+        
         
 class DisplayFolderScreen(MDScreen):
     current_dir = StringProperty('.')
@@ -97,6 +106,12 @@ class DisplayFolderScreen(MDScreen):
         self.screen_history = []
         self.current_dir_info:list[dict]=[]
         self.could_not_open_path_msg="Couldn't Open Folder Check Laner on PC"
+        self.size_hint=[1,None]
+        self.height=Window.height-sp(47)   # Bottom nav height
+        self.pos_hint={'top':1}
+        # print(Window.height)
+        
+        self.md_bg_color=[1,1,0,1]
         self.layout=MDBoxLayout(orientation='vertical')
         self.header=Header(
                            text=self.current_dir,
@@ -108,7 +123,7 @@ class DisplayFolderScreen(MDScreen):
 
         self.screen_scroll_box = RV()
         self.screen_scroll_box.data=self.current_dir_info
-        Clock.schedule_once(lambda dt: self.startSetPathInfo_Thread())
+        # Clock.schedule_once(lambda dt: self.startSetPathInfo_Thread())
         
 
         self.layout.add_widget(self.screen_scroll_box)
@@ -119,15 +134,27 @@ class DisplayFolderScreen(MDScreen):
         self.upload_btn=MDFabButton(
                 #FF0000
                 icon="upload",
-                style= "standard"
+                style= "standard",
                 # MDExtendedFabButtonIcon(,theme_text_color="Custom",text_color=THEME_COLOR),
                 # MDExtendedFabButtonText(text="Upload",text_color=(.12, .55, .4, 1),theme_text_color="Custom"),
-                # pos_hint={"center_x": .82, "center_y": .19},
+                pos_hint={"center_x": .82, "center_y": .19},
                 # on_release=lambda x:self.choose_file()
         )
         # self.upload_btn.md_bg_color=[1,0,0,1]
-        self.add_widget(self.layout)
+        
+        # Adding directory details
+        container_for_group_label=MDRelativeLayout(
+            height='35sp',
+            adaptive_width=True,
+            md_bg_color=[.15,.15,.15,1],size_hint=[1,None])
+        group_label_container= MDBoxLayout(height='35sp',pos_hint={'center_x': 0.5},adaptive_width=True,spacing=sp(10),size_hint_y=None)
+        group_label_container.add_widget(DetailsLabel(text='11 files, ',size_hint=[.3,1]))
+        group_label_container.add_widget(DetailsLabel(text='5 folders, ',size_hint=[.3,1]))
+        group_label_container.add_widget(DetailsLabel(text='35 mb, ',size_hint=[.3,1]))
+        container_for_group_label.add_widget(group_label_container)
         self.add_widget(self.upload_btn)
+        self.add_widget(self.layout)
+        self.add_widget(container_for_group_label)
     def choose_file(self):
         print('printing tstex')
         def test1(file_path):
@@ -135,20 +162,7 @@ class DisplayFolderScreen(MDScreen):
             # if file_path:
                 # self.img.source=file_path[0]
         filechooser.open_file(on_selection=test1)
-    # def on_touch_down(self,touch):
-    #     # print(touch,*touch.pos)
-    #     if self.upload_btn.collide_point(*touch.pos):
-    #         print('entered')
-    #         if self.upload_btn.fab_state == "collapse":
-    #             self.upload_btn.fab_state = "expand"
-    #         else:
-    #             self.upload_btn.fab_state = "collapse"
-    # def on_touch_up(self,touch,*args):
-    #     print(touch,*touch.pos,self.upload_btn.pos,args)
-    #     if self.upload_btn.collide_point(*touch.pos):
-    #         if self.upload_btn.fab_state == "collapse":
-    #             print('touch up -----1')
-    #             self.choose_file()
+
             
                 
                 
@@ -185,7 +199,8 @@ class DisplayFolderScreen(MDScreen):
             print(e,"Failed opening Folder async")
                    
     def on_pre_enter(self, *args):
-        Clock.schedule_once(lambda dt: self.startSetPathInfo_Thread())
+        # Clock.schedule_once(lambda dt: self.startSetPathInfo_Thread())
+        ...
    
             
     def isDir(self,path:str):
