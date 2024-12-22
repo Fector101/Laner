@@ -1,6 +1,7 @@
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.label import MDLabel
+from kivy.uix.spinner import Spinner
 from kivy.uix.recycleview import RecycleView
 from kivy.metrics import dp,sp
 from kivy.properties import ( ListProperty, StringProperty, BooleanProperty,ColorProperty,ObjectProperty,NumericProperty)
@@ -244,9 +245,23 @@ class DisplayFolderScreen(MDScreen):
             print(e,"Failed opening Folder async")
                    
     def on_pre_enter(self, *args):
-        Clock.schedule_once(lambda dt: self.startSetPathInfo_Thread())
-        ...
-   
+        # Add loading spinner
+        self.spinner = Spinner(
+            size_hint=(None, None),
+            size=(dp(46), dp(46)),
+            pos_hint={'center_x': .5, 'center_y': .5}
+        )
+        self.add_widget(self.spinner)
+        
+        # Start loading data
+        def remove_spinner(dt):
+            self.remove_widget(self.spinner)
+        
+        def start_loading(dt):
+            self.startSetPathInfo_Thread()
+            Clock.schedule_once(remove_spinner, 0)
+            
+        Clock.schedule_once(start_loading)
             
     def isDir(self,path:str):
 
