@@ -23,7 +23,7 @@ from kivy.lang import Builder
 
 # TODO Fix get app folder worker/helper.py returning app folder as /Laner/workers/
 import sys
-from kivymd.uix.button import MDFabButton,MDExtendedFabButtonIcon,MDExtendedFabButtonText
+from kivymd.uix.button import MDFabButton
 def getAppFolder1():
     """
     Returns the correct application folder path, whether running on native Windows,
@@ -171,7 +171,7 @@ class DisplayFolderScreen(MDScreen):
             Clock.schedule_once(lambda dt:Snackbar(h1="File Uploaded Successfully"))
             Clock.schedule_once(lambda dt: self.startSetPathInfo_Thread())
         except Exception as e:
-            Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
+            Clock.schedule_once(lambda dt:Snackbar(h1="Failed to Upload File check Laner on PC"))
             print(e,"Failed Upload")
             
     def startUpload_Thread(self,file_path):
@@ -275,9 +275,9 @@ class DisplayFolderScreen(MDScreen):
         except Exception as e:
             Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
             print(f"isDir method: {e}")
-            return False
+            return 404
     def setPath(self,path,add_to_history=True):
-        if not self.isDir(path):
+        if self.isDir(path) != 404 and not self.isDir(path):
             self.manager.btm_sheet.set_state("toggle")
             
             return
@@ -291,7 +291,7 @@ class DisplayFolderScreen(MDScreen):
         
     def showDownloadDialog(self,path:str):
         """Shows Dialog box with choosen path and calls async download if ok press"""
-        if (self.isDir(path)):            
+        if self.isDir(path) == 404 or self.isDir(path):
             return
         
         file_name = os.path.basename(path.replace('\\', '/'))
