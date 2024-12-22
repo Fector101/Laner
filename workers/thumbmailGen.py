@@ -1,5 +1,4 @@
 import cv2
-import os
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont

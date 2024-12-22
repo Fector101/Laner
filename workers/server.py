@@ -3,7 +3,7 @@ import os
 import json
 import threading
 
-from workers.helper import gen_unique_filname, getAppFolder, getFileExtension, getHomePath,getSystem_IpAdd, makeFolder, removeFileExtension, removeFirstDot, sortedDir
+from workers.helper import gen_unique_filname, getAppFolder, getFileExtension, getHomePath,getSystem_IpAdd, getdesktopFolder, makeDownloadFolder, makeFolder, removeFileExtension, removeFirstDot, sortedDir
 from workers.thumbmailGen import generateThumbnails
 
 
@@ -26,6 +26,41 @@ class ThreadingHTTPServer(ThreadingMixIn, HTTPServer):
     pass
 
 class CustomHandler(SimpleHTTPRequestHandler):
+    
+    # get uploaded data and save it to a file
+    def do_POST(self):
+        global no
+        if self.path == "/api/upload":
+            content_length = int(self.headers['Content-Length'])
+            data = self.rfile.read(content_length)
+
+            # Get the boundary from Content-Type header
+            content_type = self.headers['Content-Type']
+            boundary = content_type.split('=')[1].encode()
+
+            # Parse multipart form data
+            parts = data.split(boundary)
+            for part in parts:
+                if b'filename=' in part:
+                    # Extract filename
+                    filename_match = part.split(b'filename="')[1].split(b'"')[0]
+                    filename = filename_match.decode()
+                    
+                    # Extract file content
+                    file_content = part.split(b'\r\n\r\n')[1].strip(b'\r\n--')
+                    
+                    # Save file
+                    save_path = os.path.join(getdesktopFolder(), filename)
+                    print('BLah',save_path)
+                    with open(save_path, 'wb') as f:
+                        f.write(file_content)
+
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({'message': 'File uploaded successfully'}).encode())
+           
+    
     def do_GET(self):
         global no, generated_thumbnails
         # print(no)
@@ -36,6 +71,8 @@ class CustomHandler(SimpleHTTPRequestHandler):
             elif (request_path == 'Home'):
               request_path = getHomePath()
             print('dev home path',request_path)
+         
+            
             try:
                 path_list:list[str] =os.listdir(request_path)
                 dir_info=[]
@@ -87,10 +124,11 @@ class CustomHandler(SimpleHTTPRequestHandler):
                         'thumbnail_url':thumbnail_url,
                         'thumbnail_path':thumbnail_path,
                         'validated_path':False,
+                        # 'size':os.path.getsize(each_path),
+                        
                         
                         }
                     dir_info.append(cur_obj)
-                
                 
                 
                 dir_info=sortedDir(dir_info)
@@ -161,8 +199,25 @@ class FileSharingServer:
         os.chdir(self.directory)
 
         # Create the HTTP server
-        self.server = ThreadingHTTPServer(("", self.port), CustomHandler)
-        # self.server.serve_forever()
+        self.server =None
+        
+        ports = [8000, 8080, 9090]  # List of ports to scan
+
+        for port in ports:
+            try:
+                # Attempt to start the server on the current port
+                self.server = ThreadingHTTPServer(("", port), CustomHandler)
+                print(f"Server running on port {port}")
+                break  # Exit the loop if the server starts successfully
+            except OSError:
+                print(f"Port {port} is unavailable, trying the next one...")
+            except Exception as e:
+                print(f"Error: {e}")
+        # else:
+        #     print("All specified ports are in use. Please free up a port and try again.")
+        
+        
+        
         
         # Start the server in a separate thread
         self.server_thread = threading.Thread(target=self.server.serve_forever)

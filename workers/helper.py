@@ -1,28 +1,56 @@
 import subprocess
 import os
 import json
-import socket
 import sys
 import hashlib
-# import subprocess
 
-# /home/fabian/Documents/my projects code/mobile dev/Laner/venv/lib64/python3.12/site-packages/kivymd/uix/menu/menu.py
-# Run this from VSCode content menu (Run Python) --> /home/fabian/Documents/my projects code/mobile dev/Laner/venv/lib64/python3.12/site-packages/kivymd/icon_definitions.py
 def getSystemName():
   # Windows
   USER_HOME_PATH=os.getenv('HOMEPATH')
   os_name='Win'
-  if(USER_HOME_PATH == None):
+  if USER_HOME_PATH is None:
     USER_HOME_PATH=os.getenv('HOME')
     os_name='Linux'
   return os_name
 
 def getHomePath():
-  # Windows
-  USER_HOME_PATH=os.getenv('HOMEPATH')  # Can also be editable to downloads path or something else
-  if(USER_HOME_PATH == None):
-    USER_HOME_PATH=os.getenv('HOME')
-  return USER_HOME_PATH
+  """
+  Get user's home directory path across different platforms.
+  Returns: str - Path to user's home directory
+  """
+  # Try platform-independent method first
+  home = os.path.expanduser('~')
+  if home and os.path.exists(home):
+    return home
+    
+  # Fallback to environment variables
+  for env_var in ['HOME', 'USERPROFILE', 'HOMEPATH']:
+    path = os.getenv(env_var)
+    if path and os.path.exists(path):
+      return path
+      
+  # Last resort - current directory
+  return os.getcwd()
+
+def getdesktopFolder():
+  """
+  Get path to user's desktop folder across different platforms.
+  Returns: str - Path to desktop directory
+  """
+  # First try standard desktop location
+  home = getHomePath()
+  desktop = os.path.join(home, 'Desktop')
+  if os.path.exists(desktop):
+    return desktop
+    
+  # Try Windows-specific location
+  desktop = os.path.join(home, 'OneDrive', 'Desktop')
+  if os.path.exists(desktop):
+    return desktop
+  
+  # Fallback to home directory
+  return home
+  
 
 def findClosestParent(path:str):...
 
@@ -193,13 +221,15 @@ def removeFirstDot(path:str):
 def makeDownloadFolder():
   """Makes downlod folder and returns path
   """
-  from kivy.utils import platform
+  # from kivy.utils import platform
+  folder_path = os.path.dirname(os.path.abspath(__file__))
+  # Check if on android
   
-  folder_path = os.getcwd()
-  if platform == 'android':
+  try:
     from android.storage import app_storage_path, primary_external_storage_path # type: ignore
     folder_path=os.path.join(primary_external_storage_path(),'Download','Laner')
     makeFolder(folder_path)
+  except:...
   return folder_path
 
 
