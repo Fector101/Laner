@@ -148,18 +148,34 @@ class DisplayFolderScreen(MDScreen):
             adaptive_width=True,
             md_bg_color=[.15,.15,.15,1],size_hint=[1,None]
             )
-        self.details_label=DetailsLabel(text='11 files and 5 folders')
+        self.details_label=DetailsLabel(text='0 files and 0 folders')
         # DetailsLabel(text='Folders: 0 Files: 0')
         
         container_for_group_label.add_widget(self.details_label)
         self.add_widget(self.layout)
         self.add_widget(container_for_group_label)
         self.add_widget(self.upload_btn)
+        
+    def uploadFile(self,file_path):
+        try:
+            response = requests.post(f"http://{getSERVER_IP()}:8000/api/upload",files={'file':open(file_path,'rb')},timeout=5)
+            if response.status_code != 200:
+                Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
+                return
+            Clock.schedule_once(lambda dt:Snackbar(h1="File Uploaded Successfully"))
+            Clock.schedule_once(lambda dt: self.startSetPathInfo_Thread())
+        except Exception as e:
+            Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
+            print(e,"Failed Upload")
+            
+    def startUpload_Thread(self,file_path):
+        threading.Thread(target=self.uploadFile,args=(file_path,)).start()
     def choose_file(self):
         print('printing tstex')
         def test1(file_path):
             print(file_path,'choosen path')
-            # if file_path:
+            if file_path:
+                self.startUpload_Thread(file_path if isinstance(file_path,str) else file_path[0])
                 # self.img.source=file_path[0]
         filechooser.open_file(on_selection=test1)
         # filechooser.open_file(on_selection=lambda x: print(x))
@@ -195,10 +211,11 @@ class DisplayFolderScreen(MDScreen):
             
             file_data = response.json()['data']
             show_hidden = getHiddenFilesDisplay_State()
-            
+            # print(file_data,'|||',show_hidden)
             for item in file_data:
                 # Skip hidden files if not showing them
                 if not show_hidden and item['text'].startswith('.'):
+                # if not show_hidden and item['text'].startswith('.'):
                     continue
                     
                 self.current_dir_info.append(item)
@@ -212,6 +229,8 @@ class DisplayFolderScreen(MDScreen):
             parse_for_files='files' if no_of_files > 1 else 'file'
             parse_for_folders='folders' if no_of_folders > 1 else 'folder'
             self.details_label.text=f'{no_of_files} {parse_for_files} and {no_of_folders} {parse_for_folders}'
+            # print('-----------------',self.current_dir_info)
+            # return
                     
             self.screen_scroll_box.data=self.current_dir_info
 
