@@ -41,8 +41,7 @@ version = 1.0
 # comma separated e.g. requirements = sqlite3,kivy
 
 #requirements = python3,kivy,kivymd,materialyoucolor,asynckivy,asyncgui,aiohttp,multidict,attrs,yarl,propcache,async_timeout
-
-#requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,materialyoucolor,asynckivy,asyncgui,jnius
+# requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,materialyoucolor,asynckivy,asyncgui,pyjnius,plyer,docutils
 requirements = python3,kivy,kivymd,materialyoucolor,asynckivy,asyncgui,pyjnius,plyer,docutils
 
 # (str) Custom source folders for requirements
@@ -110,7 +109,7 @@ android.permissions = android.permission.INTERNET, FOREGROUND_SERVICE,POST_NOTIF
 #android.features = android.hardware.usb.host
 
 # (int) Target Android API, should be as high as possible.
-android.api = 31
+android.api = 35
 
 # (int) Minimum API your APK / AAB will support.
 #android.minapi = 21
@@ -212,7 +211,7 @@ android.service = True
 
 # (list) Gradle dependencies to add
 #android.gradle_dependencies =
-android.gradle_dependencies = androidx.core:core:1.6.0
+android.gradle_dependencies = androidx.core:core-ktx:1.15.0
 # (bool) Enable AndroidX support. Enable when 'android.gradle_dependencies'
 # contains an 'androidx' package, or any package from Kotlin source.
 # android.enable_androidx requires android.api >= 28

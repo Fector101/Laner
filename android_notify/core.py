@@ -1,5 +1,5 @@
 
-from jnius import autoclass
+from jnius import autoclass,cast
 import random
 import os
 
@@ -18,10 +18,6 @@ def get_image_uri(relative_path):
     Uri = autoclass('android.net.Uri')
     return Uri.parse(f"file://{output_path}")
 
-# # Example usage
-# image_uri = get_image_uri("imgs/icon.png")
-# print(image_uri)
-
 def send_notification(title, message, style=None, img_path=None, channel_id="default_channel"):
     """
     Send a notification on Android.
@@ -38,6 +34,7 @@ def send_notification(title, message, style=None, img_path=None, channel_id="def
     # Notification Base
     PythonActivity = autoclass('org.kivy.android.PythonActivity')
     NotificationChannel = autoclass('android.app.NotificationChannel')
+    String = autoclass('java.lang.String')
     
     
     NotificationManagerCompat = autoclass('androidx.core.app.NotificationManagerCompat')
@@ -46,12 +43,15 @@ def send_notification(title, message, style=None, img_path=None, channel_id="def
     # Notification Design
     NotificationCompatBuilder = autoclass('androidx.core.app.NotificationCompat$Builder')
     NotificationCompatBigTextStyle = autoclass('androidx.core.app.NotificationCompat$BigTextStyle')
+    # NotificationCompatBigTextStyle = autoclass('android.app.Notification$BigTextStyle')
+    
     NotificationCompatBigPictureStyle = autoclass('androidx.core.app.NotificationCompat$BigPictureStyle')
     NotificationCompatInboxStyle = autoclass('androidx.core.app.NotificationCompat$InboxStyle')
-    
     BitmapFactory = autoclass('android.graphics.BitmapFactory')
     BuildVersion = autoclass('android.os.Build$VERSION')
-
+    PendingIntent = autoclass('android.app.PendingIntent')
+    Intent = autoclass('android.content.Intent')
+    
     # Get the app's context and notification manager
     context = PythonActivity.mActivity
     notification_manager = context.getSystemService(context.NOTIFICATION_SERVICE)
@@ -73,7 +73,6 @@ def send_notification(title, message, style=None, img_path=None, channel_id="def
     builder.setContentTitle(title)
     builder.setContentText(message)
     builder.setSmallIcon(context.getApplicationInfo().icon)
-
     builder.setDefaults(NotificationCompat.DEFAULT_ALL) 
     builder.setPriority(NotificationCompat.PRIORITY_HIGH)
     
@@ -85,11 +84,44 @@ def send_notification(title, message, style=None, img_path=None, channel_id="def
         except Exception as e:
             print('Failed getting Image path',e)
     
+     # Add Actions (Buttons)
+    
+    # add Action 1 Button
+    try:
+        # Create Action 1
+        action_intent = Intent(context, PythonActivity)
+        action_intent.setAction("ACTION_ONE")
+        pending_action_intent = PendingIntent.getActivity(
+            context, 
+            0, 
+            action_intent, 
+            PendingIntent.FLAG_IMMUTABLE
+        )
+        
+        # Convert text to CharSequence
+        action_text = cast('java.lang.CharSequence', String("Action 1"))
+        
+        # Add action with proper types
+        builder.addAction(
+            int(context.getApplicationInfo().icon),  # Cast icon to int
+            action_text,                             # CharSequence text
+            pending_action_intent                    # PendingIntent
+        )
+        
+        
+        # Set content intent for notification tap
+        builder.setContentIntent(pending_action_intent)
+    except Exception as e:
+        print('Failed adding Action 1',e)
+
+    
     # Apply styles
     if style == "big_text":
         big_text_style = NotificationCompatBigTextStyle()
         big_text_style.bigText(message)
         builder.setStyle(big_text_style)
+        
+        
     elif style == "big_picture" and img_path:
         try:
             bitmap = BitmapFactory.decodeStream(context.getContentResolver().openInputStream(img))

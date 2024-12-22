@@ -242,11 +242,11 @@ class TabButton(RectangularRippleBehavior,ButtonBehavior,MDBoxLayout):
         super().__init__(**kwargs)
         # self.ripple
         self.orientation='vertical'
-        self.padding=[dp(0),dp(11),dp(0),dp(5)]
+        self.padding=[dp(0),dp(22),dp(0),dp(5)]
         self.line_color=(.2, .2, .2, 0)
         self._radius=1
         self.id=self.text
-        self.spacing="-8sp"
+        self.spacing="-18sp"
         self.size_hint=[None,1]
         self.width=Window.width/3
         self.label= Label(
@@ -302,9 +302,10 @@ class BottomNavigationBar(MDNavigationDrawer):
         
         for_label_text = ['Home','Storage','Link']
         screens=screen_manager.screen_names
-        self.size_hint =[ 1, .1]
+        self.size_hint =[ 1, None]
+        self.height='60sp'
         self.padding=0
-        self.spacing=-8
+        self.spacing=0
         # self.md_bg_color = (.1, 1, 0, .5)
         self.md_bg_color = (.1, .1, .1, 1)
         self.pos=[0,-3]
