@@ -407,3 +407,45 @@ class MyBtmSheet(MDBottomSheet):
                         selected=not i,
                     )
                 )
+
+
+from kivymd.uix.button import MDButton, MDButtonText
+
+class MDTextButton(MDButton):
+    text = StringProperty('Fizz')
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.theme_height = "Custom"
+        self.theme_width = "Custom"
+        self.add_widget(MDButtonText(text=self.text,pos_hint= {"center_x": .5, "center_y": .5}))
+
+
+
+class CustomDropDown(MDBoxLayout):
+    title = StringProperty("Advanced Options")
+    icon = StringProperty("arrow-down")
+    is_open = BooleanProperty(True)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.not_keeps_sake=[]      
+    def toggle_dropdown(self):
+        if self.is_open:
+            self.ids.dropdown_content.clear_widgets()
+            self.ids.dropdown_content.height = 0
+            self.icon = "arrow-down"
+        else:
+            for each in self.not_keeps_sake:
+                self.ids.dropdown_content.add_widget(each)
+            self.ids.dropdown_content.height = self.ids.dropdown_content.minimum_height
+            self.icon = "arrow-up"
+            
+        self.is_open = not self.is_open
+
+    def add_widget(self, widget, index=0, canvas=None):
+        if self.ids and 'dropdown_content' in self.ids:
+            self.not_keeps_sake.append(widget)
+            self.ids.dropdown_content.add_widget(widget)
+            self.ids.dropdown_content.height = self.ids.dropdown_content.minimum_height
+        else:
+            super().add_widget(widget, index=index, canvas=canvas)        

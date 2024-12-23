@@ -32,7 +32,7 @@ import os, sys, json
 from plyer import filechooser
 
 from widgets.popup import Snackbar
-from widgets.templates import DisplayFolderScreen, Header
+from widgets.templates import CustomDropDown, DisplayFolderScreen, Header, MDTextButton
 from workers.helper import THEME_COLOR_TUPLE, getSERVER_IP, makeDownloadFolder, setHiddenFilesDisplay, setSERVER_IP
 from kivy.uix.floatlayout import FloatLayout
 
@@ -78,26 +78,39 @@ if platform == 'android':
 
     def request_all_permission():
         try:
-            from android import api_version
-            
-            permissions = [
-                    Permission.POST_NOTIFICATIONS,
-                    Permission.READ_EXTERNAL_STORAGE,
-                    Permission.WRITE_EXTERNAL_STORAGE
-                ]
-            request_permissions(permissions)
-            
-            if api_version >= 30:
-                
-                Environment = autoclass('android.os.Environment')
-                Intent = autoclass('android.content.Intent')
-                Settings = autoclass('android.provider.Settings')
-                
-                if not Environment.isExternalStorageManager():
-                    intent = Intent()
-                    intent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
-                    mActivity.startActivity(intent)
-            # else:
+            from android import api_version  # type: ignore
+
+            def on_permissions_result(permissions, grants):
+                print('What grants is ---->',grants)
+                if Permission.POST_NOTIFICATIONS in permissions and grants[permissions.index(Permission.POST_NOTIFICATIONS)]:
+                # if Permission.POST_NOTIFICATIONS in permissions and permissions.index(Permission.POST_NOTIFICATIONS) < len(grants) and grants[permissions.index(Permission.POST_NOTIFICATIONS)]:
+                    # Notification permission granted, request storage permissions
+                    storage_permissions = [
+                        Permission.READ_EXTERNAL_STORAGE,
+                        Permission.WRITE_EXTERNAL_STORAGE
+                    ]
+                    request_permissions(storage_permissions, on_storage_permissions_result)
+                else:
+                    print("Notification permission denied")
+
+            def on_storage_permissions_result(permissions, grants):
+                if all(grants):
+                    # Storage permissions granted, request all files access for Android 11+
+                    if api_version >= 30:
+                        Environment = autoclass('android.os.Environment')
+                        Intent = autoclass('android.content.Intent')
+                        Settings = autoclass('android.provider.Settings')
+
+                        if not Environment.isExternalStorageManager():
+                            intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+                            Clock.schedule_once(lambda dt: mActivity.startActivity(intent), 2)
+                else:
+                    print("Storage permissions denied")
+
+            # Request notification permission first
+            request_permissions([Permission.POST_NOTIFICATIONS], on_permissions_result)
+
+
         except Exception as e:
             print(f"Failed to request storage permission: {e}") 
     
@@ -279,7 +292,7 @@ class TabButton(RectangularRippleBehavior,ButtonBehavior,MDBoxLayout):
         self.line_color=(.2, .2, .2, 0)
         self._radius=1
         self.id=self.text
-        # self.spacing="2sp"
+        self.spacing="2sp"
         self.size_hint=[None,1]
         self.width=Window.width/3
         self.label= MDLabel(
@@ -363,7 +376,7 @@ class BottomNavigationBar(MDNavigationDrawer):
         self.spacing=0
         # self.md_bg_color = (.1, 1, 0, .5)
         # self.md_bg_color = (.1, .1, .1, 1)
-        self.pos=[0,-3]
+        self.pos=[0,-2]
 
         for index in range(len(icons)):
             self.btn = TabButton(
@@ -460,60 +473,64 @@ class MyCard(RecycleDataViewBehavior,RectangularRippleBehavior,ButtonBehavior,MD
             return text[0:18] + '...'
         return text
 
+
 class SettingsScreen(MDScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name = 'settings'
-        self.size_hint=[1,None]
-        self.height=Window.height-sp(65)   # Bottom nav height
-        self.pos_hint={'top':1}
-        
+        self.size_hint = [1, None]
+        self.height = Window.height - sp(65)  # Bottom nav height
+        self.pos_hint = {'top': 1}
+
         # Main layout
         self.layout = MDBoxLayout(
             orientation='vertical',
             size_hint=[1, 1],
             spacing=sp(10)
         )
-        
+
         # Header
         self.header = Header(
             size_hint=[1, 0.1],
             text="Settings",
             text_halign='left',
-        #    theme_text_color='Custom',
-        #    title_color  = THEME_COLOR_TUPLE
             theme_text_color='Primary',
             title_color=self.theme_cls.primaryColor,
         )
-        
+
         # Content ScrollView
         scroll = MDScrollView(
-            size_hint=[1, 1], 
+            size_hint=[1, 1],
             do_scroll_x=False
         )
-        # Add an offset height to the scroll
-        # scroll_height = (Window.height * 0.5) + sp(60)  # 90% of window height
-        # scroll.height = scroll_height
         self.content = MDBoxLayout(
             orientation='vertical',
             spacing=sp(20),
             padding=[sp(15), sp(10)],
             adaptive_height=True
         )
-        
+
         # Categories
-        self.portInput=MDTextField(
-            # theme_text_color= "Custom",text_color_focus=[.9,.9,1,1],text_color_normal=[1,1,1,1],
-            pos_hint={'center_x':.5},size_hint=[.8,None],height=dp(80))
+        self.portInput = MDTextField(
+            pos_hint={'center_x': .5}, size_hint=[.8, None], height=dp(80)
+        )
         
+        self.advanced_dropdown = CustomDropDown()
+        advanced_port_input = MDTextField(
+            hint_text="Enter Port Number",
+            size_hint_y=None,
+            height=dp(50)
+        )
+        self.advanced_dropdown.add_widget(advanced_port_input)
+
         self.add_category("Connection", [
             {"type": "text", "title": "Server IP", "widget": self.portInput},
-            {"type": "button", "title": "Verify Connection", "callback": lambda x: self.setIP(self.portInput.text)}
+            {"type": "button", "title": "Verify Connection", "callback": lambda x: self.setIP(self.portInput.text)},
         ])
         
         self.add_category("Display", [
-            {"type": "switch", "title": "Show Hidden Files", "callback": self.on_checkbox_active},
-            {"type": "switch", "title": "Dark Mode", "callback": self.toggle_theme}
+            {"type": "switch", "switch_state": False, "title": "Show Hidden Files", "callback": self.on_checkbox_active},
+            {"type": "switch", "switch_state": True if MDApp.get_running_app().get_stored_theme() == 'Dark' else False, "title": "Dark Mode", "callback": self.toggle_theme}
         ])
         
         self.add_category("Storage", [
@@ -521,29 +538,30 @@ class SettingsScreen(MDScreen):
             {"type": "info", "title": "Storage Used", "value": "Calculate storage"}
         ])
         
+        self.add_category("Adv", [{"type": "custom", "widget": self.advanced_dropdown}])
+
         scroll.add_widget(self.content)
         self.layout.add_widget(self.header)
         self.layout.add_widget(scroll)
         self.add_widget(self.layout)
-    
+
     def add_category(self, title, items):
         category = MDBoxLayout(
             orientation='vertical',
             adaptive_height=True,
             spacing=sp(10)
         )
-        
+
         # Category header
         category.add_widget(
             MDLabel(
                 text=title,
                 bold=True,
-                # theme_text_color="Custom",
-                # text_color=[.8,.8,.8,1],
+                theme_text_color="Secondary",
                 adaptive_height=True
             )
         )
-        
+
         # Category items
         for item in items:
             item_layout = MDBoxLayout(
@@ -551,41 +569,35 @@ class SettingsScreen(MDScreen):
                 spacing=sp(10),
                 padding=[sp(10), sp(5)]
             )
-            
+
             if item["type"] == "switch":
                 switch = MySwitch(text=item["title"])
                 switch.checkbox_.bind(active=item["callback"])
                 item_layout.add_widget(switch)
-            
+
             elif item["type"] == "text":
                 item_layout.add_widget(item["widget"])
-            
+
             elif item["type"] == "button":
-                btn = MDButton(
-                    # _button_text=item["title"],
-                    MDButtonText(text=item["title"],pos_hint= {"center_x": .5, "center_y": .5}),
+                btn = MDTextButton(
+                    text=item["title"],
                     on_release=item["callback"],
                     size_hint=[None, None],
                     size=[sp(120), dp(50)]
                 )
                 item_layout.add_widget(btn)
-            
+
+            elif item["type"] == "custom":
+                item_layout.add_widget(item["widget"])
+
             category.add_widget(item_layout)
-        
+
         self.content.add_widget(category)
         self.content.add_widget(MDDivider())
     
     def toggle_theme(self, instance,value):
         # Call the app's toggle_theme method
         MDApp.get_running_app().toggle_theme()
-        # with open(MY_DATABASE_PATH, 'r') as f:
-        #     settings = json.load(f)
-        # settings['Dark Mode'] = instance.active
-        # with open(MY_DATABASE_PATH, 'w') as f:
-        #     json.dump(settings, f)
-
-        # self.theme_cls.theme_style = "Light" if not instance.active else "Dark"
-        # Snackbar(h1=f"Theme changed to {'Dark' if instance.active else 'Light'} mode")
 
         
     
@@ -698,7 +710,7 @@ class Laner(MDApp):
             return self.theme_store.get('theme')['mode']
         except Exception as e:
             print("Error",e)
-            self.theme_store.put('theme', mode='Light')
+            self.theme_store.put('theme', mode='Dark')
             return 'Light'
     
     def toggle_theme(self):
@@ -748,7 +760,7 @@ class Laner(MDApp):
                     
     def build(self):
         self.title = 'Laner'
-        self.theme_cls.theme_style = "Dark"
+        self.theme_cls.theme_style = self.get_stored_theme()
         self.theme_cls.primary_palette = "White"
         # self.theme_cls.accent_palette = "Blue"
         

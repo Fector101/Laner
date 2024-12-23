@@ -31,3 +31,24 @@
     pos_hint: {'center_x': 0.5, 'center_y': 0.5}
     color: (.8, .8, .8, 1) if app.theme_cls.theme_style == "Dark" else (0.41, 0.42, 0.4, 1)
     italic: True
+
+<CustomDropDown>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: self.minimum_height
+    MDBoxLayout:
+        size_hint_y: None
+        height: dp(50)
+        MDLabel:
+            text: root.title
+            size_hint_x: 0.8
+        MDIconButton:
+            icon: root.icon
+            
+            on_release: root.toggle_dropdown()
+
+    MDBoxLayout:
+        id: dropdown_content
+        size_hint_y: None
+        height: self.minimum_height if root.is_open else 0
+        opacity: 1 if root.is_open else 0
