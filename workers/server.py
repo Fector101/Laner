@@ -10,6 +10,7 @@ from workers.thumbmailGen import generateThumbnails
 my_owned_icons=['.py','.js','.css','.html','.json','.deb','.md','.sql','.md','.java']
 zip_formats=['.zip','.7z','.tar','.bzip2','.gzip','.xz','.lz4','.zstd','.bz2','.gz']
 video_formats=('.mkv','.mp4', '.avi', '.mkv', '.mov')
+audio_formats=('.mp3','.wav','.aac','.ogg','.m4a','.flac','.wma','.aiff','.opus')
 picture_formats=('.png','.jpg','.jpeg','.tif','.bmp','.gif')
 special_folders=['home','pictures','templates','videos','documents','music','favorites','share','downloads']
                 
@@ -121,7 +122,8 @@ class CustomHandler(SimpleHTTPRequestHandler):
                         if each_path not in generated_thumbnails:
                             generated_thumbnails.append(each_path)
                             videos_paths.append(each_path)
-
+                    elif each.lower().endswith(audio_formats):
+                        img_source="assets/icons/audio.png"                    
                     else:
                         img_source="assets/icons/file.png"                    
 
