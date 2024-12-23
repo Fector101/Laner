@@ -1,7 +1,65 @@
 add a section to show server logs in desktop version like how it is when installing desktop apps
-Use sp for bottomnav height not percentage and add infos/deatails bar no files,no folders,size
+[done]Use sp for bottomnav height not percentage and add infos/deatails bar no files,no folders,size
 get permission to manage all files like pydroid3 app
 resize assets/icon/file.png with a photo editor
 Use Plyer to query open pictures in other apps
+add audio icon and find a way to extract audio covers
 Make Code Cleaner
 [done]Create Two branchs First for (Linux|Macos|Windows) second for Android
+    def get_storage_permissions():
+        base_permissions = [
+            Permission.POST_NOTIFICATIONS,
+            Permission.READ_EXTERNAL_STORAGE,
+            Permission.WRITE_EXTERNAL_STORAGE
+        ]
+        
+        # For Android 11+ (API 30+), use ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION
+        try:
+            from android import api_version
+            if api_version >= 30:
+                from android.content import Intent, Settings
+                intent = Intent()
+                intent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+                mActivity.startActivity(intent)
+        except Exception as e:
+            print(f"Failed to request all files access: {e}")
+            
+        return base_permissions
+
+    permissions = get_storage_permissions()
+    request_permissions(permissions)
+
+
+
+
+
+
+
+
+worked
+    def request_all_files_permission():
+        try:
+            from android import api_version
+            print('Verse---|',api_version)
+            if api_version >= 30:
+                from jnius import autoclass
+                Environment = autoclass('android.os.Environment')
+                Intent = autoclass('android.content.Intent')
+                Settings = autoclass('android.provider.Settings')
+                Uri = autoclass('android.net.Uri')
+                
+                if not Environment.isExternalStorageManager():
+                    intent = Intent()
+                    intent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+                    mActivity.startActivity(intent)
+            else:
+                # For older Android versions
+                permissions = [
+                    Permission.READ_EXTERNAL_STORAGE,
+                    Permission.WRITE_EXTERNAL_STORAGE
+                ]
+                request_permissions(permissions)
+        except Exception as e:
+            print(f"Failed to request storage permission: {e}")
+    
+    request_all_files_permission()

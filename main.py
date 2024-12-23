@@ -49,10 +49,10 @@ my_downloads_folder=makeDownloadFolder()
 ROOT='/home'
 if platform == 'android':
     from kivymd.toast import toast
+    from jnius import autoclass
     
     setSERVER_IP('')
     try:
-        from jnius import autoclass
         from android import mActivity # type: ignore
         context =  mActivity.getApplicationContext()
         SERVICE_NAME = str(context.getPackageName()) + '.Service' + 'Sendnoti'
@@ -77,10 +77,32 @@ if platform == 'android':
                 return False
         return True
 
-    # permissions=[Permission.POST_NOTIFICATIONS]
-    permissions=[Permission.POST_NOTIFICATIONS,Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE]
-    # if check_permissions(permissions):
-    request_permissions(permissions)
+
+    def request_all_permission():
+        try:
+            from android import api_version
+            print('api_version------|',api_version)
+            if api_version >= 30:
+                
+                Environment = autoclass('android.os.Environment')
+                Intent = autoclass('android.content.Intent')
+                Settings = autoclass('android.provider.Settings')
+                
+                if not Environment.isExternalStorageManager():
+                    intent = Intent()
+                    intent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+                    mActivity.startActivity(intent)
+            # else:
+            permissions = [
+                    Permission.POST_NOTIFICATIONS,
+                    Permission.READ_EXTERNAL_STORAGE,
+                    Permission.WRITE_EXTERNAL_STORAGE
+                ]
+            request_permissions(permissions)
+        except Exception as e:
+            print(f"Failed to request storage permission: {e}") 
+    
+    request_all_permission()
 
 
 
@@ -243,11 +265,11 @@ class TabButton(RectangularRippleBehavior,ButtonBehavior,MDBoxLayout):
         super().__init__(**kwargs)
         # self.ripple
         self.orientation='vertical'
-        self.padding=[dp(0),dp(11),dp(0),dp(5)]
+        self.padding=[dp(0),dp(15),dp(0),dp(15)]
         self.line_color=(.2, .2, .2, 0)
         self._radius=1
         self.id=self.text
-        # self.spacing="-18sp"
+        # self.spacing="2sp"
         self.size_hint=[None,1]
         self.width=Window.width/3
         self.label= Label(
@@ -304,7 +326,7 @@ class BottomNavigationBar(MDNavigationDrawer):
         for_label_text = ['Home','Storage','Link']
         screens=screen_manager.screen_names
         self.size_hint =[ 1, None]
-        self.height='50sp'
+        self.height='70sp'
         self.padding=0
         self.spacing=0
         # self.md_bg_color = (.1, 1, 0, .5)

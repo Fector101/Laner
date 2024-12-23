@@ -108,7 +108,7 @@ class DisplayFolderScreen(MDScreen):
         self.current_dir_info:list[dict]=[]
         self.could_not_open_path_msg="Couldn't Open Folder Check Laner on PC"
         self.size_hint=[1,None]
-        self.height=Window.height-sp(45)   # Bottom nav height
+        self.height=Window.height-sp(65)   # Bottom nav height
         self.pos_hint={'top':1}
         # print(Window.height)
         
@@ -162,8 +162,7 @@ class DisplayFolderScreen(MDScreen):
             response = requests.post(
                 f"http://{getSERVER_IP()}:8000/api/upload",
                 files={'file': open(file_path, 'rb')},
-                data={'save_path': self.current_dir},
-                timeout=5
+                data={'save_path': self.current_dir}
             )
             if response.status_code != 200:
                 Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))

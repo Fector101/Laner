@@ -2,3 +2,4 @@ kivy
 kivymd
 opencv-python-headless
 plyer
+android-notify
