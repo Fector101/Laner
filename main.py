@@ -198,10 +198,7 @@ class WindowManager(MDScreenManager):
     # def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.btm_sheet=btm_sheet
-        if self.theme_cls.theme_style == "Dark":
-            self.md_bg_color =[.12,.12,.12,1]# Dark background
-        else:
-            self.md_bg_color = [0.98, 0.98, 0.98, 1]  # Light background
+        self.md_bg_color =[.12,.12,.12,1] if self.theme_cls.theme_style == "Dark" else [0.98, 0.98, 0.98, 1]
     
         # Set theme colors and properties
         # self.theme_cls = MDApp.get_running_app().theme_cls
@@ -317,8 +314,8 @@ class TabButton(RectangularRippleBehavior,ButtonBehavior,MDBoxLayout):
         # print(self.screen, "==", cur_screen)
         if self.screen == cur_screen:
             # self.btn_icon.theme_text_color = "Custom"
-            self.label.color = self.theme_cls.primaryColor  
             # self.btn_icon.text_color = THEME_COLOR_TUPLE
+            self.label.color = self.theme_cls.primaryColor  
             self.btn_icon.icon_color = self.theme_cls.primaryColor
             
             # self.btn_icon.theme_text_color = "Primary"
@@ -483,8 +480,10 @@ class SettingsScreen(MDScreen):
             size_hint=[1, 0.1],
             text="Settings",
             text_halign='left',
-            theme_text_color='Custom',
-            title_color  = THEME_COLOR_TUPLE
+        #    theme_text_color='Custom',
+        #    title_color  = THEME_COLOR_TUPLE
+            theme_text_color='Primary',
+            title_color=self.theme_cls.primaryColor,
         )
         
         # Content ScrollView
@@ -714,42 +713,42 @@ class Laner(MDApp):
                 each.checkWidgetDesign(self.my_screen_manager.current)
                 
         # Update header title colors
-        for screen in self.my_screen_manager.screens:
-            if hasattr(screen, 'header'):
-                # screen.header.header_label.theme_text_color = "Custom"
-                # screen.header.header_label.text_color = THEME_COLOR_TUPLE
-            
-                screen.header.header_label.theme_text_color = "Primary"
-                screen.header.header_label.text_color = self.theme_cls.primaryColor
-            
-                
-        # Update screen background colors based on theme
         # for screen in self.my_screen_manager.screens:
+        #     # if hasattr(screen, 'header'):
+        #     #     # screen.header.header_label.theme_text_color = "Custom"
+        #     #     # screen.header.header_label.text_color = THEME_COLOR_TUPLE
+            
+        #     #     screen.header.header_label.theme_text_color = "Primary"
+        #     #     screen.header.header_label.text_color = self.theme_cls.primaryColor
+            
+        light_grey_for_dark_theme=[.15,.15,.15,1]
+        light_grey_for_light_theme=[0.92, 0.92, 0.92, 1]
         if self.theme_cls.theme_style == "Dark":
-            self.my_screen_manager.md_bg_color =[.12,.12,.12,1]# Dark background
+            self.my_screen_manager.md_bg_color =[.12,.12,.12,1]
             
             for screen in self.my_screen_manager.screens:
+                screen.header.md_bg_color = light_grey_for_dark_theme
+                
                 # Update DisplayFolderScreen backgrounds
                 if isinstance(screen, DisplayFolderScreen):
-                    screen.details_box.md_bg_color = [.15,.15,.15,1]
+                    screen.details_box.md_bg_color = light_grey_for_dark_theme
                     screen.details_label.color =[.8, .8, .8, 1]
                     
-                screen.header.md_bg_color = [.15,.15,.15,1]
                 
         else:
             self.my_screen_manager.md_bg_color = [0.98, 0.98, 0.98, 1]
             
             # Update DisplayFolderScreen backgrounds
             for screen in self.my_screen_manager.screens:
+                screen.header.md_bg_color = light_grey_for_light_theme
                 if isinstance(screen, DisplayFolderScreen):
-                    screen.details_box.md_bg_color = [0.92, 0.92, 0.92, 1]
+                    screen.details_box.md_bg_color =light_grey_for_light_theme
                     screen.details_label.color = [0.41, 0.42, 0.4, 1]
-                screen.header.md_bg_color = [0.92, 0.92, 0.92, 1]
                     
                     
     def build(self):
         self.title = 'Laner'
-        self.theme_cls.theme_style = "Light"
+        self.theme_cls.theme_style = "Dark"
         self.theme_cls.primary_palette = "White"
         # self.theme_cls.accent_palette = "Blue"
         

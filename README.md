@@ -1,6 +1,6 @@
 # How to Use Laner
 
-Laner is a fast and secure file-sharing application that allows seamless file transfer between your PC and phone over a local network. Here's how to use both the desktop and phone versions effectively:
+Laner is a fast and secure file-sharing application that allows seamless file transfer between your PC and phone and vice-verse over a local network. Here's how to use both the desktop and phone versions effectively:
 
 ---
 

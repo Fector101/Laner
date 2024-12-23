@@ -61,7 +61,8 @@ class Header(MDBoxLayout):
     theme_text_color=StringProperty()
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.md_bg_color = (.1, .1, .1, .5)
+        self.md_bg_color =[.15,.15,.15,1] if self.theme_cls.theme_style == "Dark" else  [0.92, 0.92, 0.92, 1]
+        
         self.header_label=MDLabel(
             text_color=self.title_color,
             theme_text_color=self.theme_text_color,
@@ -127,9 +128,10 @@ class DisplayFolderScreen(MDScreen):
                            text=self.current_dir,
                            size_hint=[1,.1],
                            text_halign='center',
-                           theme_text_color='Custom',
-                           title_color  = THEME_COLOR_TUPLE
-                        #    title_color=self.theme_cls.backgroundColor,
+                        #    theme_text_color='Custom',
+                        #    title_color  = THEME_COLOR_TUPLE
+                           theme_text_color='Primary',
+                           title_color=self.theme_cls.primaryColor,
                            )
         self.layout.add_widget(self.header)
 
@@ -158,7 +160,7 @@ class DisplayFolderScreen(MDScreen):
         self.details_box=MDRelativeLayout(
             height='35sp',
             adaptive_width=True,
-            md_bg_color=[.15,.15,.15,1],
+            md_bg_color =[.15,.15,.15,1] if self.theme_cls.theme_style == "Dark" else  [0.92, 0.92, 0.92, 1],
             size_hint=[1,None]
             )
         
