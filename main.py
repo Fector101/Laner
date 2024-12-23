@@ -1,6 +1,7 @@
 from kivy.uix.filechooser import FileChooserListView
 from kivymd.app import MDApp
 from kivymd.uix.button import MDButton, MDButtonText
+from kivymd.uix.scrollview import MDScrollView
 from kivy.clock import Clock
 from kivy.properties import (ObjectProperty, BooleanProperty, ListProperty, StringProperty)
 from kivy.core.window import Window
@@ -25,23 +26,20 @@ from kivymd.material_resources import DEVICE_TYPE # if mobile or PC
 from kivymd.uix.filemanager import MDFileManager
 from kivymd.uix.navigationdrawer import (MDNavigationDrawer,
                 MDNavigationLayout)
+from kivymd.uix.divider import MDDivider
 import requests
 import os, sys, json
 from plyer import filechooser
 
 from widgets.popup import Snackbar
 from widgets.templates import DisplayFolderScreen, Header
-from workers.helper import getSERVER_IP, makeDownloadFolder, setHiddenFilesDisplay, setSERVER_IP
+from workers.helper import THEME_COLOR_TUPLE, getSERVER_IP, makeDownloadFolder, setHiddenFilesDisplay, setSERVER_IP
 from kivy.uix.floatlayout import FloatLayout
 
 # For Dev
 if DEVICE_TYPE != "mobile":
     Window.size = (400, 600)
 
-# TODO For Theme
-THEME_COLOR_TUPLE=(.6, .9, .8, 1)
-__DIR__ = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
-MY_DATABASE_PATH = os.path.join(__DIR__, 'data', 'store.json')
 
 
 #Making/Getting Downloads Folder
@@ -81,7 +79,14 @@ if platform == 'android':
     def request_all_permission():
         try:
             from android import api_version
-            print('api_version------|',api_version)
+            
+            permissions = [
+                    Permission.POST_NOTIFICATIONS,
+                    Permission.READ_EXTERNAL_STORAGE,
+                    Permission.WRITE_EXTERNAL_STORAGE
+                ]
+            request_permissions(permissions)
+            
             if api_version >= 30:
                 
                 Environment = autoclass('android.os.Environment')
@@ -93,12 +98,6 @@ if platform == 'android':
                     intent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
                     mActivity.startActivity(intent)
             # else:
-            permissions = [
-                    Permission.POST_NOTIFICATIONS,
-                    Permission.READ_EXTERNAL_STORAGE,
-                    Permission.WRITE_EXTERNAL_STORAGE
-                ]
-            request_permissions(permissions)
         except Exception as e:
             print(f"Failed to request storage permission: {e}") 
     
@@ -106,12 +105,17 @@ if platform == 'android':
 
 
 
-
+# class MDLabel(MDLabel):
+#     def __init__(self, **kwargs):
+#         super().__init__(**kwargs)
+#         self.md_bg_color= self.theme_cls.primaryColor
+    
 Builder.load_string('''
+
 <MyCard>:
     radius: dp(5)
     size_hint:(1,1)
-    theme_bg_color: "Custom"
+    # theme_bg_color: "Custom"
     on_release: app.my_screen_manager.current_screen.setPath(self.path)
     
     AsyncImage:
@@ -123,7 +127,7 @@ Builder.load_string('''
         pos_hint: {"top":1}
         radius: (dp(5),dp(5),0,0)
     MDButton:
-        theme_bg_color:  "Custom"
+        # theme_bg_color:  "Custom"
         theme_height:  "Custom"
         theme_width:  "Custom"
         opacity: 0 if root.is_dir else 1
@@ -131,18 +135,19 @@ Builder.load_string('''
         size_hint:  [None, None]
         width:  '35sp'
         height: '35sp'
-        md_bg_color: [.7,.6,.9,1]
+        # md_bg_color: [.7,.6,.9,1]
         pos_hint: {"top": .979, "right": .97}
         on_release: app.my_screen_manager.current_screen.showDownloadDialog(root.path)
         
         MDButtonIcon:
             icon: "download"
             pos_hint: {'x':.23,'y':.2}
-            theme_icon_color: "Custom"
-            icon_color: [1,1,1,1]
+            # theme_icon_color: "Custom"
+            # icon_color: [1,1,1,1]
         
-    Label:
+    MDLabel:
         text: root.myFormat(root.text)
+        theme_font_size:'Custom'
         font_size: '11sp'
         size_hint: [None, None]
         size: (root.width, 40)
@@ -193,7 +198,15 @@ class WindowManager(MDScreenManager):
     # def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.btm_sheet=btm_sheet
-        self.md_bg_color=[.2,.2,.2,1]
+        if self.theme_cls.theme_style == "Dark":
+            self.md_bg_color =[.12,.12,.12,1]# Dark background
+        else:
+            self.md_bg_color = [0.98, 0.98, 0.98, 1]  # Light background
+    
+        # Set theme colors and properties
+        # self.theme_cls = MDApp.get_running_app().theme_cls
+        # self.theme_cls.primaryColor = [1, 1, 1, 1]
+        
         self.add_widget(DisplayFolderScreen(name='upload',current_dir='Home'))
         self.add_widget(DisplayFolderScreen(name='download',current_dir='.'))
         self.add_widget(SettingsScreen())
@@ -272,9 +285,11 @@ class TabButton(RectangularRippleBehavior,ButtonBehavior,MDBoxLayout):
         # self.spacing="2sp"
         self.size_hint=[None,1]
         self.width=Window.width/3
-        self.label= Label(
+        self.label= MDLabel(
             text=self.text, halign='center',
             font_name='assets/fonts/Helvetica.ttf',
+            # theme_text_color="Primary",
+            # text_color=self.theme_cls.primaryColor,
             font_size=sp(13),
             )
         self.btn_icon = MDIcon(
@@ -282,7 +297,8 @@ class TabButton(RectangularRippleBehavior,ButtonBehavior,MDBoxLayout):
                 # font_size__='40sp',
                 # size_hint=[.5,.5],
                 pos_hint={'center_x': 0.5},
-                theme_text_color="Custom",
+                # theme_text_color="Primary",
+                # text_color=self.theme_cls.primaryColor
             )
 
         self.add_widget(self.btn_icon)
@@ -297,18 +313,37 @@ class TabButton(RectangularRippleBehavior,ButtonBehavior,MDBoxLayout):
             each_btn.checkWidgetDesign(cur_screen)
 
     def checkWidgetDesign(self,cur_screen):
-        with open(MY_DATABASE_PATH) as change_mode1:
-            Bool_theme = json.load(change_mode1)
-            if Bool_theme['Dark Mode']:
-                self.btn_icon.text_color=self.label.color = [1, 1, 1, 1]
+        # return
+        # print(self.screen, "==", cur_screen)
+        if self.screen == cur_screen:
+            # self.btn_icon.theme_text_color = "Custom"
+            self.label.color = self.theme_cls.primaryColor  
+            # self.btn_icon.text_color = THEME_COLOR_TUPLE
+            self.btn_icon.icon_color = self.theme_cls.primaryColor
+            
+            # self.btn_icon.theme_text_color = "Primary"
+            # self.label.theme_text_color = "Primary"
+        else:
+            # self.btn_icon.theme_text_color = "Primary"
+            # self.label.color = self.theme_cls.primaryColor
+            # self.btn_icon.icon_color = self.theme_cls.primaryColor
+            grey_color=[.6,.6,.6,1]
+            self.label.color = grey_color
+            self.btn_icon.icon_color = grey_color
 
-            else:
-                self.btn_icon.text_color=self.label.color = [0, 0, 0, 1]
 
-            if self.screen == cur_screen:
-                # print(self.screen,cur_screen)
-                # MDIcon.text_color=Label.color = THEME_COLOR_TUPLE
-                self.btn_icon.text_color=self.label.color = self.theme_cls.backgroundColor
+        # with open(MY_DATABASE_PATH) as change_mode1:
+        #     Bool_theme = json.load(change_mode1)
+        #     if Bool_theme['Dark Mode']:
+        #         self.btn_icon.text_color=self.label.color = [1, 1, 1, 1]
+
+        #     else:
+        #         self.btn_icon.text_color=self.label.color = [0, 0, 0, 1]
+
+        #     if self.screen == cur_screen:
+        #         # print(self.screen,cur_screen)
+        #         # MDIcon.text_color=Label.color = THEME_COLOR_TUPLE
+        #         self.btn_icon.text_color=self.label.color = self.theme_cls.backgroundColor
 
 class BottomNavigationBar(MDNavigationDrawer):
     screen = StringProperty()
@@ -330,7 +365,7 @@ class BottomNavigationBar(MDNavigationDrawer):
         self.padding=0
         self.spacing=0
         # self.md_bg_color = (.1, 1, 0, .5)
-        self.md_bg_color = (.1, .1, .1, 1)
+        # self.md_bg_color = (.1, .1, .1, 1)
         self.pos=[0,-3]
 
         for index in range(len(icons)):
@@ -365,9 +400,11 @@ class MySwitch(MDBoxLayout):
 
         self.add_widget(MDLabel(
             halign='left',valign='center',
-                                text_color=[1,1,1,1],
+                                # text_color=[1,1,1,1],
                                 text=self.text))
-        self.checkbox_=MDCheckbox(size_hint=(None,None),size=['40sp','40sp'],color_active=[.6, .9, .8, 2],color_inactive=[.6, .9, .8, .5],radius=0,active=self.switch_state,
+        self.checkbox_=MDCheckbox(size_hint=(None,None),size=['40sp','40sp'],
+                                #   color_active=[.6, .9, .8, 2],color_inactive=[.6, .9, .8, .5],
+                                  radius=0,active=self.switch_state,
         # self.checkbox_=MDCheckbox(size_hint=(None,None),size=['40sp','40sp'],icon_color=[.6, .9, .8, 2],theme_icon_color='Custom',theme_bg_color='Custom', _md_bg_color=[1,0,0,1],radius=0,active=self.switch_state,
                                   pos_hint={'right':1,'top':.8}
                                   )
@@ -429,58 +466,134 @@ class MyCard(RecycleDataViewBehavior,RectangularRippleBehavior,ButtonBehavior,MD
 class SettingsScreen(MDScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.name='settings'
-        self.layout=MDBoxLayout(
-            # md_bg_color=[1,0,0,1],
-            # adaptive_height=True,
-            size_hint=[1,.1],
-
-            pos_hint={'top':1}
-            )
-        self.layout.orientation='vertical'
-        self.layout.spacing=sp(10)
-        self.filechooser=None
+        self.name = 'settings'
+        self.size_hint=[1,None]
+        self.height=Window.height-sp(65)   # Bottom nav height
+        self.pos_hint={'top':1}
         
-        self.header=Header(
-            # size_hint=[1,None],height=sp(50),
-                           size_hint=[1,1],
-
-            text="Settings",text_halign='left')
-
-        self.content=MDBoxLayout(orientation='vertical',
-                                #  size_hint=[1,1],
-                                #  md_bg_color=[1,0,0,1],
-                                adaptive_height=True,
-                                spacing=sp(20),
-                                padding=[sp(10),0],
-            pos_hint={'top':.86}
-                                 )
-
-        self.portInput=MDTextField(theme_text_color= "Custom",text_color_focus=[.9,.9,1,1],text_color_normal=[1,1,1,1],pos_hint={'center_x':.5},size_hint=[.8,None],height=dp(80))
-        verifyBtn=MDButton(
-                           theme_height= "Custom", theme_width= "Custom",
-                           on_release=lambda x: self.setIP(self.portInput.text),
-                        #    on_release=lambda x: Snackbar(confirm_txt='Ok'),
-                           pos_hint={'center_x':.5},size_hint=[None,None],size=[sp(120),dp(50)],radius=0)
-        verifyBtn.add_widget(MDButtonText(text='Verify Code',pos_hint= {"center_x": .5, "center_y": .5}))
+        # Main layout
+        self.layout = MDBoxLayout(
+            orientation='vertical',
+            size_hint=[1, 1],
+            spacing=sp(10)
+        )
+        
+        # Header
+        self.header = Header(
+            size_hint=[1, 0.1],
+            text="Settings",
+            text_halign='left',
+            theme_text_color='Custom',
+            title_color  = THEME_COLOR_TUPLE
+        )
+        
+        # Content ScrollView
+        scroll = MDScrollView(
+            size_hint=[1, 1], 
+            do_scroll_x=False
+        )
+        # Add an offset height to the scroll
+        # scroll_height = (Window.height * 0.5) + sp(60)  # 90% of window height
+        # scroll.height = scroll_height
+        self.content = MDBoxLayout(
+            orientation='vertical',
+            spacing=sp(20),
+            padding=[sp(15), sp(10)],
+            adaptive_height=True
+        )
+        
+        # Categories
+        self.portInput=MDTextField(
+            # theme_text_color= "Custom",text_color_focus=[.9,.9,1,1],text_color_normal=[1,1,1,1],
+            pos_hint={'center_x':.5},size_hint=[.8,None],height=dp(80))
+        
+        self.add_category("Connection", [
+            {"type": "text", "title": "Server IP", "widget": self.portInput},
+            {"type": "button", "title": "Verify Connection", "callback": lambda x: self.setIP(self.portInput.text)}
+        ])
+        
+        self.add_category("Display", [
+            {"type": "switch", "title": "Show Hidden Files", "callback": self.on_checkbox_active},
+            {"type": "switch", "title": "Dark Mode", "callback": self.toggle_theme}
+        ])
+        
+        self.add_category("Storage", [
+            {"type": "button", "title": "Clear Cache", "callback": self.clear_cache},
+            {"type": "info", "title": "Storage Used", "value": "Calculate storage"}
+        ])
+        
+        scroll.add_widget(self.content)
         self.layout.add_widget(self.header)
-        # TODO Get PC name when connection verifed and display connected to ...
-        self.my_switch=MySwitch(text='Show hidden files')
-        self.my_switch.checkbox_.bind(active=self.on_checkbox_active)
-        
-        self.content.add_widget(self.my_switch)
-        self.content.add_widget(self.portInput)
-        self.content.add_widget(verifyBtn)
-        # btn=MDButton(size_hint=[None,None],size=[100,50])
-        btn1=MDButton(size_hint=[None,None],size=[100,50])
-        self.img=AsyncImage(source='assets/icons/video.png',nocache=False,mipmap=True,size_hint=[1,None],height=sp(200),pos_hint= {"center_x": .5, "center_y": .7})
-        self.content.add_widget(self.img)
-        # btn.on_release=self.test
-        btn1.on_release=self.testx
-        # self.content.add_widget(btn)
-        self.content.add_widget(btn1)
+        self.layout.add_widget(scroll)
         self.add_widget(self.layout)
-        self.add_widget(self.content)
+    
+    def add_category(self, title, items):
+        category = MDBoxLayout(
+            orientation='vertical',
+            adaptive_height=True,
+            spacing=sp(10)
+        )
+        
+        # Category header
+        category.add_widget(
+            MDLabel(
+                text=title,
+                bold=True,
+                # theme_text_color="Custom",
+                # text_color=[.8,.8,.8,1],
+                adaptive_height=True
+            )
+        )
+        
+        # Category items
+        for item in items:
+            item_layout = MDBoxLayout(
+                adaptive_height=True,
+                spacing=sp(10),
+                padding=[sp(10), sp(5)]
+            )
+            
+            if item["type"] == "switch":
+                switch = MySwitch(text=item["title"])
+                switch.checkbox_.bind(active=item["callback"])
+                item_layout.add_widget(switch)
+            
+            elif item["type"] == "text":
+                item_layout.add_widget(item["widget"])
+            
+            elif item["type"] == "button":
+                btn = MDButton(
+                    # _button_text=item["title"],
+                    MDButtonText(text=item["title"],pos_hint= {"center_x": .5, "center_y": .5}),
+                    on_release=item["callback"],
+                    size_hint=[None, None],
+                    size=[sp(120), dp(50)]
+                )
+                item_layout.add_widget(btn)
+            
+            category.add_widget(item_layout)
+        
+        self.content.add_widget(category)
+        self.content.add_widget(MDDivider())
+    
+    def toggle_theme(self, instance,value):
+        # Call the app's toggle_theme method
+        MDApp.get_running_app().toggle_theme()
+        # with open(MY_DATABASE_PATH, 'r') as f:
+        #     settings = json.load(f)
+        # settings['Dark Mode'] = instance.active
+        # with open(MY_DATABASE_PATH, 'w') as f:
+        #     json.dump(settings, f)
+
+        # self.theme_cls.theme_style = "Light" if not instance.active else "Dark"
+        # Snackbar(h1=f"Theme changed to {'Dark' if instance.active else 'Light'} mode")
+
+        
+    
+    def clear_cache(self, instance):
+        # Cache clearing implementation
+        
+        pass
     def testx(self):
         print("sending new notification")
 
@@ -562,36 +675,104 @@ class TypeMapElement(MDBoxLayout):
     icon = StringProperty()
     title = StringProperty()
 
+from kivy.storage.jsonstore import JsonStore
+# from kivymd.color_definitions import colors
+
 class Laner(MDApp):
-    btm_sheet=''
-    def build(self):
-        self.title='Laner'
-        self.theme_cls.backgroundColor=THEME_COLOR_TUPLE
-        
-        root_screen=MDScreen()
-        nav_layout=MDNavigationLayout()
+    btm_sheet = ''
+    theme_store = JsonStore('theme_settings.json')
     
-        self.btm_sheet=MyBtmSheet()
-        self.my_screen_manager = WindowManager(self.btm_sheet)
-        bottom_navigation_bar=BottomNavigationBar(self.my_screen_manager)
-
-        # nav_layout.add_widget(self.my_screen_manager)
-        # # root_layout.add_widget(bottom_navigation_bar)
-
-        nav_layout.add_widget(self.my_screen_manager)
-        nav_layout.add_widget(bottom_navigation_bar)
-        # nav_layout.add_widget(MDBottomSheet(
-        #     sheet_type='standard',
-        #     size_hint_y= None,
-        #     height= "150dp"
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # Default theme settings
+        # self.theme_cls.theme_style='Dark'
+        # self.theme_cls.dark_palette = "Amber"
+        # self.theme_cls.primary_palette = "Blue"
+        # self.theme_cls.accent_palette = "Amber"
+        # Default theme settings
+        # self.theme_cls.primary_palette = "Blue"
+        # self.theme_cls.accent_palette = "Amber"
+        # self.theme_cls.theme_style = self.get_stored_theme()
+        
+    def get_stored_theme(self):
+        try:
+            return self.theme_store.get('theme')['mode']
+        except Exception as e:
+            print("Error",e)
+            self.theme_store.put('theme', mode='Light')
+            return 'Light'
+    
+    def toggle_theme(self):
+        current = self.theme_cls.theme_style
+        new_theme = 'Dark' if current == 'Light' else 'Light'
+        self.theme_cls.theme_style = new_theme
+        self.theme_store.put('theme', mode=new_theme)
+        
+        # Update theme for main navigation and buttons
+        for each in self.bottom_navigation_bar.walk():
+            if isinstance(each, TabButton):
+                each.checkWidgetDesign(self.my_screen_manager.current)
+                
+        # Update header title colors
+        for screen in self.my_screen_manager.screens:
+            if hasattr(screen, 'header'):
+                # screen.header.header_label.theme_text_color = "Custom"
+                # screen.header.header_label.text_color = THEME_COLOR_TUPLE
             
-        # ))
+                screen.header.header_label.theme_text_color = "Primary"
+                screen.header.header_label.text_color = self.theme_cls.primaryColor
+            
+                
+        # Update screen background colors based on theme
+        # for screen in self.my_screen_manager.screens:
+        if self.theme_cls.theme_style == "Dark":
+            self.my_screen_manager.md_bg_color =[.12,.12,.12,1]# Dark background
+            
+            for screen in self.my_screen_manager.screens:
+                # Update DisplayFolderScreen backgrounds
+                if isinstance(screen, DisplayFolderScreen):
+                    screen.details_box.md_bg_color = [.15,.15,.15,1]
+                    screen.details_label.color =[.8, .8, .8, 1]
+                    
+                screen.header.md_bg_color = [.15,.15,.15,1]
+                
+        else:
+            self.my_screen_manager.md_bg_color = [0.98, 0.98, 0.98, 1]
+            
+            # Update DisplayFolderScreen backgrounds
+            for screen in self.my_screen_manager.screens:
+                if isinstance(screen, DisplayFolderScreen):
+                    screen.details_box.md_bg_color = [0.92, 0.92, 0.92, 1]
+                    screen.details_label.color = [0.41, 0.42, 0.4, 1]
+                screen.header.md_bg_color = [0.92, 0.92, 0.92, 1]
+                    
+                    
+    def build(self):
+        self.title = 'Laner'
+        self.theme_cls.theme_style = "Light"
+        self.theme_cls.primary_palette = "White"
+        # self.theme_cls.accent_palette = "Blue"
+        
+        # self.theme_cls.backgroundColor = THEME_COLOR_TUPLE
+        
+        # Theme configuration
+        # self.theme_cls.material_style = "M3"
+        # self.theme_cls.primary_hue = "500"
+        # self.theme_cls.accent_hue = "500"
+        
+        root_screen = MDScreen()
+        nav_layout = MDNavigationLayout()
+        
+        self.btm_sheet = MyBtmSheet()
+        self.my_screen_manager = WindowManager(self.btm_sheet)
+        self.bottom_navigation_bar = BottomNavigationBar(self.my_screen_manager)
+        
+        nav_layout.add_widget(self.my_screen_manager)
+        nav_layout.add_widget(self.bottom_navigation_bar)
         nav_layout.add_widget(self.btm_sheet)
         
         root_screen.add_widget(nav_layout)
         return root_screen
-    
-
 
 if __name__ == '__main__':
     Laner().run()

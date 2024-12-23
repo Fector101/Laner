@@ -5,7 +5,11 @@ resize assets/icon/file.png with a photo editor
 Use Plyer to query open pictures in other apps
 add audio icon and find a way to extract audio covers
 Make Code Cleaner
+watch youtube video for custom spinner
 [done]Create Two branchs First for (Linux|Macos|Windows) second for Android
+
+
+Well struted
     def get_storage_permissions():
         base_permissions = [
             Permission.POST_NOTIFICATIONS,
@@ -28,6 +32,8 @@ Make Code Cleaner
 
     permissions = get_storage_permissions()
     request_permissions(permissions)
+
+
 
 
 
@@ -63,3 +69,63 @@ worked
             print(f"Failed to request storage permission: {e}")
     
     request_all_files_permission()
+
+
+
+
+
+class SettingsScreen(MDScreen):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name='settings'
+        self.layout=MDBoxLayout(
+            # md_bg_color=[1,0,0,1],
+            # adaptive_height=True,
+            size_hint=[1,.1],
+
+            pos_hint={'top':1}
+            )
+        self.layout.orientation='vertical'
+        self.layout.spacing=sp(10)
+        self.filechooser=None
+        
+        self.header=Header(
+            # size_hint=[1,None],height=sp(50),
+                           size_hint=[1,1],
+
+            text="Settings",text_halign='left')
+
+        self.content=MDBoxLayout(orientation='vertical',
+                                #  size_hint=[1,1],
+                                #  md_bg_color=[1,0,0,1],
+                                adaptive_height=True,
+                                spacing=sp(20),
+                                padding=[sp(10),0],
+            pos_hint={'top':.86}
+                                 )
+
+        self.portInput=MDTextField(theme_text_color= "Custom",text_color_focus=[.9,.9,1,1],text_color_normal=[1,1,1,1],pos_hint={'center_x':.5},size_hint=[.8,None],height=dp(80))
+        verifyBtn=MDButton(
+                           theme_height= "Custom", theme_width= "Custom",
+                           on_release=lambda x: self.setIP(self.portInput.text),
+                        #    on_release=lambda x: Snackbar(confirm_txt='Ok'),
+                           pos_hint={'center_x':.5},size_hint=[None,None],size=[sp(120),dp(50)],radius=0)
+        verifyBtn.add_widget(MDButtonText(text='Verify Code',pos_hint= {"center_x": .5, "center_y": .5}))
+        self.layout.add_widget(self.header)
+        # TODO Get PC name when connection verifed and display connected to ...
+        self.my_switch=MySwitch(text='Show hidden files')
+        self.my_switch.checkbox_.bind(active=self.on_checkbox_active)
+        
+        self.content.add_widget(self.my_switch)
+        self.content.add_widget(self.portInput)
+        self.content.add_widget(verifyBtn)
+        # btn=MDButton(size_hint=[None,None],size=[100,50])
+        btn1=MDButton(size_hint=[None,None],size=[100,50])
+        self.img=AsyncImage(source='assets/icons/video.png',nocache=False,mipmap=True,size_hint=[1,None],height=sp(200),pos_hint= {"center_x": .5, "center_y": .7})
+        self.content.add_widget(self.img)
+        # btn.on_release=self.test
+        btn1.on_release=self.testx
+        # self.content.add_widget(btn)
+        self.content.add_widget(btn1)
+        self.add_widget(self.layout)
+        self.add_widget(self.content)

@@ -5,6 +5,8 @@ import socket
 import sys
 import hashlib
 # import subprocess
+# THEME_COLOR_TUPLE=(.6, .9, .2, 1)
+THEME_COLOR_TUPLE=(.6, .9, .8, 1)
 
 # /home/fabian/Documents/my projects code/mobile dev/Laner/venv/lib64/python3.12/site-packages/kivymd/uix/menu/menu.py
 # Run this from VSCode content menu (Run Python) --> /home/fabian/Documents/my projects code/mobile dev/Laner/venv/lib64/python3.12/site-packages/kivymd/icon_definitions.py

@@ -17,7 +17,7 @@ from pathlib import Path
 from plyer import filechooser
 
 from widgets.popup import PopupDialog,Snackbar
-from workers.helper import getAppFolder, getSERVER_IP, getSystem_IpAdd, is_wine, makeDownloadFolder, truncateStr,getHiddenFilesDisplay_State, wine_path_to_unix
+from workers.helper import THEME_COLOR_TUPLE, getAppFolder, getSERVER_IP, getSystem_IpAdd, is_wine, makeDownloadFolder, truncateStr,getHiddenFilesDisplay_State, wine_path_to_unix
 
 from kivy.lang import Builder
 
@@ -48,14 +48,23 @@ my_downloads_folder=makeDownloadFolder()
 
 
 class Header(MDBoxLayout):
+    """_summary_
+
+    Args:
+        text (str): _description_
+        text_halign (str): _description_
+        title_color (str): _description_
+    """
     text=StringProperty()
     text_halign=StringProperty()
     title_color=ListProperty([1,1,1,1])
+    theme_text_color=StringProperty()
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.md_bg_color = (.1, .1, .1, .5)
         self.header_label=MDLabel(
             text_color=self.title_color,
+            theme_text_color=self.theme_text_color,
             text='~ '+self.text if self.text == 'Home' else self.text,
             halign=self.text_halign,
             valign='center',
@@ -118,7 +127,9 @@ class DisplayFolderScreen(MDScreen):
                            text=self.current_dir,
                            size_hint=[1,.1],
                            text_halign='center',
-                           title_color=self.theme_cls.backgroundColor,
+                           theme_text_color='Custom',
+                           title_color  = THEME_COLOR_TUPLE
+                        #    title_color=self.theme_cls.backgroundColor,
                            )
         self.layout.add_widget(self.header)
 
@@ -144,17 +155,20 @@ class DisplayFolderScreen(MDScreen):
         # self.upload_btn.md_bg_color=[1,0,0,1]
         
         # Adding directory details
-        container_for_group_label=MDRelativeLayout(
+        self.details_box=MDRelativeLayout(
             height='35sp',
             adaptive_width=True,
-            md_bg_color=[.15,.15,.15,1],size_hint=[1,None]
+            md_bg_color=[.15,.15,.15,1],
+            size_hint=[1,None]
             )
+        
         self.details_label=DetailsLabel(text='0 files and 0 folders')
+        
         # DetailsLabel(text='Folders: 0 Files: 0')
         
-        container_for_group_label.add_widget(self.details_label)
+        self.details_box.add_widget(self.details_label)
         self.add_widget(self.layout)
-        self.add_widget(container_for_group_label)
+        self.add_widget(self.details_box)
         self.add_widget(self.upload_btn)
         
     def uploadFile(self,file_path):
@@ -243,7 +257,7 @@ class DisplayFolderScreen(MDScreen):
             Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
             print(e,"Failed opening Folder async")
                    
-    def on_pre_enter(self, *args):
+    def on_enter(self, *args):
         # Add loading spinner
         self.spinner = Spinner(
             size_hint=(None, None),
@@ -344,7 +358,7 @@ class MyBtmSheet(MDBottomSheet):
         self.drag_sheet= MDBottomSheetDragHandle(
                             
                             
-                            drag_handle_color= "grey"
+                            # drag_handle_color= "grey"
                             )
         self.drag_sheet.add_widget(
             MDBottomSheetDragHandleTitle(
