@@ -149,7 +149,7 @@ class CustomHandler(SimpleHTTPRequestHandler):
                     th.daemon = True
                     th.start()
                 self.wfile.write(json.dumps(response_data).encode("utf-8"))
-                print('Handled -----',no)
+                print('Handled -----',no,' Requests')
                 
                 
                 
