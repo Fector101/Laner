@@ -41,10 +41,14 @@
         height: dp(50)
         MDLabel:
             text: root.title
-            size_hint_x: 0.8
+            bold: True
+            theme_text_color: "Secondary"
         MDIconButton:
-            icon: root.icon
-            
+            # icon: root.icon
+            icon: 'arrow-up' if root.is_open else 'arrow-down'
+            theme_bg_color: "Custom"
+            pos_hint: {"center_y": .5}
+            ripple_scale:0
             on_release: root.toggle_dropdown()
 
     MDBoxLayout:
@@ -52,3 +56,4 @@
         size_hint_y: None
         height: self.minimum_height if root.is_open else 0
         opacity: 1 if root.is_open else 0
+

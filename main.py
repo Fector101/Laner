@@ -1,6 +1,6 @@
 from kivy.uix.filechooser import FileChooserListView
 from kivymd.app import MDApp
-from kivymd.uix.button import MDButton, MDButtonText
+from kivymd.uix.button import MDButton, MDButtonText, MDIconButton
 from kivymd.uix.scrollview import MDScrollView
 from kivy.clock import Clock
 from kivy.properties import (ObjectProperty, BooleanProperty, ListProperty, StringProperty)
@@ -21,6 +21,7 @@ from kivy.uix.recycleview.views import RecycleDataViewBehavior
 from kivy.uix.recyclegridlayout import RecycleGridLayout
 from kivymd.uix.selectioncontrol import MDCheckbox
 from kivy.uix.image import AsyncImage,Image
+from kivy.uix.spinner import Spinner
 from kivy.utils import platform # OS
 from kivymd.material_resources import DEVICE_TYPE # if mobile or PC
 from kivymd.uix.filemanager import MDFileManager
@@ -32,13 +33,15 @@ import os, sys, json
 from plyer import filechooser
 
 from widgets.popup import Snackbar
-from widgets.templates import CustomDropDown, DisplayFolderScreen, Header, MDTextButton
+from widgets.templates import CustomDropDown, DetailsLabel, DisplayFolderScreen, Header, MDTextButton
 from workers.helper import THEME_COLOR_TUPLE, getSERVER_IP, makeDownloadFolder, setHiddenFilesDisplay, setSERVER_IP
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.boxlayout import BoxLayout
 
 # For Dev
 if DEVICE_TYPE != "mobile":
-    Window.size = (400, 600)
+    # Window.size = (400, 600)
+    ...
 
 
 
@@ -171,6 +174,7 @@ Builder.load_string('''
     viewclass: 'MyCard'
     size_hint: (1, .9)
     My_RecycleGridLayout:
+        id: scroll_content
         default_size: 1, '140sp' # children widgets default size
         default_size_hint: 1, None
         cols:4
@@ -178,7 +182,19 @@ Builder.load_string('''
         padding:"10dp"
         size_hint: (1, None)
         height: self.minimum_height + 140
- 
+        canvas.before:
+            Color:
+                rgba: 1, 0, 0, 1  # Red color
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        Image:
+            id
+        (source='spinner.png', size_hint=(None, None), size=(100, 100), pos_hint={'center_x': 0.5, 'center_y': 0.5})
+        self.spinner.opacity = 0
+        self.add_widget(self.spinner)
+        self.spinner_anim = Animation(rotation=360, duration=1)
+        self.spinner_anim.repeat = True
 ''')
 
 
@@ -212,7 +228,10 @@ class WindowManager(MDScreenManager):
         super().__init__(**kwargs)
         self.btm_sheet=btm_sheet
         self.md_bg_color =[.12,.12,.12,1] if self.theme_cls.theme_style == "Dark" else [0.98, 0.98, 0.98, 1]
-    
+        self.size_hint=[1,None]
+        self.height=Window.height-sp(65)   # Bottom nav height
+        self.pos_hint={'top':1}
+        
         # Set theme colors and properties
         # self.theme_cls = MDApp.get_running_app().theme_cls
         # self.theme_cls.primaryColor = [1, 1, 1, 1]
@@ -473,14 +492,63 @@ class MyCard(RecycleDataViewBehavior,RectangularRippleBehavior,ButtonBehavior,MD
             return text[0:18] + '...'
         return text
 
+class PortBoxLayout(MDBoxLayout):
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.orientation= 'horizontal'
+        self.padding = [dp(10), dp(10)]
+        self.spacing = dp(10)
+        self.size_hint_y = None
+        self.height = dp(50) # Importance for dropdown custom widget (this is the sum of children heights)
+
+        self.add_widget(MDLabel(
+            text='port:',theme_font_size='Custom',
+            font_size='18sp',adaptive_width=True,
+            adaptive_height=True,pos_hint={'center_y': .5},
+            theme_text_color="Secondary"
+            )
+        )
+          
+
+        
+        self.port_input = MDTextField(
+            hint_text="Enter Port Number",
+            size_hint=[None,None],
+            size=[dp(60),dp(10)],
+            pos_hint={'center_y': .5},
+            max_height=30,
+        )
+        self.add_widget(self.port_input)
+
+        # self.verify_button = MDTextButton(
+        #     text="Verify",
+        #     size_hint=[1, None],
+        #     height=sp(40),
+        #     
+        # )
+        self.add_widget(
+            MDTextButton(
+                text='Verify', font_size='13sp',
+                size=[50,35],on_release=self.verify_port,
+                radius=0,pos_hint={'center_y': .5}
+            )
+        )
+        
+        # self.add_widget(self.verify_button)
+
+    def verify_port(self, instance):
+        port = self.port_input.text
+        if port.isdigit() and 0 < int(port) < 65536:
+            Snackbar(h1="Port is valid")
+        else:
+            Snackbar(h1="Invalid port number")
+
 
 class SettingsScreen(MDScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name = 'settings'
-        self.size_hint = [1, None]
-        self.height = Window.height - sp(65)  # Bottom nav height
-        self.pos_hint = {'top': 1}
 
         # Main layout
         self.layout = MDBoxLayout(
@@ -511,34 +579,27 @@ class SettingsScreen(MDScreen):
         )
 
         # Categories
-        self.portInput = MDTextField(
-            pos_hint={'center_x': .5}, size_hint=[.8, None], height=dp(80)
-        )
+        self.ipAddressInput = MDTextField(pos_hint={'center_x': .5}, size_hint=[.8, None], height=dp(80))
         
-        self.advanced_dropdown = CustomDropDown()
-        advanced_port_input = MDTextField(
-            hint_text="Enter Port Number",
-            size_hint_y=None,
-            height=dp(50)
-        )
-        self.advanced_dropdown.add_widget(advanced_port_input)
+        self.advanced_options =PortBoxLayout()
+        
 
         self.add_category("Connection", [
-            {"type": "text", "title": "Server IP", "widget": self.portInput},
-            {"type": "button", "title": "Verify Connection", "callback": lambda x: self.setIP(self.portInput.text)},
+            {"type": "text", "title": "Server IP", "widget": self.ipAddressInput},
+            {"type": "button", "title": "Verify Connection", "callback": lambda x: self.setIP(self.ipAddressInput.text)},
         ])
         
         self.add_category("Display", [
             {"type": "switch", "switch_state": False, "title": "Show Hidden Files", "callback": self.on_checkbox_active},
             {"type": "switch", "switch_state": True if MDApp.get_running_app().get_stored_theme() == 'Dark' else False, "title": "Dark Mode", "callback": self.toggle_theme}
         ])
-        
+        print('Saved theme',MDApp.get_running_app().get_stored_theme())
         self.add_category("Storage", [
             {"type": "button", "title": "Clear Cache", "callback": self.clear_cache},
             {"type": "info", "title": "Storage Used", "value": "Calculate storage"}
         ])
         
-        self.add_category("Adv", [{"type": "custom", "widget": self.advanced_dropdown}])
+        self.add_category("Advanced Options", [{"type": "custom", "widget": self.advanced_options}])
 
         scroll.add_widget(self.content)
         self.layout.add_widget(self.header)
@@ -546,21 +607,24 @@ class SettingsScreen(MDScreen):
         self.add_widget(self.layout)
 
     def add_category(self, title, items):
-        category = MDBoxLayout(
-            orientation='vertical',
-            adaptive_height=True,
-            spacing=sp(10)
-        )
-
-        # Category header
-        category.add_widget(
-            MDLabel(
-                text=title,
-                bold=True,
-                theme_text_color="Secondary",
-                adaptive_height=True
+        if title == 'Advanced Options':
+            category=CustomDropDown()
+        else:
+            category = MDBoxLayout(
+                orientation='vertical',
+                adaptive_height=True,
+                spacing=sp(10)
             )
-        )
+
+            # Category header
+            category.add_widget(
+                MDLabel(
+                    text=title,
+                    bold=True,
+                    theme_text_color="Secondary",
+                    adaptive_height=True
+                )
+            )
 
         # Category items
         for item in items:
@@ -571,7 +635,7 @@ class SettingsScreen(MDScreen):
             )
 
             if item["type"] == "switch":
-                switch = MySwitch(text=item["title"])
+                switch = MySwitch(text=item["title"],switch_state=item['switch_state'])
                 switch.checkbox_.bind(active=item["callback"])
                 item_layout.add_widget(switch)
 
@@ -601,6 +665,10 @@ class SettingsScreen(MDScreen):
 
         
     
+    def verify_port(self, instance):
+        # Add your verification logic here
+        pass
+
     def clear_cache(self, instance):
         # Cache clearing implementation
         
@@ -612,7 +680,7 @@ class SettingsScreen(MDScreen):
         from android_notify.styles import NotificationStyles
 
             
-        i=self.portInput.text
+        i=self.ipAddressInput.text
         try:
             if i=='1':
                 send_notification("Hello", "This is a basic notification.")

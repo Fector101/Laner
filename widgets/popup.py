@@ -55,6 +55,7 @@ class PopupDialog(MDWidget):
     def close(self):
         self.dialog.dismiss()
         
+        
 
 
 class Snackbar(MDWidget):

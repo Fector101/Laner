@@ -83,12 +83,52 @@ class Header(MDBoxLayout):
         self.header_label.text='~ '+ text if text == 'Home' else text
         
 
+from kivy.uix.image import Image
+from kivy.animation import Animation
 
 class RV(RecycleView):
+    refreshing = BooleanProperty(False)
+    drag_threshold = NumericProperty('50sp')
+
     def __init__(self, **kwargs):
-        super(RV,self).__init__(**kwargs)
+        super(RV, self).__init__(**kwargs)
+        self.content_box_y = 0
+        # self.spinner = Image(source='spinner.png', size_hint=(None, None), size=(100, 100), pos_hint={'center_x': 0.5, 'center_y': 0.5})
+        # self.spinner.opacity = 0
+        # self.add_widget(self.spinner)
+        # self.spinner_anim = Animation(rotation=360, duration=1)
+        # self.spinner_anim.repeat = True
 
+    def on_touch_down(self, touch):
+        self.content_box_y = self.ids.scroll_content.to_window(*self.ids.scroll_content.pos)[1]
+        return super().on_touch_down(touch)
 
+    def on_touch_move(self, touch):
+        pixels_moved = self.content_box_y - self.ids.scroll_content.to_window(*self.ids.scroll_content.pos)[1]
+        self.spinner.opacity = min(pixels_moved / 135, 1)
+        if self.spinner.opacity > 0 and not self.spinner_anim.have_properties_to_animate(self.spinner):
+            self.spinner_anim.start(self.spinner)
+        return super().on_touch_move(touch)
+
+    def on_touch_up(self, touch):
+        pixels_moved = self.content_box_y - self.ids.scroll_content.to_window(*self.ids.scroll_content.pos)[1]
+        print('pixels_moved', pixels_moved)
+        if pixels_moved > 135:
+            self.refresh()
+            print('refresh data |||||||||')
+        
+        self.spinner.opacity = 0
+        self.spinner_anim.stop(self.spinner)
+        self._start_touch_y = 0
+        return super().on_touch_up(touch)
+
+    def refresh(self):
+        screen = self.parent.parent
+        if isinstance(screen, DisplayFolderScreen):
+            Clock.schedule_once(lambda dt: screen.startSetPathInfo_Thread())
+        
+        
+        
 async def async_download_file(url, save_path):
     try:
         response = requests.get(url)
@@ -107,21 +147,53 @@ from kivymd.uix.relativelayout import MDRelativeLayout
 class DetailsLabel(Label):
     pass
         
-        
-        
+
+from kivy.uix.scrollview import ScrollView
+
+class CustomRefreshLayout(ScrollView):
+    refreshing = BooleanProperty(False)
+    drag_threshold = NumericProperty('50dp')
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._start_touch_y = None
+        self._refresh_triggered = False
+
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos):
+            self._start_touch_y = touch.y
+            self._refresh_triggered = False
+        return super().on_touch_down(touch)
+
+    def on_touch_move(self, touch):
+        if self._start_touch_y and not self._refresh_triggered:
+            if touch.y - self._start_touch_y > self.drag_threshold:
+                self.refreshing = True
+                self._refresh_triggered = True
+                self.dispatch('on_refresh')
+        return super().on_touch_move(touch)
+
+    def on_touch_up(self, touch):
+        self._start_touch_y = None
+        return super().on_touch_up(touch)
+
+    def on_refresh(self):
+        print('on fresh method---|')
+        pass
+
+    def refresh_done(self):
+        print('fresh done method---|')
+        self.refreshing = False
+
 class DisplayFolderScreen(MDScreen):
     current_dir = StringProperty('.')
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.data_received=False
         self.screen_history = []
         self.current_dir_info:list[dict]=[]
         self.could_not_open_path_msg="Couldn't Open Folder Check Laner on PC"
-        self.size_hint=[1,None]
-        self.height=Window.height-sp(65)   # Bottom nav height
-        self.pos_hint={'top':1}
-        # print(Window.height)
-        
         # self.md_bg_color=[1,1,0,1]
         self.layout=MDBoxLayout(orientation='vertical')
         self.header=Header(
@@ -138,7 +210,6 @@ class DisplayFolderScreen(MDScreen):
         self.screen_scroll_box = RV()
         self.screen_scroll_box.data=self.current_dir_info
         # Clock.schedule_once(lambda dt: self.startSetPathInfo_Thread())
-        
 
         self.layout.add_widget(self.screen_scroll_box)
         # icon.theme_text_color="Custom"
@@ -166,10 +237,9 @@ class DisplayFolderScreen(MDScreen):
         
         self.details_label=DetailsLabel(text='0 files and 0 folders')
         
-        # DetailsLabel(text='Folders: 0 Files: 0')
+        self.add_widget(self.layout)
         
         self.details_box.add_widget(self.details_label)
-        self.add_widget(self.layout)
         self.add_widget(self.details_box)
         self.add_widget(self.upload_btn)
         
@@ -203,7 +273,11 @@ class DisplayFolderScreen(MDScreen):
         
                     
     def startSetPathInfo_Thread(self):
+        # print(self.data_received)
         threading.Thread(target=self.querySetPathInfoAsync).start()
+        # time.sleep(0.2)
+        # if not self.data_received:
+        #     self.pop_up = PopupDialog()
         
     def querySetPathInfoAsync(self):
         # Run the async function in the event loop
@@ -212,9 +286,13 @@ class DisplayFolderScreen(MDScreen):
         asyncio.set_event_loop(loop)
         loop.run_until_complete(self.asyncSetPathInfo())
         loop.close()
+                     
     async def asyncSetPathInfo(self):
         try:
+            # self.data_received=False
+            
             response = requests.get(f"http://{getSERVER_IP()}:8000/api/getpathinfo",json={'path':self.current_dir},timeout=5)
+            
             # requests.get(server,data='to be sent',auth=(username,password))
             print(f"Clicked {response}")
             if response.status_code != 200:
@@ -252,31 +330,24 @@ class DisplayFolderScreen(MDScreen):
             self.details_label.text=f'{no_of_files} {parse_for_files} and {no_of_folders} {parse_for_folders}'
             # print('-----------------',self.current_dir_info)
             # return
-                    
+                
             self.screen_scroll_box.data=self.current_dir_info
-
+            # self.data_received=True
+            
+            # self.pop_up.update_pop_up_text(self.name)
+            
+            # Clock.schedule_once(self.pop_up.close)
+            
+                    
         except Exception as e:
             Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
             print(e,"Failed opening Folder async")
                    
     def on_enter(self, *args):
-        # Add loading spinner
-        self.spinner = Spinner(
-            size_hint=(None, None),
-            size=(dp(46), dp(46)),
-            pos_hint={'center_x': .5, 'center_y': .5}
-        )
-        self.add_widget(self.spinner)
+        print(self.data_received)
+        Clock.schedule_once(lambda dt: self.startSetPathInfo_Thread())
         
-        # Start loading data
-        def remove_spinner(dt):
-            self.remove_widget(self.spinner)
         
-        def start_loading(dt):
-            self.startSetPathInfo_Thread()
-            Clock.schedule_once(remove_spinner, 0)
-            
-        Clock.schedule_once(start_loading)
             
     def isDir(self,path:str):
 
@@ -330,7 +401,6 @@ class DisplayFolderScreen(MDScreen):
         loop.run_until_complete(async_download_file(url, save_path))
 
 import asynckivy
-# from asynckivy
 from kivymd.uix.bottomsheet.bottomsheet import MDBottomSheet,MDBottomSheetDragHandle,MDBottomSheetDragHandleTitle,MDBottomSheetDragHandleButton
 
 from kivy.properties import BoundedNumericProperty
@@ -413,39 +483,54 @@ from kivymd.uix.button import MDButton, MDButtonText
 
 class MDTextButton(MDButton):
     text = StringProperty('Fizz')
+    font_size = StringProperty('')
+    
+    size = ListProperty([sp(0),sp(0)])
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.theme_height = "Custom"
         self.theme_width = "Custom"
-        self.add_widget(MDButtonText(text=self.text,pos_hint= {"center_x": .5, "center_y": .5}))
+        self.theme_height = "Custom"
+        # if self.size == [sp(0),sp(0)]:
+        #     self.adaptive_size=True
+        # self.height=10#self.size[1]
+
+        text=MDButtonText(
+            text=self.text,
+            pos_hint= {"center_x": .5, "center_y": .5})
+        if self.font_size:
+            text.theme_font_size = "Custom"
+            # text.font_size=self.font_size
+        self.add_widget(text)
 
 
 
 class CustomDropDown(MDBoxLayout):
     title = StringProperty("Advanced Options")
-    icon = StringProperty("arrow-down")
+    # icon = StringProperty("arrow-down")
     is_open = BooleanProperty(True)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.not_keeps_sake=[]      
     def toggle_dropdown(self):
+        print(self.is_open)
+        print(self.ids.dropdown_content.children,'pop')
         if self.is_open:
             self.ids.dropdown_content.clear_widgets()
-            self.ids.dropdown_content.height = 0
-            self.icon = "arrow-down"
+            # self.ids.dropdown_content.height = 0
         else:
             for each in self.not_keeps_sake:
                 self.ids.dropdown_content.add_widget(each)
-            self.ids.dropdown_content.height = self.ids.dropdown_content.minimum_height
-            self.icon = "arrow-up"
+            # self.ids.dropdown_content.height = self.ids.dropdown_content.minimum_height
+        print(self.ids.dropdown_content.children,'ffff')
             
         self.is_open = not self.is_open
 
     def add_widget(self, widget, index=0, canvas=None):
         if self.ids and 'dropdown_content' in self.ids:
             self.not_keeps_sake.append(widget)
-            self.ids.dropdown_content.add_widget(widget)
-            self.ids.dropdown_content.height = self.ids.dropdown_content.minimum_height
+            if self.is_open:
+                self.ids.dropdown_content.add_widget(widget)
+            # self.ids.dropdown_content.height = self.ids.dropdown_content.minimum_height
         else:
             super().add_widget(widget, index=index, canvas=canvas)        
