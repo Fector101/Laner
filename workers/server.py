@@ -3,7 +3,7 @@ import os
 import json
 import threading
 
-from workers.helper import gen_unique_filname, getAppFolder, getFileExtension, getHomePath,getSystem_IpAdd, getdesktopFolder, makeDownloadFolder, makeFolder, removeFileExtension, removeFirstDot, sortedDir
+from workers.helper import gen_unique_filname, getAppFolder, getFileExtension, getHomePath,getSystem_IpAdd, getdesktopFolder, makeDownloadFolder, makeFolder, removeFileExtension, getUserPCName,removeFirstDot, sortedDir
 from workers.thumbmailGen import generateThumbnails
 
 
@@ -174,9 +174,8 @@ class CustomHandler(SimpleHTTPRequestHandler):
             
         elif self.path == "/ping":
             res=self.getRequestBody('passcode')
-            print(res)
-            if (res == None):
-                return
+            if res == '08112321825':
+                self.wfile.write(json.dumps({'data':getUserPCName()}).encode("utf-8"))
         else:
             super().do_GET()
         no+=1
@@ -194,6 +193,7 @@ class CustomHandler(SimpleHTTPRequestHandler):
             self.send_header("Content-type", "application/json")
             self.end_headers()
             self.wfile.write(json.dumps({'error': type(e).__name__ }).encode("utf-8"))
+
 class FileSharingServer:
     def __init__(self, port=8000, directory="/"):
         self.port = port

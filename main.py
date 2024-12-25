@@ -209,8 +209,8 @@ class FileShareApp(QMainWindow):
 
     def run_server(self, port):
         # Initialize the server
-        self.server = FileSharingServer(port, '/')
         try:
+            self.server = FileSharingServer(port, '/')
             # Start the server
             self.server.start()
             self.port=self.server.getPortNumer()

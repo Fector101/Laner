@@ -152,7 +152,7 @@ def getSystem_IpAdd():
     ip_addresses = [ip for ip in ip_addresses if not ip.startswith('127.')]
     
     if len(ip_addresses) == 0 or len(ip_addresses) == 1 and ip_addresses[0] == '127.0.0.1':
-        print(fallbackderviringGetttingIp(),'butt')
+        
         return fallbackderviringGetttingIp()
       
     if len(ip_addresses) > 1 and ip_addresses[1].startswith('192.168.'):
