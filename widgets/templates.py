@@ -495,30 +495,35 @@ from kivymd.uix.button import MDButton, MDButtonText
 class MDTextButton(MDButton):
     text = StringProperty('Fizz')
     font_size = StringProperty('')
+    text_widget = ObjectProperty() # for on_text if statement to work
     
     size = ListProperty([sp(0),sp(0)])
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.theme_width = "Custom"
         self.theme_height = "Custom"
-        # if self.size == [sp(0),sp(0)]:
-        #     self.adaptive_size=True
-        # self.height=10#self.size[1]
 
-        text=MDButtonText(
-            text=self.text,
-            pos_hint= {"center_x": .5, "center_y": .5})
-        if self.font_size:
-            text.theme_font_size = "Custom"
-            # text.font_size=self.font_size
-        self.add_widget(text)
-
-
+        self.text_widget = MDButtonText( # setting text here doesn't matter because it will be updated in on_text
+            pos_hint={"center_x": .5, "center_y": .5}
+        )
+        self.text_widget.text = self.text
+        self.text_widget.theme_font_size = "Custom"
+        self.add_widget(self.text_widget)
+        
+    def on_text(self, instance, value):
+        print(instance,'|||',value)
+        self.text = value
+        if self.text_widget:
+            self.text_widget.text = value
+            
+    # def setText(self,text):
+    #     self.text_widget.text = text
+    #     self.text = text
 
 class CustomDropDown(MDBoxLayout):
     title = StringProperty("Advanced Options")
     # icon = StringProperty("arrow-down")
-    is_open = BooleanProperty(True)
+    is_open = BooleanProperty(False)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
