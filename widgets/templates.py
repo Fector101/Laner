@@ -87,112 +87,75 @@ class Header(MDBoxLayout):
 from kivy.uix.image import Image
 from kivy.animation import Animation
 angle=45
-class Grid(GridLayout):
+from kivymd.uix.gridlayout import MDGridLayout  
+class Grid(MDGridLayout):
     anime = None
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        # self.md_bg_color=[0,1,0,1]
         self.is_animating = False
 
     def stopLoadingAnime(self, *args):
         if self.is_animating:
-            # Stop animation
             self.anime.unbind(on_complete=self.startLoadingAnime)
             self.is_animating = False
 
     def startLoadingAnime(self, *args):
         global angle
-        print('buzzing.....',self.is_animating)
-        # self.anime=Animation(height=40, width=40, spacing=[10, 10], duration=0.5)
-        # self.anime += Animation(height=34, width=34, spacing=[5, 5], duration=0.5)
         self.anime = Animation(angle=angle, duration=0.4)
-        print(angle, 'rotation')
         self.anime.bind(on_complete=self.startLoadingAnime)
         self.anime.start(self)
         self.is_animating = True
         angle += 45
 class RV(RecycleView):
     refreshing = BooleanProperty(False)
-    drag_threshold = NumericProperty('50sp')
+    drag_session = False
     i=0
     def __init__(self, **kwargs):
         super(RV, self).__init__(**kwargs)
         self.content_box_y = 0
-        # self.spinner = Image(source='spinner.png', size_hint=(None, None), size=(100, 100), pos_hint={'center_x': 0.5, 'center_y': 0.5})
-        # self.spinner.opacity = 0
-        # self.add_widget(self.spinner)
-        # self.spinner_anim = Animation(rotation=360, duration=1)
-        # self.spinner_anim.repeat = True
-
+        self.drag_session_refresh_done = False
+        self.last_move_value = 0
     def on_touch_down(self, touch):
-        # print("Content box pos relative to screen", self.ids.scroll_content.to_parent(*self.ids.scroll_content.pos))
-        # print("Test----|", self.ids.scroll_content.to_parent(*[0,0]))
-        # print("Window position",Window._pos)
-        # print(f"Content box height {self.ids.scroll_content.height} and pos{self.ids.scroll_content.pos}")
-        # print(Window.height,Window)
-        # for prop in dir(Window):
-        #     if not prop.startswith('_'):
-        #         print(f"{prop}: {getattr(Window, prop)}")
-        # self.content_box_y = self.ids.scroll_content.to_window(*self.ids.scroll_content.pos)[1]
-        # spinner = self.parent.parent.spinner if isinstance(self.parent.parent, DisplayFolderScreen) else None
-        # if spinner.opacity == 0:# and not spinner_anim.have_properties_to_animate(spinner):
-        if self.i==0:
-            # print('calling')
-            self.i=1
-            # spinner.startLoadingAnime()
+        self.drag_session_refresh_done=False
+        spinner = self.getSpinnerWidget()
+        if spinner:
+            spinner.y = self.parent.parent.height - sp(100)
+        if not self.drag_session:
+            self.drag_session = True
+            spinner.startLoadingAnime()
         return super().on_touch_down(touch)
-
+    def getSpinnerWidget(self):
+        return self.parent.parent.spinner if isinstance(self.parent.parent, DisplayFolderScreen) else None
+        
     def on_touch_move(self, touch):
-        # print("Content box pos relative to screen", self.ids.scroll_content.to_parent(*self.ids.scroll_content.pos))
-        pos=self.ids.scroll_content.pos
-        # print("Test----|", self.ids.scroll_content.to_widget(x=pos[0],y=pos[1],relative=True))
-        a=self.ids.scroll_content.to_window(*self.ids.scroll_content.pos)[1]
-        # b=self.ids.scroll_content.to_window(x=pos[0],y=pos[1],relative=True)[1]
-        # c=self.ids.scroll_content.to_widget(x=pos[0],y=pos[1],relative=True)[1]
-        # d=self.ids.scroll_content.to_local(x=pos[0],y=pos[1],relative=0)[1]
+        a=self.ids.scroll_content.to_window(*self.ids.scroll_content.pos)[1] # 390 this is scroll content bottom y (i can't use get_top() but it will return object height)
         current_screen_height=self.parent.parent.height
-        # print(int(a),int(b),int(c),int(d),e)
-        # print(e-a)
         real_coordinate_y=current_screen_height-a-self.ids.scroll_content.height    # .get_top() just return object height
         
-        # real_coordinate_y1=current_screen_height-a-self.ids.scroll_content.get_top()
-        # print('pos',real_coordinate_y,real_coordinate_y1,self.ids.scroll_content.get_top())
-        # print('parent height',self.parent.height)
-        # print("Test----|", self.ids.scroll_content.to_widget(*[0,0]))
-        # pixels_moved = self.content_box_y - self.ids.scroll_content.to_window(*self.ids.scroll_content.pos)[1]
-        # pixels_moved = 0 if pixels_moved < 0 else pixels_moved
-        # spinner = self.parent.parent.spinner if isinstance(self.parent.parent, DisplayFolderScreen) else None
-        # spinner_anim = self.parent.parent.spinner_anim if isinstance(self.parent.parent, DisplayFolderScreen) else None
-        print(self.i,'Index')
-        self.i+=1
-        # if spinner:...
-            # spinner.opacity = min(pixels_moved / 135, 1)
-            # spinner.y = spinner.y - (pixels_moved/5 or 0.1)
+        spinner = self.getSpinnerWidget()
+        
+        if real_coordinate_y > 100 and not self.drag_session_refresh_done:
+            self.refresh()
+            self.drag_session_refresh_done = True
             
-            # print(spinner.y,(pixels_moved/2 or 0.1),'y pixels_moved')
+            
+        if spinner:
+            spinner.opacity = min(abs(real_coordinate_y / 100), 1)
+            if real_coordinate_y >0 and self.last_move_value != int(a) and real_coordinate_y <100: # if user is dragging down
+                spinner.y = touch.pos[1] - sp(50) # 50 is spinner height
+        self.last_move_value = int(a) # because it will change if sroll content is moved
             
         return super().on_touch_move(touch)
     
         
     def on_touch_up(self, touch):
-        # self.i=0
-        # spinner = self.parent.parent.spinner if isinstance(self.parent.parent, DisplayFolderScreen) else None
-
-        # if spinner:
-        #     spinner.stopLoadingAnime()
-        # print('stopped laoding anime')
-        # return
-    
-        # pixels_moved = self.content_box_y - self.ids.scroll_content.to_window(*self.ids.scroll_content.pos)[1]
-        # print('pixels_moved', pixels_moved)
-        # if pixels_moved > 135:...
-            # self.refresh()
-            # print('refresh data |||||||||')
-        
-        # spinner_anim = self.parent.parent.spinner_anim if isinstance(self.parent.parent, DisplayFolderScreen) else None
-        
-        #     spinner.opacity = 0
-            # spinner_anim.stop(spinner)
-        # self._start_touch_y = 0
+        spinner = self.getSpinnerWidget()
+        if self.drag_session:
+            self.drag_session = False
+            spinner.stopLoadingAnime()
+            spinner.opacity = 0
+        self.drag_session_refresh_done=False
         return super().on_touch_up(touch)
 
     def refresh(self):
@@ -220,57 +183,11 @@ from kivymd.uix.relativelayout import MDRelativeLayout
 class DetailsLabel(Label):
     pass
         
-
-from kivy.uix.scrollview import ScrollView
-
-class CustomRefreshLayout(ScrollView):
-    refreshing = BooleanProperty(False)
-    drag_threshold = NumericProperty('50dp')
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self._start_touch_y = None
-        self._refresh_triggered = False
-
-    def on_touch_down(self, touch):
-        if self.collide_point(*touch.pos):
-            self._start_touch_y = touch.y
-            self._refresh_triggered = False
-        return super().on_touch_down(touch)
-
-    def on_touch_move(self, touch):
-        if self._start_touch_y and not self._refresh_triggered:
-            if touch.y - self._start_touch_y > self.drag_threshold:
-                self.refreshing = True
-                self._refresh_triggered = True
-                self.dispatch('on_refresh')
-        return super().on_touch_move(touch)
-
-    def on_touch_up(self, touch):
-        self._start_touch_y = None
-        return super().on_touch_up(touch)
-
-    def on_refresh(self):
-        print('on fresh method---|')
-        pass
-
-    def refresh_done(self):
-        print('fresh done method---|')
-        self.refreshing = False
-
 class DisplayFolderScreen(MDScreen):
     current_dir = StringProperty('.')
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.spinner = Grid()
-        # self.spinner = Image(source='loading.png', size_hint=(None, None), size=(100, 100), pos_hint={'center_x': 0.5, 'center_y': 0.5})
-        # self.spinner.opacity = 0
-        
-        
-        
-        
-        
-        
+        self.spinner = Grid(opacity=0)
         self.data_received=False
         self.screen_history = []
         self.current_dir_info:list[dict]=[]
@@ -436,9 +353,10 @@ class DisplayFolderScreen(MDScreen):
             Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
             print(e,"Failed opening Folder async")
                    
-    def on_enter(self, *args):...
+    def on_enter(self, *args):
         # print(self.data_received)
-        # Clock.schedule_once(lambda dt: self.startSetPathInfo_Thread())
+        Clock.schedule_once(lambda dt: self.startSetPathInfo_Thread())
+        # pass
         
         
             

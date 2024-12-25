@@ -175,8 +175,8 @@ Builder.load_string('''
     # size_hint: (.5, None)
     # pos_hint: {'center_x': 0.4}
     canvas.before:
-        Color:
-            rgba: 1, 1, 0, 1  # Red color
+        # Color:
+        #     rgba: 1, 1, 0, 1  # Red color
         Rectangle:
             pos: self.pos
             size: self.size
@@ -189,12 +189,12 @@ Builder.load_string('''
         padding:"10dp"
         size_hint: (1, None)
         height: self.minimum_height + 140
-        canvas.before:
-            Color:
-                rgba: 1, 0, 0, 1  # Red color
-            Rectangle:
-                pos: self.pos
-                size: self.size
+        # canvas.before:
+        #     Color:
+        #         rgba: 1, 0, 0, 1  # Red color
+        #     Rectangle:
+        #         pos: self.pos
+        #         size: self.size
         
 ''')
 
