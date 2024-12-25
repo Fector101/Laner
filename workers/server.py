@@ -212,7 +212,12 @@ class FileSharingServer:
         # Create the HTTP server
         self.server =None
         
-        ports = [8000, 8080, 9090]  # List of ports to scan
+        ports =  [
+                    8000, 8080, 9090, 10000, 11000, 12000, 13000, 14000, 
+                    15000, 16000, 17000, 18000, 19000,
+                    20000, 22000, 23000, 24000, 26000,
+                    27000, 28000, 29000, 30000
+                ]
 
         for port in ports:
             try:
