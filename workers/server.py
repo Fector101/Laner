@@ -201,7 +201,8 @@ class FileSharingServer:
         self.server = None
         self.server_thread = None
         makeFolder(os.path.join(getAppFolder(),'thumbnails'))
-
+    def getPortNumer(self):
+        return self.port
     def start(self):
         global SERVER_IP
         SERVER_IP = getSystem_IpAdd()
