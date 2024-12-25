@@ -172,7 +172,14 @@ Builder.load_string('''
 
 <RV>:
     viewclass: 'MyCard'
-    size_hint: (1, .9)
+    # size_hint: (.5, None)
+    # pos_hint: {'center_x': 0.4}
+    canvas.before:
+        Color:
+            rgba: 1, 1, 0, 1  # Red color
+        Rectangle:
+            pos: self.pos
+            size: self.size
     My_RecycleGridLayout:
         id: scroll_content
         default_size: 1, '140sp' # children widgets default size
@@ -188,13 +195,7 @@ Builder.load_string('''
             Rectangle:
                 pos: self.pos
                 size: self.size
-        Image:
-            id
-        (source='spinner.png', size_hint=(None, None), size=(100, 100), pos_hint={'center_x': 0.5, 'center_y': 0.5})
-        self.spinner.opacity = 0
-        self.add_widget(self.spinner)
-        self.spinner_anim = Animation(rotation=360, duration=1)
-        self.spinner_anim.repeat = True
+        
 ''')
 
 
@@ -210,6 +211,7 @@ class My_RecycleGridLayout(RecycleGridLayout):
                 self.cols= int(str(Window.width)[0]) -2
             except:
                 self.cols=2
+              
     def on_size(self, *args):
         if Window.width > 800:
             self.cols=5
@@ -229,7 +231,7 @@ class WindowManager(MDScreenManager):
         self.btm_sheet=btm_sheet
         self.md_bg_color =[.12,.12,.12,1] if self.theme_cls.theme_style == "Dark" else [0.98, 0.98, 0.98, 1]
         self.size_hint=[1,None]
-        self.height=Window.height-sp(65)   # Bottom nav height
+        self.height=Window.height-sp(70)   # Bottom nav height
         self.pos_hint={'top':1}
         
         # Set theme colors and properties
@@ -240,7 +242,7 @@ class WindowManager(MDScreenManager):
         self.add_widget(DisplayFolderScreen(name='download',current_dir='.'))
         self.add_widget(SettingsScreen())
         self.transition=NoTransition()
-        self.current='settings'
+        self.current='download'
         Window.bind(on_keyboard=self.Android_back_click)
 
     def changeScreenAnimation(self, screen_name):
@@ -395,7 +397,7 @@ class BottomNavigationBar(MDNavigationDrawer):
         self.spacing=0
         # self.md_bg_color = (.1, 1, 0, .5)
         # self.md_bg_color = (.1, .1, .1, 1)
-        self.pos=[0,-2]
+        # self.pos=[0,-2]
 
         for index in range(len(icons)):
             self.btn = TabButton(
