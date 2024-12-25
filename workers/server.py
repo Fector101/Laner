@@ -218,6 +218,7 @@ class FileSharingServer:
                 # Attempt to start the server on the current port
                 self.server = ThreadingHTTPServer(("", port), CustomHandler)
                 print(f"Server running on port {port}")
+                self.port=port
                 break  # Exit the loop if the server starts successfully
             except OSError:
                 print(f"Port {port} is unavailable, trying the next one...")

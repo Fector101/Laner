@@ -1,13 +1,37 @@
-import sys,os
+import sys, os
 import threading
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QVBoxLayout, QLabel, QPushButton, QWidget,
-    QSystemTrayIcon,QMenu,QAction
+    QSystemTrayIcon, QMenu, QAction, QDialog, QFormLayout, QLineEdit, QStackedWidget
 )
-from PyQt5.QtGui import QFont,QIcon
+from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtCore import Qt
 from workers.server import FileSharingServer
 from workers.helper import getSystem_IpAdd
+
+
+class SettingsScreen(QWidget):
+    def __init__(self, parent):
+        super().__init__()
+        self.parent = parent
+        self.setWindowTitle("Settings")
+        self.setGeometry(150, 150, 400, 300)
+
+        layout = QFormLayout()
+
+        self.port_input = QLineEdit()
+        self.port_input.setText("8000")
+        layout.addRow("Port:", self.port_input)
+
+        self.save_button = QPushButton("Save")
+        self.save_button.clicked.connect(self.save_settings)
+        layout.addWidget(self.save_button)
+
+        self.setLayout(layout)
+
+    def save_settings(self):
+        # Save settings logic here
+        self.parent.stacked_widget.setCurrentWidget(self.parent.main_screen)
 
 
 class FileShareApp(QMainWindow):
@@ -16,48 +40,50 @@ class FileShareApp(QMainWindow):
         self.setWindowTitle("Laner")
         self.setGeometry(100, 100, 500, 500)
         self.server_thread = None
-        # self.server = None
         self.running = False
         self.hidden_ip = False
         self.ip = None
 
-        # Main Widget and Layout
-        self.central_widget = QWidget()
-        self.setCentralWidget(self.central_widget)
-        self.layout = QVBoxLayout(self.central_widget)
+        # Stacked Widget
+        self.stacked_widget = QStackedWidget()
+        self.setCentralWidget(self.stacked_widget)
+
+        # Main Screen
+        self.main_screen = QWidget()
+        self.main_layout = QVBoxLayout(self.main_screen)
 
         # Title Label
         self.title_label = QLabel("Laner")
         self.title_label.setAlignment(Qt.AlignCenter)
         self.title_label.setFont(QFont("Arial", 24, QFont.Bold))
         self.title_label.setStyleSheet("color: rgb(0, 179, 153);")
-        self.layout.addWidget(self.title_label)
+        self.main_layout.addWidget(self.title_label)
 
         # Subtitle Label
         self.subtitle_label = QLabel("Fast and Secure File Sharing over LAN")
         self.subtitle_label.setAlignment(Qt.AlignCenter)
         self.subtitle_label.setFont(QFont("Arial", 16))
         self.subtitle_label.setStyleSheet("color: gray;")
-        self.layout.addWidget(self.subtitle_label)
+        self.main_layout.addWidget(self.subtitle_label)
 
         # Hint Message Label
         self.hint_message = QLabel("Connect your PC to your HotSpot\nand Press Start to get the code")
         self.hint_message.setAlignment(Qt.AlignCenter)
         self.hint_message.setFont(QFont("Arial", 20))
-        self.layout.addWidget(self.hint_message)
+        self.main_layout.addWidget(self.hint_message)
 
         # Start Button
         self.start_button = QPushButton("Start Server")
         self.start_button.clicked.connect(self.start_server)
         self.start_button.setFixedSize(120, 40)
         self.start_button.setStyleSheet("background-color: white; color: rgb(0, 179, 153);")
-        self.layout.addWidget(self.start_button, alignment=Qt.AlignCenter)
+        self.main_layout.addWidget(self.start_button, alignment=Qt.AlignCenter)
 
         # Status Label
         self.status_label = QLabel("Server not running")
         self.status_label.setAlignment(Qt.AlignCenter)
         self.status_label.setStyleSheet("color: gray;")
-        self.layout.addWidget(self.status_label)
+        self.main_layout.addWidget(self.status_label)
 
         # Hide IP Button
         self.hide_ip_button = QPushButton("Hide Code")
@@ -65,31 +91,45 @@ class FileShareApp(QMainWindow):
         self.hide_ip_button.setFixedSize(100, 40)
         self.hide_ip_button.setStyleSheet("background-color: white; color: rgb(0, 179, 153);")
         self.hide_ip_button.setVisible(False)
-        self.layout.addWidget(self.hide_ip_button, alignment=Qt.AlignRight)
-        
+        self.main_layout.addWidget(self.hide_ip_button, alignment=Qt.AlignRight)
+
+        # Settings Button
+        self.settings_button = QPushButton("Settings")
+        self.settings_button.clicked.connect(self.open_settings)
+        self.settings_button.setFixedSize(100, 40)
+        self.settings_button.setStyleSheet("background-color: white; color: rgb(0, 179, 153);")
+        self.main_layout.addWidget(self.settings_button, alignment=Qt.AlignRight)
+
+        # Add main screen to stacked widget
+        self.stacked_widget.addWidget(self.main_screen)
+
+        # Settings Screen
+        self.settings_screen = SettingsScreen(self)
+        self.stacked_widget.addWidget(self.settings_screen)
+
         # System Tray
         self.create_system_tray()
 
     def create_system_tray(self):
         self.tray = QSystemTrayIcon(self)
-        
+
         icon_path = "icon.png"
         if hasattr(sys, "_MEIPASS"):
             icon_path = os.path.join(sys._MEIPASS, "assets", "imgs", "icon.png")
-        
+
         self.tray.setIcon(QIcon(icon_path))
-        
+
         # Create tray menu
         tray_menu = QMenu()
-        
+
         show_action = QAction("Show", self)
         show_action.triggered.connect(self.show)
         tray_menu.addAction(show_action)
-        
+
         quit_action = QAction("Quit", self)
         quit_action.triggered.connect(QApplication.quit)
         tray_menu.addAction(quit_action)
-        
+
         self.tray.setContextMenu(tray_menu)
         self.tray.show()
 
@@ -104,7 +144,7 @@ class FileShareApp(QMainWindow):
             self.hint_message.setText("Connect your PC to your Local Network.\nNo need for Internet Capability.")
             self.hint_message.setStyleSheet("color: black;")
             self.hint_message.setFont(QFont("Arial", 20))
-            
+
             return
         else:
             self.hint_message.setText("Hidden Code" if self.hidden_ip else self.ip)
@@ -136,7 +176,7 @@ class FileShareApp(QMainWindow):
 
     def on_stop(self):
         self.hint_message.setText("Goodbye!")
-        
+
         self.running = False
         self.start_button.setText("Start Server")
         self.status_label.setText("Server Ended!")
@@ -159,10 +199,15 @@ class FileShareApp(QMainWindow):
             self.hide_ip_button.setText("Hide Code")
 
         self.hidden_ip = not self.hidden_ip
+
+    def open_settings(self):
+        self.stacked_widget.setCurrentWidget(self.settings_screen)
+
     def closeEvent(self, event):
-        print('peek',event)
+        print('peek', event)
         self.hide()
         event.ignore()
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
