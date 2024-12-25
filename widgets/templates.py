@@ -511,7 +511,7 @@ class MDTextButton(MDButton):
         self.add_widget(self.text_widget)
         
     def on_text(self, instance, value):
-        print(instance,'|||',value)
+        # print(instance,'|||',value)
         self.text = value
         if self.text_widget:
             self.text_widget.text = value

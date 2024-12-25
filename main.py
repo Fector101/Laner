@@ -38,6 +38,7 @@ from workers.helper import THEME_COLOR_TUPLE, getSERVER_IP, makeDownloadFolder, 
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
 
+from workers.sword import Settings
 # For Dev
 if DEVICE_TYPE != "mobile":
     # Window.size = (400, 600)
@@ -551,7 +552,7 @@ class SettingsScreen(MDScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name = 'settings'
-
+        self.pc_name = ''
         # Main layout
         self.layout = MDBoxLayout(
             orientation='vertical',
@@ -588,7 +589,7 @@ class SettingsScreen(MDScreen):
 
         self.add_category("Connection", [
             {"type": "text", 'id':'port_input',"title": "Server IP", "widget": self.ipAddressInput},
-            {"type": "button",'id':'connect_btn', "title": "Verify Connection", "callback": lambda x: self.setIP(self.ipAddressInput.text)},
+            {"type": "button",'id':'connect_btn', "title": "Verify Connection", "callback": self.setIP},
         ])
         
         self.add_category("Display", [
@@ -609,17 +610,22 @@ class SettingsScreen(MDScreen):
         self.add_widget(self.layout)
 
     def add_category(self, title, items):
-        def addID(item,widget= None):
-            """
-            Adds a widget to the ids dictionary if the item contains an "id".
+        def addID(item: dict, widget: object = None) -> None:
+            """Add widget to ids dictionary if item contains an 'id' key.
+
             Args:
-                item (dict): A dictionary that may contain an "id" key.
-                widget (object, optional): The widget to be added to the ids dictionary.\n
-                \t\t\t\t\tDefaults to the value of item["widget"] if "widget" is in item, otherwise None.
+                item (dict): Dictionary containing widget information
+                widget (object, optional): Widget to add to ids dictionary.
+                    Defaults to item["widget"] if exists, otherwise None.
+
+            Example:
+                >>> item = {"id": "my_button", "widget": Button()}
+                >>> addID(item)
+                >>> self.ids["my_button"]  # Returns Button instance
             """
-            widget=item["widget"] if "widget" in item else widget
+            widget = item["widget"] if "widget" in item else widget
             if "id" in item:
-                self.ids[item["id"]]=widget
+                self.ids[item["id"]] = widget
         
         if title == 'Advanced Options':
             category=CustomDropDown()
@@ -660,10 +666,12 @@ class SettingsScreen(MDScreen):
             elif item["type"] == "button":
                 btn = MDTextButton(
                     text=item["title"],
-                    on_release=item["callback"],
+                    # on_release=item["callback"],
                     size_hint=[None, None],
                     size=[sp(120), dp(50)]
                 )
+                btn.bind(on_release=item["callback"])
+                
                 addID(item,widget=btn)
                 item_layout.add_widget(btn)
 
@@ -749,22 +757,49 @@ class SettingsScreen(MDScreen):
         
     def on_checkbox_active(self,checkbox, value):
         setHiddenFilesDisplay(value)
-    def setIP(self,text):
-        setSERVER_IP(text)
+    def setIP(self, instance):
+        print(instance,'instance')
+        ip_input=self.ids['port_input']
+        input_ip_address:str=ip_input.text.strip()
+        
+        setSERVER_IP(input_ip_address)
         try:
-            response=requests.get(f"http://{text}:8000/ping",json={'passcode':'blah blah'},timeout=.2)
+            response=requests.get(f"http://{input_ip_address}:8000/ping",json={'passcode':'08112321825'},timeout=.2)
             if response.status_code == 200:
-                self.ids['port_input'].disabled=True
-                self.ids['connect_btn'].text= 'Disconnect'
+                self.pc_name = response.json()['data']
+                
+                connect_btn=self.ids['connect_btn']
+                
+                ip_input.text="Connected to: "+self.pc_name
+                ip_input.disabled=True
+                
+                connect_btn.text= 'Disconnect'
+                self.change_button_callback(connect_btn,self.setIP, self.disconnect,input_ip_address)
+                
                 Snackbar(h1="Verification Successfull")
             else:
                 Snackbar(h1="Bad Code check 'Laner PC' for right one")
+
         except Exception as e:
             print("here---|",e)
             Snackbar(h1="Bad Code check \"Laner PC\" for right one")
-            
-        print('My address',text, getSERVER_IP())
 
+        print('My address',input_ip_address, getSERVER_IP())
+        
+    def change_button_callback(self, button, old_callback,new_callback,*args):
+        button.unbind(on_release=old_callback)
+        # button.bind(on_release=new_callback)
+        button.bind(on_release=new_callback)
+        print('Changed callback')
+    def disconnect(self,instance):
+        self.ids['port_input'].text=getSERVER_IP()
+        self.ids['port_input'].disabled=False
+        self.ids['connect_btn'].text= 'Verify Connection'
+        self.change_button_callback(self.ids['connect_btn'],self.disconnect, self.setIP,self.ids['connect_btn'])
+        setSERVER_IP('')
+        Snackbar(h1="Disconnected from " + self.pc_name)
+        
+        print('Disconnected')
 
 from widgets.templates import MyBtmSheet
 class TypeMapElement(MDBoxLayout):
@@ -777,7 +812,7 @@ from kivy.storage.jsonstore import JsonStore
 
 class Laner(MDApp):
     btm_sheet = ''
-    theme_store = JsonStore('theme_settings.json')
+    settings = Settings()
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -790,20 +825,14 @@ class Laner(MDApp):
         # self.theme_cls.primary_palette = "Blue"
         # self.theme_cls.accent_palette = "Amber"
         # self.theme_cls.theme_style = self.get_stored_theme()
-        
+           
     def get_stored_theme(self):
-        try:
-            return self.theme_store.get('theme')['mode']
-        except Exception as e:
-            print("Error",e)
-            self.theme_store.put('theme', mode='Dark')
-            return 'Light'
-    
+        return self.settings.get('display', 'theme')
     def toggle_theme(self):
         current = self.theme_cls.theme_style
         new_theme = 'Dark' if current == 'Light' else 'Light'
         self.theme_cls.theme_style = new_theme
-        self.theme_store.put('theme', mode=new_theme)
+        self.settings.set('display', 'theme', new_theme)
         
         # Update theme for main navigation and buttons
         for each in self.bottom_navigation_bar.walk():
@@ -873,3 +902,9 @@ class Laner(MDApp):
 
 if __name__ == '__main__':
     Laner().run()
+
+    # theme_store = JsonStore('theme_settings.json')
+
+# def print_settings_properties(self):
+#         for key in self.theme_store:
+#             print(f"{key}: {self.theme_store.get(key)}")    
