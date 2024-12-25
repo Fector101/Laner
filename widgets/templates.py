@@ -259,10 +259,12 @@ class DisplayFolderScreen(MDScreen):
            
     def getSERVER_IP(self):
         return self.app.settings.get('server', 'ip')
+    def getPortNumber(self):
+        return self.app.settings.get('server', 'port')
     def uploadFile(self,file_path):
         try:
             response = requests.post(
-                f"http://{self.getSERVER_IP()}:8000/api/upload",
+                f"http://{self.getSERVER_IP()}:{self.getPortNumber()}/api/upload",
                 files={'file': open(file_path, 'rb')},
                 data={'save_path': self.current_dir}
             )
@@ -307,7 +309,7 @@ class DisplayFolderScreen(MDScreen):
         try:
             # self.data_received=False
             
-            response = requests.get(f"http://{self.getSERVER_IP()}:8000/api/getpathinfo",json={'path':self.current_dir},timeout=5)
+            response = requests.get(f"http://{self.getSERVER_IP()}:{self.getPortNumber()}/api/getpathinfo",json={'path':self.current_dir},timeout=5)
             
             # requests.get(server,data='to be sent',auth=(username,password))
             print(f"Clicked {response}")
@@ -369,7 +371,7 @@ class DisplayFolderScreen(MDScreen):
     def isDir(self,path:str):
 
         try:
-            response=requests.get(f"http://{self.getSERVER_IP()}:8000/api/isdir",json={'path':path},timeout=3)
+            response=requests.get(f"http://{self.getSERVER_IP()}:{self.getPortNumber()}/api/isdir",json={'path':path},timeout=3)
             if response.status_code != 200:
                 Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
                 return False
@@ -400,7 +402,7 @@ class DisplayFolderScreen(MDScreen):
         file_name = os.path.basename(path.replace('\\', '/'))
         def failedCallBack():...
         def successCallBack():
-            needed_file = f"http://{self.getSERVER_IP()}:8000/{path}"
+            needed_file = f"http://{self.getSERVER_IP()}:{self.getPortNumber()}/{path}"
             url = needed_file.replace(' ', '%20').replace('\\', '/')
             
             saving_path = os.path.join(my_downloads_folder, file_name)
@@ -535,8 +537,8 @@ class CustomDropDown(MDBoxLayout):
         super().__init__(**kwargs)
         self.not_keeps_sake=[]      
     def toggle_dropdown(self):
-        print(self.is_open)
-        print(self.ids.dropdown_content.children,'pop')
+        # print(self.is_open)
+        # print(self.ids.dropdown_content.children,'pop')
         if self.is_open:
             self.ids.dropdown_content.clear_widgets()
             # self.ids.dropdown_content.height = 0
@@ -544,7 +546,7 @@ class CustomDropDown(MDBoxLayout):
             for each in self.not_keeps_sake:
                 self.ids.dropdown_content.add_widget(each)
             # self.ids.dropdown_content.height = self.ids.dropdown_content.minimum_height
-        print(self.ids.dropdown_content.children,'ffff')
+        # print(self.ids.dropdown_content.children,'ffff')
             
         self.is_open = not self.is_open
 

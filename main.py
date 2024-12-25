@@ -460,8 +460,9 @@ class MyCard(RecycleDataViewBehavior,RectangularRippleBehavior,ButtonBehavior,MD
 
     def isFile(self,path:str):
         sever_ip=MDApp.get_running_app().settings.get('server', 'ip')
+        port=MDApp.get_running_app().settings.get('server', 'port')
         try:
-            response=requests.get(f"http://{sever_ip}:8000/api/isfile",json={'path':path},timeout=2)
+            response=requests.get(f"http://{sever_ip}:{port}/api/isfile",json={'path':path},timeout=2)
             if response.status_code != 200:
                 # Clock.schedule_once(lambda dt:Snackbar(h1="Dev pinging for thumb valid"))
                 return False
@@ -498,6 +499,7 @@ class PortBoxLayout(MDBoxLayout):
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.app=MDApp.get_running_app()
         self.orientation= 'horizontal'
         self.padding = [dp(10), dp(10)]
         self.spacing = dp(10)
@@ -517,7 +519,7 @@ class PortBoxLayout(MDBoxLayout):
         self.port_input = MDTextField(
             hint_text="Enter Port Number",
             size_hint=[None,None],
-            size=[dp(60),dp(10)],
+            size=[dp(70),dp(10)],
             pos_hint={'center_y': .5},
             max_height=30,
         )
@@ -541,10 +543,27 @@ class PortBoxLayout(MDBoxLayout):
 
     def verify_port(self, instance):
         port = self.port_input.text
-        if port.isdigit() and 0 < int(port) < 65536:
-            Snackbar(h1="Port is valid")
+        ports =  [
+                    8000, 8080, 9090, 10000, 11000, 12000, 13000, 14000, 
+                    15000, 16000, 17000, 18000, 19000,
+                    20000, 22000, 23000, 24000, 26000,
+                    27000, 28000, 29000, 30000
+                ]
+        ip_address= self.app.settings.get('server', 'ip')
+        print('Port:',port,'ip_address',ip_address)
+        print("http://{ip_address}:{port}/ping")
+        if port.isdigit() and int(port) in ports:
+            try:
+                response=requests.get(f"http://{ip_address}:{port}/ping",json={'passcode':'08112321825'},timeout=.2)
+                
+                if response.status_code == 200:
+                    self.app.settings.set('server', 'port', port)
+                    Snackbar(h1="Port is valid")
+            except Exception as e:
+                print("Dev Port Error: ",e)
+            
         else:
-            Snackbar(h1="Invalid port number")
+            Snackbar(h1="Invalid port Check 'Laner PC' for right one")
 
 
 class SettingsScreen(MDScreen):
@@ -588,7 +607,7 @@ class SettingsScreen(MDScreen):
         
 
         self.add_category("Connection", [
-            {"type": "text", 'id':'port_input',"title": "Server IP", "widget": self.ipAddressInput},
+            {"type": "text", 'id':'ip_addr_input',"title": "Server IP", "widget": self.ipAddressInput},
             {"type": "button",'id':'connect_btn', "title": "Verify Connection", "callback": self.setIP},
         ])
         
@@ -688,12 +707,7 @@ class SettingsScreen(MDScreen):
         # Call the app's toggle_theme method
         MDApp.get_running_app().toggle_theme()
 
-        
-    
-    def verify_port(self, instance):
-        # Add your verification logic here
-        pass
-
+     
     def clear_cache(self, instance):
         # Cache clearing implementation
         
@@ -759,11 +773,13 @@ class SettingsScreen(MDScreen):
     def on_checkbox_active(self,checkbox_instance, value):
         setHiddenFilesDisplay(value)
     def autoConnect(self):
-        ip_input=self.ids['port_input']
+        ip_input=self.ids['ip_addr_input']
         pervious_connections=self.app.settings.get('recent_connections')
+        port=MDApp.get_running_app().settings.get('server', 'port')
+        
         for pc_name, ip_address in pervious_connections.items():
             try:
-                response=requests.get(f"http://{ip_address}:8000/ping",json={'passcode':'08112321825'},timeout=.2)
+                response=requests.get(f"http://{ip_address}:{port}/ping",json={'passcode':'08112321825'},timeout=.2)
                 if response.status_code == 200:
                     self.pc_name = response.json()['data']
                     self.app.settings.set('server', 'ip', ip_address)
@@ -781,12 +797,16 @@ class SettingsScreen(MDScreen):
 
         
     def setIP(self, widget_at_called):
-        ip_input=self.ids['port_input']
+        ip_input=self.ids['ip_addr_input']
         input_ip_address:str=ip_input.text.strip()
         self.app.settings.set('server', 'ip', input_ip_address)
+        port=MDApp.get_running_app().settings.get('server', 'port')
+
+        # TODO create an async quick scanner to check valid port from a list of ports
+        
         try:
             
-            response=requests.get(f"http://{input_ip_address}:8000/ping",json={'passcode':'08112321825'},timeout=.2)
+            response=requests.get(f"http://{input_ip_address}:{port}/ping",json={'passcode':'08112321825'},timeout=.2)
             if response.status_code == 200:
                 self.pc_name = response.json()['data']
                 self.app.settings.add_recent_connection(self.pc_name, input_ip_address)
@@ -814,7 +834,7 @@ class SettingsScreen(MDScreen):
         button.bind(on_release=new_callback)
         print('Changed callback')
     def disconnect(self,instance):
-        ip_input=self.ids['port_input']
+        ip_input=self.ids['ip_addr_input']
         connect_btn=self.ids['connect_btn']
         
         ip_input.text=self.app.settings.get('server', 'ip')
