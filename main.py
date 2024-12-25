@@ -242,7 +242,7 @@ class WindowManager(MDScreenManager):
         self.add_widget(DisplayFolderScreen(name='download',current_dir='.'))
         self.add_widget(SettingsScreen())
         self.transition=NoTransition()
-        self.current='download'
+        self.current='settings'
         Window.bind(on_keyboard=self.Android_back_click)
 
     def changeScreenAnimation(self, screen_name):
@@ -587,8 +587,8 @@ class SettingsScreen(MDScreen):
         
 
         self.add_category("Connection", [
-            {"type": "text", "title": "Server IP", "widget": self.ipAddressInput},
-            {"type": "button", "title": "Verify Connection", "callback": lambda x: self.setIP(self.ipAddressInput.text)},
+            {"type": "text", 'id':'port_input',"title": "Server IP", "widget": self.ipAddressInput},
+            {"type": "button",'id':'connect_btn', "title": "Verify Connection", "callback": lambda x: self.setIP(self.ipAddressInput.text)},
         ])
         
         self.add_category("Display", [
@@ -597,7 +597,7 @@ class SettingsScreen(MDScreen):
         ])
         print('Saved theme',MDApp.get_running_app().get_stored_theme())
         self.add_category("Storage", [
-            {"type": "button", "title": "Clear Cache", "callback": self.clear_cache},
+            {"type": "button", 'id':'clear_btn', "title": "Clear Cache", "callback": self.clear_cache},
             {"type": "info", "title": "Storage Used", "value": "Calculate storage"}
         ])
         
@@ -609,6 +609,18 @@ class SettingsScreen(MDScreen):
         self.add_widget(self.layout)
 
     def add_category(self, title, items):
+        def addID(item,widget= None):
+            """
+            Adds a widget to the ids dictionary if the item contains an "id".
+            Args:
+                item (dict): A dictionary that may contain an "id" key.
+                widget (object, optional): The widget to be added to the ids dictionary.\n
+                \t\t\t\t\tDefaults to the value of item["widget"] if "widget" is in item, otherwise None.
+            """
+            widget=item["widget"] if "widget" in item else widget
+            if "id" in item:
+                self.ids[item["id"]]=widget
+        
         if title == 'Advanced Options':
             category=CustomDropDown()
         else:
@@ -642,6 +654,7 @@ class SettingsScreen(MDScreen):
                 item_layout.add_widget(switch)
 
             elif item["type"] == "text":
+                addID(item)
                 item_layout.add_widget(item["widget"])
 
             elif item["type"] == "button":
@@ -651,6 +664,7 @@ class SettingsScreen(MDScreen):
                     size_hint=[None, None],
                     size=[sp(120), dp(50)]
                 )
+                addID(item,widget=btn)
                 item_layout.add_widget(btn)
 
             elif item["type"] == "custom":
@@ -740,6 +754,8 @@ class SettingsScreen(MDScreen):
         try:
             response=requests.get(f"http://{text}:8000/ping",json={'passcode':'blah blah'},timeout=.2)
             if response.status_code == 200:
+                self.ids['port_input'].disabled=True
+                self.ids['connect_btn'].text= 'Disconnect'
                 Snackbar(h1="Verification Successfull")
             else:
                 Snackbar(h1="Bad Code check 'Laner PC' for right one")
