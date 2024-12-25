@@ -110,7 +110,9 @@ def getSystem_IpAdd():
     ip_addresses = tryOtherFormat(result.stdout) if os_name == 'Windows' and len(ip_addresses) == 0 else ip_addresses
     # Exclude loopback addresses like 127.0.0.1
     ip_addresses = [ip for ip in ip_addresses if not ip.startswith('127.')]
-
+    print('peek',ip_addresses)
+    if len(ip_addresses) > 1 and ip_addresses[1].startswith('192.168.'):
+        return ip_addresses[1]
     return ip_addresses[0] if len(ip_addresses) else None
 
 # Print the results
