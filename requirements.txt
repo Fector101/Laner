@@ -3,3 +3,4 @@ kivymd
 opencv-python-headless
 plyer
 android-notify
+netifaces

@@ -8,6 +8,7 @@ from kivy.metrics import dp,sp
 from kivy.properties import ( ListProperty, StringProperty, BooleanProperty,ColorProperty,ObjectProperty,NumericProperty)
 from kivy.clock import Clock
 from kivy.core.window import Window
+from kivy.lang import Builder
 # from app_settings import SHOW_HIDDEN_FILES
 
 import threading
@@ -18,9 +19,8 @@ from pathlib import Path
 from plyer import filechooser
 
 from widgets.popup import PopupDialog,Snackbar
-from workers.helper import THEME_COLOR_TUPLE, getAppFolder, getSERVER_IP, getSystem_IpAdd, is_wine, makeDownloadFolder, truncateStr,getHiddenFilesDisplay_State, wine_path_to_unix
-
-from kivy.lang import Builder
+from workers.helper import THEME_COLOR_TUPLE, is_wine, makeDownloadFolder, truncateStr,getHiddenFilesDisplay_State, wine_path_to_unix
+from workers.sword import Settings
 
 # TODO Fix get app folder worker/helper.py returning app folder as /Laner/workers/
 import sys
@@ -182,11 +182,16 @@ from kivymd.uix.relativelayout import MDRelativeLayout
 
 class DetailsLabel(Label):
     pass
-        
+
+
+from kivymd.app import MDApp
+
 class DisplayFolderScreen(MDScreen):
     current_dir = StringProperty('.')
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.app=MDApp.get_running_app()
+        
         self.spinner = Grid(opacity=0)
         self.data_received=False
         self.screen_history = []
@@ -252,11 +257,12 @@ class DisplayFolderScreen(MDScreen):
         # # self.angle +=5
         # self.spinner_anim.repeat = True
            
-        
+    def getSERVER_IP(self):
+        return self.app.settings.get('server', 'ip')
     def uploadFile(self,file_path):
         try:
             response = requests.post(
-                f"http://{getSERVER_IP()}:8000/api/upload",
+                f"http://{self.getSERVER_IP()}:8000/api/upload",
                 files={'file': open(file_path, 'rb')},
                 data={'save_path': self.current_dir}
             )
@@ -301,7 +307,7 @@ class DisplayFolderScreen(MDScreen):
         try:
             # self.data_received=False
             
-            response = requests.get(f"http://{getSERVER_IP()}:8000/api/getpathinfo",json={'path':self.current_dir},timeout=5)
+            response = requests.get(f"http://{self.getSERVER_IP()}:8000/api/getpathinfo",json={'path':self.current_dir},timeout=5)
             
             # requests.get(server,data='to be sent',auth=(username,password))
             print(f"Clicked {response}")
@@ -363,7 +369,7 @@ class DisplayFolderScreen(MDScreen):
     def isDir(self,path:str):
 
         try:
-            response=requests.get(f"http://{getSERVER_IP()}:8000/api/isdir",json={'path':path},timeout=3)
+            response=requests.get(f"http://{self.getSERVER_IP()}:8000/api/isdir",json={'path':path},timeout=3)
             if response.status_code != 200:
                 Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
                 return False
@@ -394,7 +400,7 @@ class DisplayFolderScreen(MDScreen):
         file_name = os.path.basename(path.replace('\\', '/'))
         def failedCallBack():...
         def successCallBack():
-            needed_file = f"http://{getSERVER_IP()}:8000/{path}"
+            needed_file = f"http://{self.getSERVER_IP()}:8000/{path}"
             url = needed_file.replace(' ', '%20').replace('\\', '/')
             
             saving_path = os.path.join(my_downloads_folder, file_name)
