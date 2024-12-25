@@ -261,7 +261,7 @@ class DisplayFolderScreen(MDScreen):
         return self.app.settings.get('server', 'ip')
     def getPortNumber(self):
         return self.app.settings.get('server', 'port')
-    def uploadFile(self,file_path):
+    async def uploadFile(self,file_path):
         try:
             response = requests.post(
                 f"http://{self.getSERVER_IP()}:{self.getPortNumber()}/api/upload",
@@ -269,7 +269,7 @@ class DisplayFolderScreen(MDScreen):
                 data={'save_path': self.current_dir}
             )
             if response.status_code != 200:
-                Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
+                Clock.schedule_once(lambda dt:Snackbar(h1='Connection Error Check Laner on PC'))
                 return
             Clock.schedule_once(lambda dt:Snackbar(h1="File Uploaded Successfully"))
             Clock.schedule_once(lambda dt: self.startSetPathInfo_Thread())
@@ -278,7 +278,12 @@ class DisplayFolderScreen(MDScreen):
             print(e,"Failed Upload")
             
     def startUpload_Thread(self,file_path):
-        threading.Thread(target=self.uploadFile,args=(file_path,)).start()
+        def queryUploadAsync():
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            loop.run_until_complete(self.uploadFile(file_path))
+            loop.close()
+        threading.Thread(target=queryUploadAsync).start()
     def choose_file(self):
         print('printing tstex')
         def test1(file_path):

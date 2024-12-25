@@ -565,7 +565,8 @@ class PortBoxLayout(MDBoxLayout):
         else:
             Snackbar(h1="Invalid port Check 'Laner PC' for right one")
 
-
+import asyncio
+import threading
 class SettingsScreen(MDScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -627,7 +628,7 @@ class SettingsScreen(MDScreen):
         self.layout.add_widget(self.header)
         self.layout.add_widget(scroll)
         self.add_widget(self.layout)
-        Clock.schedule_once(lambda dt: self.autoConnect(), 1)
+        Clock.schedule_once(lambda dt: self.startAutoConnectThread(), 1)
 
     def add_category(self, title, items):
         def addID(item: dict, widget: object = None) -> None:
@@ -772,7 +773,18 @@ class SettingsScreen(MDScreen):
         
     def on_checkbox_active(self,checkbox_instance, value):
         setHiddenFilesDisplay(value)
-    def autoConnect(self):
+
+    def startAutoConnectThread(self):
+        def queryAutoConnectAsync():
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            loop.run_until_complete(self.autoConnect())
+            loop.close()
+        threading.Thread(target=queryAutoConnectAsync).start()
+        
+        
+        
+    async def autoConnect(self):
         ip_input=self.ids['ip_addr_input']
         pervious_connections=self.app.settings.get('recent_connections')
         port=MDApp.get_running_app().settings.get('server', 'port')
@@ -784,13 +796,14 @@ class SettingsScreen(MDScreen):
                     self.pc_name = response.json()['data']
                     self.app.settings.set('server', 'ip', ip_address)
                     self.app.settings.add_recent_connection(self.pc_name, ip_address)
-
-                    connect_btn=self.ids['connect_btn']
-                    ip_input.text="Connected to: "+self.pc_name
-                    ip_input.disabled=True
-                    connect_btn.text= 'Disconnect'
-                    self.change_button_callback(connect_btn,self.setIP, self.disconnect,ip_address)
-                    Snackbar(h1="Auto Connect Successfull")
+                    def kivyThreadBussiness():
+                        connect_btn=self.ids['connect_btn']
+                        ip_input.text="Connected to: "+self.pc_name
+                        ip_input.disabled=True
+                        connect_btn.text= 'Disconnect'
+                        self.change_button_callback(connect_btn,self.setIP, self.disconnect,ip_address)
+                        Snackbar(h1="Auto Connect Successfull")
+                    Clock.schedule_once(lambda dt: kivyThreadBussiness())
                     break
             except Exception as e:
                 print("Dev Auto Connect Error: ",e)
