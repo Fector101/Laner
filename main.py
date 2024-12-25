@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import (
     QSystemTrayIcon, QMenu, QAction, QDialog, QFormLayout, QLineEdit, QStackedWidget
 )
 from PyQt5.QtGui import QFont, QIcon
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QSize
 from workers.server import FileSharingServer
 from workers.helper import getSystem_IpAdd
 
@@ -108,10 +108,12 @@ class MainScreen(QWidget):
         self.main_layout.addWidget(self.hide_ip_button, alignment=Qt.AlignRight)
 
         # Settings Button
-        self.settings_button = QPushButton("Settings")
+        self.settings_button = QPushButton()
+        self.settings_button.setIcon(QIcon("assets/imgs/icon.png"))  # Add settings Icon
+        self.settings_button.setIconSize(QSize(24, 24))
+        self.settings_button.setFixedSize(40, 40)
+        # self.settings_button.setStyleSheet("background-color: transparent;")
         self.settings_button.clicked.connect(self.parent.open_settings)
-        self.settings_button.setFixedSize(100, 40)
-        self.settings_button.setStyleSheet("background-color: white; color: rgb(0, 179, 153);")
         self.main_layout.addWidget(self.settings_button, alignment=Qt.AlignRight)
 
 
