@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtCore import Qt, QSize
 from workers.server import FileSharingServer
-from workers.helper import getSystem_IpAdd
+from workers.helper import getSystem_IpAdd, getUserPCName
 
 
 class SettingsScreen(QWidget):
@@ -25,7 +25,6 @@ class SettingsScreen(QWidget):
         self.back_button.clicked.connect(self.go_back)
         self.back_button.setFixedSize(70, 30)
         self.back_button.setStyleSheet("background-color: white; color: rgb(0, 179, 153);")
-        # self.back_button.setStyleSheet("background-color: rgb(0, 179, 153); color: white;")
         back_button_layout.addWidget(self.back_button, alignment=Qt.AlignLeft)
         layout.addLayout(back_button_layout)
 
@@ -50,8 +49,21 @@ class SettingsScreen(QWidget):
         self.port_label.setFont(QFont("Arial", 18))
         self.port_label.setStyleSheet("color: gray;")
         self.port_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        
+        # Create and style User name
+        
+        user_title = QLabel("User:")
+        user_title.setFont(QFont("Arial", 18))
+        user_title.setStyleSheet("color: gray;")
+        user_title.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        
+        self.username_label = QLabel(getUserPCName())
+        self.username_label.setFont(QFont("Arial", 18))
+        self.username_label.setStyleSheet("color: gray;")
+        self.username_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
 
         # Add both to form layout
+        form_layout.addRow(user_title,self.username_label)
         form_layout.addRow(port_title, self.port_label)
 
         layout.addLayout(form_layout)

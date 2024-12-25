@@ -299,3 +299,42 @@ def setSERVER_IP(value):
   SERVER_IP=value
 def getSERVER_IP():
   return SERVER_IP
+
+
+def getUserPCName():
+    """
+    Get the current user's PC name.
+    Returns: str - PC name
+    """
+    pc_name=None
+    try:
+        # Try socket hostname first
+        pc_name = socket.gethostname()
+        
+        # Clean and validate hostname
+        if pc_name and isinstance(pc_name, str):
+            # Remove special characters and extra spaces
+            cleaned_name = ' '.join(pc_name.split())
+            # Limit length and capitalize
+            pc_name= cleaned_name[:30]
+        # Fallback methods if socket failed
+        
+    except Exception as e:
+        print(f"Error in getUserPCName: {e}")
+    def fallbackPCName():
+      """Helper function to get PC name using environment variables"""
+      pc_name= 'Unknown-PC'
+      try:
+          # Try different environment variables
+        for env_var in ['COMPUTERNAME', 'HOSTNAME', 'HOST', 'USER']:
+            name = os.environ.get(env_var)
+            if name:
+                pc_name= name.strip()[:30]
+                break
+        
+      except Exception as e:
+        print(f"Error in fallbackPCName: {e}")
+        pc_name= 'Unknown-PC'
+      return pc_name
+          
+    return pc_name or fallbackPCName()
