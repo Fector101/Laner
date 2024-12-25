@@ -34,11 +34,11 @@ from plyer import filechooser
 
 from widgets.popup import Snackbar
 from widgets.templates import CustomDropDown, DetailsLabel, DisplayFolderScreen, Header, MDTextButton
-from workers.helper import THEME_COLOR_TUPLE, getSERVER_IP, makeDownloadFolder, setHiddenFilesDisplay, setSERVER_IP
+from workers.helper import THEME_COLOR_TUPLE, makeDownloadFolder, setHiddenFilesDisplay
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
 
-from workers.sword import Settings
+from workers.sword import NetworkManager, Settings
 # For Dev
 if DEVICE_TYPE != "mobile":
     # Window.size = (400, 600)
@@ -551,6 +551,7 @@ class PortBoxLayout(MDBoxLayout):
 class SettingsScreen(MDScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.app:Laner=MDApp.get_running_app()
         self.name = 'settings'
         self.pc_name = ''
         # Main layout
@@ -596,7 +597,7 @@ class SettingsScreen(MDScreen):
             {"type": "switch", "switch_state": False, "title": "Show Hidden Files", "callback": self.on_checkbox_active},
             {"type": "switch", "switch_state": True if MDApp.get_running_app().get_stored_theme() == 'Dark' else False, "title": "Dark Mode", "callback": self.toggle_theme}
         ])
-        print('Saved theme',MDApp.get_running_app().get_stored_theme())
+        print('Saved theme',self.app.get_stored_theme())
         self.add_category("Storage", [
             {"type": "button", 'id':'clear_btn', "title": "Clear Cache", "callback": self.clear_cache},
             {"type": "info", "title": "Storage Used", "value": "Calculate storage"}
@@ -608,6 +609,7 @@ class SettingsScreen(MDScreen):
         self.layout.add_widget(self.header)
         self.layout.add_widget(scroll)
         self.add_widget(self.layout)
+        Clock.schedule_once(lambda dt: self.autoConnect(), 1)
 
     def add_category(self, title, items):
         def addID(item: dict, widget: object = None) -> None:
@@ -755,24 +757,45 @@ class SettingsScreen(MDScreen):
         # layout.add_widget(filechooser)
         # self.add_widget(layout)
         
-    def on_checkbox_active(self,checkbox, value):
+    def on_checkbox_active(self,checkbox_instance, value):
         setHiddenFilesDisplay(value)
-    def setIP(self, instance):
-        print(instance,'instance')
+    def autoConnect(self):
+        ip_input=self.ids['port_input']
+        pervious_connections=self.app.settings.get('recent_connections')
+        for pc_name, ip_address in pervious_connections.items():
+            try:
+                response=requests.get(f"http://{ip_address}:8000/ping",json={'passcode':'08112321825'},timeout=.2)
+                if response.status_code == 200:
+                    self.pc_name = response.json()['data']
+                    self.app.settings.set('server', 'ip', ip_address)
+                    self.app.settings.add_recent_connection(self.pc_name, ip_address)
+
+                    connect_btn=self.ids['connect_btn']
+                    ip_input.text="Connected to: "+self.pc_name
+                    ip_input.disabled=True
+                    connect_btn.text= 'Disconnect'
+                    self.change_button_callback(connect_btn,self.setIP, self.disconnect,ip_address)
+                    Snackbar(h1="Auto Connect Successfull")
+                    break
+            except Exception as e:
+                print("Dev Auto Connect Error: ",e)
+
+        
+    def setIP(self, widget_at_called):
         ip_input=self.ids['port_input']
         input_ip_address:str=ip_input.text.strip()
-        
-        setSERVER_IP(input_ip_address)
+        self.app.settings.set('server', 'ip', input_ip_address)
         try:
+            
             response=requests.get(f"http://{input_ip_address}:8000/ping",json={'passcode':'08112321825'},timeout=.2)
             if response.status_code == 200:
                 self.pc_name = response.json()['data']
-                
+                self.app.settings.add_recent_connection(self.pc_name, input_ip_address)
+
                 connect_btn=self.ids['connect_btn']
-                
+
                 ip_input.text="Connected to: "+self.pc_name
                 ip_input.disabled=True
-                
                 connect_btn.text= 'Disconnect'
                 self.change_button_callback(connect_btn,self.setIP, self.disconnect,input_ip_address)
                 
@@ -784,7 +807,7 @@ class SettingsScreen(MDScreen):
             print("here---|",e)
             Snackbar(h1="Bad Code check \"Laner PC\" for right one")
 
-        print('My address',input_ip_address, getSERVER_IP())
+        print(input_ip_address,'===', self.app.settings.get('server', 'ip'))
         
     def change_button_callback(self, button, old_callback,new_callback,*args):
         button.unbind(on_release=old_callback)
@@ -792,11 +815,14 @@ class SettingsScreen(MDScreen):
         button.bind(on_release=new_callback)
         print('Changed callback')
     def disconnect(self,instance):
-        self.ids['port_input'].text=getSERVER_IP()
-        self.ids['port_input'].disabled=False
-        self.ids['connect_btn'].text= 'Verify Connection'
-        self.change_button_callback(self.ids['connect_btn'],self.disconnect, self.setIP,self.ids['connect_btn'])
-        setSERVER_IP('')
+        ip_input=self.ids['port_input']
+        connect_btn=self.ids['connect_btn']
+        
+        ip_input.text=self.app.settings.get('server', 'ip')
+        ip_input.disabled=False
+        connect_btn.text= 'Verify Connection'
+        self.change_button_callback(connect_btn,self.disconnect, self.setIP,connect_btn)
+        self.app.settings.set('server', 'ip', '')
         Snackbar(h1="Disconnected from " + self.pc_name)
         
         print('Disconnected')
