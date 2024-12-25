@@ -53,7 +53,6 @@ if platform == 'android':
     from kivymd.toast import toast
     from jnius import autoclass
     
-    setSERVER_IP('')
     try:
         from android import mActivity # type: ignore
         context =  mActivity.getApplicationContext()
@@ -460,9 +459,9 @@ class MyCard(RecycleDataViewBehavior,RectangularRippleBehavior,ButtonBehavior,MD
         # Clock.schedule_once(lambda dt: self.update_image(), 6)
 
     def isFile(self,path:str):
-
+        sever_ip=MDApp.get_running_app().settings.get('server', 'ip')
         try:
-            response=requests.get(f"http://{getSERVER_IP()}:8000/api/isfile",json={'path':path},timeout=2)
+            response=requests.get(f"http://{sever_ip}:8000/api/isfile",json={'path':path},timeout=2)
             if response.status_code != 200:
                 # Clock.schedule_once(lambda dt:Snackbar(h1="Dev pinging for thumb valid"))
                 return False
