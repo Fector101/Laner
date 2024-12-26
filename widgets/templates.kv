@@ -87,4 +87,23 @@
         #     md_bg_color: rgba(255, 185, 0, 255)
 
 # MDFloatLayout:
-    
+<MDTextButton>:
+    # size: [text_id.size[0] +20,'50dp']
+    adaptive_width:True
+    # padding:['50sp',0,'50sp',0]
+    MDButtonText:
+        id:text_id
+        text: root.text
+        pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+        # markup: True
+    # MDButtonText:
+    #     id:btn_text
+    #     text: root.text
+    #     theme_text_color: 'Custom'
+    #     halign: 'center'
+    #     valign: 'center'
+        # size_hint_x: None
+        # width: self.texture_size[0]
+    #     text_size: None, None
+    #     pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+    #     markup: True

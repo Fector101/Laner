@@ -231,7 +231,7 @@ class WindowManager(MDScreenManager):
         self.btm_sheet=btm_sheet
         self.md_bg_color =[.12,.12,.12,1] if self.theme_cls.theme_style == "Dark" else [0.98, 0.98, 0.98, 1]
         self.size_hint=[1,None]
-        self.height=Window.height-sp(70)   # Bottom nav height
+        self.height=Window.height-sp(68)   # Bottom nav height
         self.pos_hint={'top':1}
         
         # Set theme colors and properties
@@ -519,9 +519,12 @@ class PortBoxLayout(MDBoxLayout):
         self.port_input = MDTextField(
             hint_text="Enter Port Number",
             size_hint=[None,None],
-            size=[dp(70),dp(10)],
+            # size_hint_y=None,
+            height=dp(40),
+            width=sp(70),
+            # size=[sp(70),sp(20)],
             pos_hint={'center_y': .5},
-            max_height=30,
+            # max_height=sp(45),
         )
         self.add_widget(self.port_input)
 
@@ -533,8 +536,10 @@ class PortBoxLayout(MDBoxLayout):
         # )
         self.add_widget(
             MDTextButton(
-                text='Verify', font_size='13sp',
-                size=[50,35],on_release=self.verify_port,
+                text='Verify',
+                # font_size='13sp',
+                size=[sp(55),sp(30)],
+                on_release=self.verify_port,
                 radius=0,pos_hint={'center_y': .5}
             )
         )
@@ -685,11 +690,11 @@ class SettingsScreen(MDScreen):
                 item_layout.add_widget(item["widget"])
 
             elif item["type"] == "button":
+                print('Button',item['title'])
                 btn = MDTextButton(
                     text=item["title"],
-                    # on_release=item["callback"],
                     size_hint=[None, None],
-                    size=[sp(120), dp(50)]
+                    size=[sp(130), sp(50)] if item['id'] in ['connect_btn'] else [sp(100),sp(50)]
                 )
                 btn.bind(on_release=item["callback"])
                 
@@ -860,15 +865,12 @@ class SettingsScreen(MDScreen):
         print('Disconnected')
 
 from widgets.templates import MyBtmSheet
-class TypeMapElement(MDBoxLayout):
-    selected = BooleanProperty(False)
-    icon = StringProperty()
-    title = StringProperty()
 
-from kivy.storage.jsonstore import JsonStore
 # from kivymd.color_definitions import colors
 
 class Laner(MDApp):
+    # android_app = autoclass('android.app.Application')pls checkout
+    
     btm_sheet = ''
     settings = Settings()
     

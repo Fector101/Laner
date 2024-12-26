@@ -41,7 +41,7 @@ version = 1.0
 # comma separated e.g. requirements = sqlite3,kivy
 
 #requirements = python3,kivy,kivymd,materialyoucolor,asynckivy,asyncgui,aiohttp,multidict,attrs,yarl,propcache,async_timeout
-requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,materialyoucolor,asynckivy,asyncgui,pyjnius,plyer,docutils,android-notify
+requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,materialyoucolor,asynckivy,asyncgui,pyjnius,plyer,docutils,android-notify,netifaces
 # requirements = python3,kivy,kivymd,materialyoucolor,asynckivy,asyncgui,pyjnius,plyer,docutils,android-notify
 
 # (str) Custom source folders for requirements

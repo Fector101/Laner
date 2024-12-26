@@ -114,11 +114,20 @@ class RV(RecycleView):
     def __init__(self, **kwargs):
         super(RV, self).__init__(**kwargs)
         self.content_box_y = 0
-        self.drag_session_refresh_done = False
+        self.query_refresh = False
         self.last_move_value = 0
+        
     def on_touch_down(self, touch):
-        self.drag_session_refresh_done=False
+        a=self.ids.scroll_content.to_window(*self.ids.scroll_content.pos)[1] # 390 this is scroll content bottom y (i can't use get_top() but it will return object height)
+        current_screen_height=self.parent.parent.height
+        real_coordinate_y=current_screen_height-a-self.ids.scroll_content.height    # .get_top() just return object height
+        self.query_refresh=False
+        
         spinner = self.getSpinnerWidget()
+        if real_coordinate_y < 0:
+            spinner.opacity = 0
+            return super().on_touch_down(touch)
+        
         if spinner:
             spinner.y = self.parent.parent.height - sp(100)
         if not self.drag_session:
@@ -132,18 +141,26 @@ class RV(RecycleView):
         a=self.ids.scroll_content.to_window(*self.ids.scroll_content.pos)[1] # 390 this is scroll content bottom y (i can't use get_top() but it will return object height)
         current_screen_height=self.parent.parent.height
         real_coordinate_y=current_screen_height-a-self.ids.scroll_content.height    # .get_top() just return object height
-        
         spinner = self.getSpinnerWidget()
+        if real_coordinate_y < 0:
+            spinner.opacity = 0
+            return super().on_touch_move(touch)
         
-        if real_coordinate_y > 100 and not self.drag_session_refresh_done:
-            self.refresh()
-            self.drag_session_refresh_done = True
+        
+        # if real_coordinate_y > 100 and not self.drag_session_refresh_done:
+        if real_coordinate_y > 100 :
+            # self.refresh()
+            self.query_refresh = True
             
-            
+        # print('real_coordinate_y',real_coordinate_y)
+        # print(touch.pos[1],real_coordinate_y,a)
+        screen=self.parent.parent if isinstance(self.parent.parent, DisplayFolderScreen) else None
         if spinner:
             spinner.opacity = min(abs(real_coordinate_y / 100), 1)
             if real_coordinate_y >0 and self.last_move_value != int(a) and real_coordinate_y <100: # if user is dragging down
-                spinner.y = touch.pos[1] - sp(50) # 50 is spinner height
+                spinner.y = touch.pos[1] - sp(50) if touch.pos[1] > screen.height/2 else screen.height/1.4 - sp(50)   
+                 # 50 is spinner height
+                # if touch.pos[1] < 100 else 100  # 50 is spinner height
         self.last_move_value = int(a) # because it will change if sroll content is moved
             
         return super().on_touch_move(touch)
@@ -151,16 +168,24 @@ class RV(RecycleView):
         
     def on_touch_up(self, touch):
         spinner = self.getSpinnerWidget()
+        spinner.opacity = 0
         if self.drag_session:
             self.drag_session = False
             spinner.stopLoadingAnime()
-            spinner.opacity = 0
-        self.drag_session_refresh_done=False
+        if self.query_refresh:
+            self.refresh()
+        self.query_refresh=False
         return super().on_touch_up(touch)
 
     def refresh(self):
         screen = self.parent.parent if isinstance(self.parent.parent, DisplayFolderScreen) else None
         if screen:
+            # toaster
+            try:
+                from kivymd.toast import toast
+                toast("Refreshing...")
+            except Exception as e:
+                print("Android Toast Error: ", e)
             Clock.schedule_once(lambda dt: screen.startSetPathInfo_Thread())
         
         
@@ -172,6 +197,11 @@ async def async_download_file(url, save_path):
         file_path = os.path.join(my_downloads_folder, file_name)
         with open(file_path, "wb") as file:
             file.write(response.content)
+        try:
+            from android_notify.core import send_notification
+            send_notification("Completed download", file_name)
+        except Exception as e:
+            print(e,"Failed sending Notification")
         Clock.schedule_once(lambda dt: Snackbar(confirm_txt='Open',h1=f'Successfully Saved { truncateStr(Path(file_path).parts[-1],10) }'))
     except Exception as e:
         Clock.schedule_once(lambda dt: Snackbar(confirm_txt='Open',h1="Download Failed try Checking Laner on PC"))
@@ -272,6 +302,12 @@ class DisplayFolderScreen(MDScreen):
                 Clock.schedule_once(lambda dt:Snackbar(h1='Connection Error Check Laner on PC'))
                 return
             Clock.schedule_once(lambda dt:Snackbar(h1="File Uploaded Successfully"))
+            try:
+                from android_notify.core import send_notification
+                send_notification("Completed upload", os.path.basename(file_path))
+                # send_notification("Completed", os.path.basename(file_path) + " has been uploaded", style=NotificationStyles.BIG_TEXT)
+            except Exception as e:
+                print(e,"Failed sending Notification")
             Clock.schedule_once(lambda dt: self.startSetPathInfo_Thread())
         except Exception as e:
             Clock.schedule_once(lambda dt:Snackbar(h1="Failed to Upload File check Laner on PC"))
@@ -504,35 +540,30 @@ class MyBtmSheet(MDBottomSheet):
 
 
 from kivymd.uix.button import MDButton, MDButtonText
-
 class MDTextButton(MDButton):
     text = StringProperty('Fizz')
-    font_size = StringProperty('')
-    text_widget = ObjectProperty() # for on_text if statement to work
+    # text_widget = ObjectProperty() # for on_text if statement to work
     
-    size = ListProperty([sp(0),sp(0)])
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.theme_width = "Custom"
+        # self.text = self.text
         self.theme_height = "Custom"
+        self.theme_width = "Custom"
 
-        self.text_widget = MDButtonText( # setting text here doesn't matter because it will be updated in on_text
-            pos_hint={"center_x": .5, "center_y": .5}
-        )
-        self.text_widget.text = self.text
-        self.text_widget.theme_font_size = "Custom"
-        self.add_widget(self.text_widget)
-        
-    def on_text(self, instance, value):
+
+    # def on_text(self, instance, value):...
         # print(instance,'|||',value)
-        self.text = value
-        if self.text_widget:
-            self.text_widget.text = value
-            
-    # def setText(self,text):
-    #     self.text_widget.text = text
-    #     self.text = text
+        # self.text = value
+        # if self.text_widget:
+        #     self.text_widget.text = value
+        # if 'text_id' in self.ids:
+        #     print(self.ids['text_id'],'iddsss')
+        #     print(self.ids['text_id'].texture_size,'iddsss')
 
+
+
+
+    
 class CustomDropDown(MDBoxLayout):
     title = StringProperty("Advanced Options")
     # icon = StringProperty("arrow-down")
