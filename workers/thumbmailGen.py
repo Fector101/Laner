@@ -85,7 +85,7 @@ def generateThumbnails(video_paths, output_dir, time=1.0, max_threads=4):
         thumbnail_name = gen_unique_filname(video_path)
         print(video_path,'|||',thumbnail_name)
         
-        output_path = f"{output_dir}/{thumbnail_name}_thumbnail.jpg"
+        output_path = f"{output_dir}/{thumbnail_name}.jpg"
         generate_thumbnail(video_path, output_path, time)
 
     with ThreadPoolExecutor(max_threads) as executor:

@@ -3,7 +3,7 @@ import os
 import json
 import threading
 
-from workers.helper import gen_unique_filname, getAppFolder, getFileExtension, getHomePath,getSystem_IpAdd, getdesktopFolder, makeDownloadFolder, makeFolder, removeFileExtension, getUserPCName,removeFirstDot, sortedDir
+from workers.helper import gen_unique_filname, getAppFolder, getFileExtension, getHomePath,getSystem_IpAdd, getdesktopFolder, makeDownloadFolder, makeFolder, removeFileExtension, getUserPCName,removeFirstDot, sortedDir, urlSafePath
 from workers.thumbmailGen import generateThumbnails
 
 
@@ -79,8 +79,6 @@ class CustomHandler(SimpleHTTPRequestHandler):
                 return
             elif (request_path == 'Home'):
               request_path = getHomePath()
-            print('dev home path',request_path)
-         
             
             try:
                 path_list:list[str] =os.listdir(request_path)
@@ -102,7 +100,9 @@ class CustomHandler(SimpleHTTPRequestHandler):
                             img_source="assets/icons/folders/folder.png"
                             
                     elif each.lower().endswith(picture_formats):
-                        img_url=removeFirstDot(each_path).replace(' ','%20').replace('\\','/')
+                        print('Debugging if No Dot in front of path remove removeFirstDot function from url toss\n',each_path)
+                        img_url=urlSafePath(removeFirstDot(each_path) )
+                        print('Fixing Image problem Windows problem',img_url)
                         img_source=f"http://{SERVER_IP}:8000{img_url}"
 
                     elif format_ in my_owned_icons:
@@ -113,9 +113,9 @@ class CustomHandler(SimpleHTTPRequestHandler):
 
                     elif each.lower().endswith(video_formats):
                         image_path = gen_unique_filname(each_path)
-                        thumbnail_path = os.path.join(getAppFolder(),'thumbnails',image_path+'_thumbnail.jpg')
+                        thumbnail_path = os.path.join(getAppFolder(),'thumbnails',image_path+'.jpg')
                         
-                        formatted_path_4_url=removeFirstDot(thumbnail_path).replace('\\','/')
+                        formatted_path_4_url=urlSafePath(removeFirstDot(thumbnail_path))
                         thumbnail_url=f"http://{SERVER_IP}:8000{formatted_path_4_url}"
                         
                         img_source="assets/icons/video.png" 
@@ -271,5 +271,3 @@ class FileSharingServer:
 #         # Stop the server on Ctrl+C
 #         print("\nStopping the server...")
 #         server.stop()
-# /home/fabian/Documents/my-projects-code/mobile-dev/Laner/thumbnails/2.%20Reading%20from%20Your%20Database%20with%20Mongoose_thumbnail.jpg
-# /home/fabian/Documents/my-projects-code/mobile-dev/Laner/thumbnails/2.%20Reading%20from%20Your%20Database%20with%20Mongoose_thumbnail.jpg

@@ -3,7 +3,7 @@ import os
 import json
 import sys
 import hashlib
-
+import urllib.parse
 def getSystemName():
   # Windows
   USER_HOME_PATH=os.getenv('HOMEPATH')
@@ -338,3 +338,11 @@ def getUserPCName():
       return pc_name
           
     return pc_name or fallbackPCName()
+  
+def urlSafePath(path:str):
+  path_without_drive=os.path.splitdrive(path)[1]
+  # Normalizing Windows Path Forward Slashes for Url '\\' ---> '/'
+  normalized_path= path_without_drive.replace('\\','/')
+  # For URL encoding
+  url_safe_path=urllib.parse.quote(normalized_path)
+  return url_safe_path
