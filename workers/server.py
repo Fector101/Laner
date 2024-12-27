@@ -15,8 +15,7 @@ audio_formats=('.mp3','.wav','.aac','.ogg','.m4a','.flac','.wma','.aiff','.opus'
 picture_formats=('.png','.jpg','.jpeg','.tif','.bmp','.gif')
 special_folders=['home','pictures','templates','videos','documents','music','favorites','share','downloads']
 
-network = NetworkManager()
-SERVER_IP = network.get_server_ip()
+SERVER_IP = None
 
 no = 1
 
@@ -195,7 +194,8 @@ class CustomHandler(SimpleHTTPRequestHandler):
             self.wfile.write(json.dumps({'error': type(e).__name__ }).encode("utf-8"))
 
 class FileSharingServer:
-    def __init__(self, port=8000, directory="/"):
+    def __init__(self, ip, port=8000, directory="/"):
+        self.ip = ip
         self.port = port
         self.directory = directory
         self.server = None
@@ -204,7 +204,7 @@ class FileSharingServer:
     
     def start(self):
         global SERVER_IP
-        SERVER_IP = network.get_server_ip()
+        SERVER_IP = self.ip
         
         os.chdir(self.directory)
 

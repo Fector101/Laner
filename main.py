@@ -7,7 +7,8 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtCore import Qt, QSize
 from workers.server import FileSharingServer
-from workers.helper import getSystem_IpAdd, getUserPCName
+from workers.helper import getUserPCName
+from workers.sword import NetworkManager
 
 
 class SettingsScreen(QWidget):
@@ -184,7 +185,8 @@ class FileShareApp(QMainWindow):
             self.on_stop()
             return
 
-        self.ip = getSystem_IpAdd()
+        network = NetworkManager()
+        self.ip = network.get_server_ip()
         if self.ip is None:
             self.main_screen.hint_message.setText("Connect your PC to your Local Network.\nNo need for Internet Capability.")
             self.main_screen.hint_message.setStyleSheet("color: black;")
@@ -210,10 +212,10 @@ class FileShareApp(QMainWindow):
     def run_server(self, port):
         # Initialize the server
         try:
-            self.server = FileSharingServer(port, '/')
+            self.server = FileSharingServer(port=port,ip=self.ip, directory= '/')
             # Start the server
             self.server.start()
-            self.port=self.server.port
+            self.port=self.server.port # if args port unavailable Class will return a new port
             self.settings_screen.port_label.setText(str(self.port))
             
             print("Press Ctrl+C to stop the server.")
