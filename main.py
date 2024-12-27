@@ -213,7 +213,7 @@ class FileShareApp(QMainWindow):
             self.server = FileSharingServer(port, '/')
             # Start the server
             self.server.start()
-            self.port=self.server.getPortNumer()
+            self.port=self.server.port
             self.settings_screen.port_label.setText(str(self.port))
             
             print("Press Ctrl+C to stop the server.")

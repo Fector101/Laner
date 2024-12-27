@@ -3,7 +3,8 @@ import os
 import json
 import threading
 
-from workers.helper import gen_unique_filname, getAppFolder, getFileExtension, getHomePath,getSystem_IpAdd, getdesktopFolder, makeDownloadFolder, makeFolder, removeFileExtension, getUserPCName,removeFirstDot, sortedDir, urlSafePath
+from workers.helper import gen_unique_filname, getAppFolder, getFileExtension, getHomePath, getdesktopFolder, makeDownloadFolder, makeFolder, removeFileExtension, getUserPCName,removeFirstDot, sortedDir, urlSafePath
+from workers.sword import NetworkManager
 from workers.thumbmailGen import generateThumbnails
 
 
@@ -13,14 +14,13 @@ video_formats=('.mkv','.mp4', '.avi', '.mkv', '.mov')
 audio_formats=('.mp3','.wav','.aac','.ogg','.m4a','.flac','.wma','.aiff','.opus')
 picture_formats=('.png','.jpg','.jpeg','.tif','.bmp','.gif')
 special_folders=['home','pictures','templates','videos','documents','music','favorites','share','downloads']
-                
 
-SERVER_IP = getSystem_IpAdd()
+network = NetworkManager()
+SERVER_IP = network.get_server_ip()
+
 no = 1
+
 generated_thumbnails=[]
-def inHomePath(request_path,folder):
-    print(os.path.join(getHomePath(),folder), "==", os.path.join(request_path,folder))
-    return os.path.join(getHomePath(),folder) == os.path.join(request_path,folder)
     
 from socketserver import ThreadingMixIn
 class ThreadingHTTPServer(ThreadingMixIn, HTTPServer):
@@ -201,11 +201,10 @@ class FileSharingServer:
         self.server = None
         self.server_thread = None
         makeFolder(os.path.join(getAppFolder(),'thumbnails'))
-    def getPortNumer(self):
-        return self.port
+    
     def start(self):
         global SERVER_IP
-        SERVER_IP = getSystem_IpAdd()
+        SERVER_IP = network.get_server_ip()
         
         os.chdir(self.directory)
 

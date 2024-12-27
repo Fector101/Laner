@@ -89,84 +89,6 @@ import socket
 import subprocess
 import platform
 
-
-def fallbackderviringGetttingIp():
-    try:
-        import netifaces
-        # Get all network interfaces
-        interfaces = netifaces.interfaces()
-        
-        # Prioritize wireless and ethernet interfaces
-        for iface in interfaces:
-            if iface.startswith(('wl', 'en')):  # Wireless or Ethernet
-                addrs = netifaces.ifaddresses(iface)
-                if netifaces.AF_INET in addrs:  # IPv4 addresses
-                    for addr in addrs[netifaces.AF_INET]:
-                        ip = addr['addr']
-                        # Skip loopback and empty addresses
-                        if ip and not ip.startswith('127.'):
-                            return ip
-        
-        # If no wireless/ethernet found, try all other interfaces
-        for iface in interfaces:
-            addrs = netifaces.ifaddresses(iface)
-            if netifaces.AF_INET in addrs:
-                for addr in addrs[netifaces.AF_INET]:
-                    ip = addr['addr']
-                    if ip and not ip.startswith('127.'):
-                        return ip
-        
-        return None
-    except Exception as e:
-        print(f"Error getting IP address: {e}")
-        return None
-
-
-def getSystem_IpAdd():
-    def tryOtherFormat(standard_output):
-      ip_pattern = re.compile(r'IPv4 address.*?:\s*([\d.]+)')
-      return ip_pattern.findall(standard_output)
-    os_name = platform.system()
-    if os_name == 'Linux' or os_name == 'Darwin':  # Linux or macOS
-        if shutil.which('ifconfig'):
-            command = ['ifconfig']
-            ip_pattern = re.compile(r'inet\s([\d.]+)')
-        elif shutil.which('ip'):  # Fallback to 'ip addr' if 'ifconfig' is missing
-            command = ['ip', 'addr']
-            ip_pattern = re.compile(r'inet\s([\d.]+)')
-        else:
-            raise FileNotFoundError("Neither 'ifconfig' nor 'ip' command found on the system")
-    elif os_name == 'Windows':
-        command = ['ipconfig']
-        ip_pattern = re.compile(r'IPv4 Address.*?:\s*([\d.]+)')
-    else:
-        raise OSError("Unsupported operating system")
-
-    # Run the command and capture output
-    result = subprocess.run(command, capture_output=True, text=True)
-    # print('peek',result.stdout)
-    # Extract IP addresses
-    ip_addresses = ip_pattern.findall(result.stdout)
-    ip_addresses = tryOtherFormat(result.stdout) if os_name == 'Windows' and len(ip_addresses) == 0 else ip_addresses
-    # Exclude loopback addresses like 127.0.0.1
-    ip_addresses = [ip for ip in ip_addresses if not ip.startswith('127.')]
-    
-    if len(ip_addresses) == 0 or len(ip_addresses) == 1 and ip_addresses[0] == '127.0.0.1':
-        
-        return fallbackderviringGetttingIp()
-      
-    if len(ip_addresses) > 1 and ip_addresses[1].startswith('192.168.'):
-        return ip_addresses[1]
-    return ip_addresses[0] if len(ip_addresses) else None
-
-# Print the results
-try:
-    print("Extracted IP addresses:", getSystem_IpAdd())
-except Exception as e:
-    print(f"Error: {e}")
-
-
-
 def getAppFolder():
     """
     Returns the correct application folder path, whether running on native Windows,
@@ -293,13 +215,6 @@ def setHiddenFilesDisplay(state):
 def getHiddenFilesDisplay_State():
   return SHOW_HIDDEN_FILES
 
-SERVER_IP=getSystem_IpAdd()
-def setSERVER_IP(value):
-  global SERVER_IP
-  SERVER_IP=value
-def getSERVER_IP():
-  return SERVER_IP
-
 
 def getUserPCName():
     """
@@ -346,3 +261,7 @@ def urlSafePath(path:str):
   # For URL encoding
   url_safe_path=urllib.parse.quote(normalized_path)
   return url_safe_path
+
+def inHomePath(request_path,folder):
+    print(os.path.join(getHomePath(),folder), "==", os.path.join(request_path,folder))
+    return os.path.join(getHomePath(),folder) == os.path.join(request_path,folder)
