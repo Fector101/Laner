@@ -3,7 +3,7 @@ import os
 import json
 import threading
 
-from workers.helper import gen_unique_filname, getAppFolder, getFileExtension, getHomePath, getdesktopFolder, makeDownloadFolder, makeFolder, removeFileExtension, getUserPCName,removeFirstDot, sortedDir, urlSafePath
+from workers.helper import gen_unique_filname, getAppFolder, getFileExtension, getHomePath, getdesktopFolder, makeFolder, removeFileExtension, getUserPCName,removeFirstDot, sortedDir, urlSafePath
 from workers.sword import NetworkManager
 from workers.thumbmailGen import generateThumbnails
 

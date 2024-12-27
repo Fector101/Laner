@@ -99,7 +99,8 @@ def getAppFolder():
         path__ = os.path.abspath(sys._MEIPASS)
     else:
         # Running from source code
-        path__ = os.path.abspath(os.path.dirname(__file__))
+        function_folder_formatted_to_get_app_folder = os.path.join(os.path.dirname(__file__),'..')
+        path__=os.path.abspath(function_folder_formatted_to_get_app_folder)
 
     # Normalize path for Wine compatibility
     if is_wine():
@@ -186,22 +187,6 @@ def removeFirstDot(path:str):
     return path
 
 
-def makeDownloadFolder():
-  """Makes downlod folder and returns path
-  """
-  # from kivy.utils import platform
-  folder_path = os.path.dirname(os.path.abspath(__file__))
-  # Check if on android
-  
-  try:
-    from android.storage import app_storage_path, primary_external_storage_path # type: ignore
-    folder_path=os.path.join(primary_external_storage_path(),'Download','Laner')
-    makeFolder(folder_path)
-  except:...
-  return folder_path
-
-
-
 def truncateStr(text:str,limit=20):
   if len(text) > limit:
       return text[0:limit] + '...'
@@ -265,3 +250,15 @@ def urlSafePath(path:str):
 def inHomePath(request_path,folder):
     print(os.path.join(getHomePath(),folder), "==", os.path.join(request_path,folder))
     return os.path.join(getHomePath(),folder) == os.path.join(request_path,folder)
+
+from os.path import join as _joinPath
+def getAbsPath(*path_list):
+  """Get file real path
+
+  Args:
+      path_list (list | str): path or list of paths
+
+  Returns:
+      str: Actual Path
+  """
+  return _joinPath(getAppFolder(),*path_list)

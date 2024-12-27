@@ -5,9 +5,10 @@ from PyQt5.QtWidgets import (
     QSystemTrayIcon, QMenu, QAction, QDialog, QFormLayout, QLineEdit, QStackedWidget
 )
 from PyQt5.QtGui import QFont, QIcon
+from PyQt5 import QtGui
 from PyQt5.QtCore import Qt, QSize
 from workers.server import FileSharingServer
-from workers.helper import getUserPCName
+from workers.helper import getUserPCName, getAbsPath
 from workers.sword import NetworkManager
 
 
@@ -122,7 +123,8 @@ class MainScreen(QWidget):
 
         # Settings Button
         self.settings_button = QPushButton()
-        self.settings_button.setIcon(QIcon("assets/imgs/icon.png"))  # Add settings Icon
+        settings_icon=getAbsPath('assets','imgs','icon.png')
+        self.settings_button.setIcon(QIcon(settings_icon))  # Add settings Icon
         self.settings_button.setIconSize(QSize(24, 24))
         self.settings_button.setFixedSize(40, 40)
         # self.settings_button.setStyleSheet("background-color: transparent;")
@@ -134,6 +136,8 @@ class FileShareApp(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Laner")
+        self.icon=getAbsPath("assets", "imgs", "img.ico" if os.name == 'nt' else "icon.png")
+        self.setWindowIcon(QtGui.QIcon(self.icon))
         self.setGeometry(100, 100, 500, 500)
         self.server_thread = None
         self.running = False
@@ -159,11 +163,7 @@ class FileShareApp(QMainWindow):
     def create_system_tray(self):
         self.tray = QSystemTrayIcon(self)
 
-        icon_path = "icon.png"
-        if hasattr(sys, "_MEIPASS"):
-            icon_path = os.path.join(sys._MEIPASS, "assets", "imgs", "icon.png")
-
-        self.tray.setIcon(QIcon(icon_path))
+        self.tray.setIcon(QIcon(self.icon))
 
         # Create tray menu
         tray_menu = QMenu()

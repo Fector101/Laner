@@ -1,8 +1,12 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+debugging=True
+
 
 import os
-icon_path=os.path.join("assets","imgs","icon.png")
+_icon_path=["assets","imgs","img.ico" if os.name == 'nt' else "icon.png"]
+icon_path = os.path.join(*_icon_path)
+print("Wine test: ",icon_path)
 
 
 a = Analysis(
@@ -27,13 +31,13 @@ exe = EXE(
     a.datas,
     [],
     name='Laner PC',
-    debug=False,
+    debug=debugging,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=True,
+    console=debugging,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
