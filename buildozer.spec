@@ -41,7 +41,7 @@ version = 1.0
 # comma separated e.g. requirements = sqlite3,kivy
 
 #requirements = python3,kivy,kivymd,materialyoucolor,asynckivy,asyncgui,aiohttp,multidict,attrs,yarl,propcache,async_timeout
-requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,materialyoucolor,asynckivy,asyncgui,pyjnius,plyer,docutils,android-notify,netifaces
+requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,materialyoucolor,asynckivy,asyncgui,pyjnius,plyer,docutils,netifaces
 # requirements = python3,kivy,kivymd,materialyoucolor,asynckivy,asyncgui,pyjnius,plyer,docutils,android-notify
 
 # (str) Custom source folders for requirements
@@ -118,7 +118,7 @@ android.api = 35
 #android.sdk = 20
 
 # (str) Android NDK version to use
-#android.ndk = 23b
+android.ndk = 25b
 
 # (int) Android NDK API to use. This is the minimum API your app will support, it should usually match android.minapi.
 #android.ndk_api = 21
@@ -211,7 +211,7 @@ android.service = True
 
 # (list) Gradle dependencies to add
 #android.gradle_dependencies =
-android.gradle_dependencies = androidx.core:core-ktx:1.15.0
+android.gradle_dependencies = androidx.core:core-ktx:1.15.0, androidx.core:core:1.6.0
 # (bool) Enable AndroidX support. Enable when 'android.gradle_dependencies'
 # contains an 'androidx' package, or any package from Kotlin source.
 # android.enable_androidx requires android.api >= 28

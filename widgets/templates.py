@@ -25,6 +25,13 @@ from workers.sword import Settings
 # TODO Fix get app folder worker/helper.py returning app folder as /Laner/workers/
 import sys
 from kivymd.uix.button import MDFabButton
+
+try:
+    from android_notify.core import send_notification
+    # send_notification("Completed download", 'file_name')/
+except Exception as e:
+    print(e,"Failed ------------------- Notification")
+
 def getAppFolder1():
     """
     Returns the correct application folder path, whether running on native Windows,

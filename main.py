@@ -94,12 +94,13 @@ if platform == 'android':
                     ]
                     request_permissions(storage_permissions, on_storage_permissions_result)
                 else:
+                    on_storage_permissions_result(None, None)
                     print("Notification permission denied")
 
             def on_storage_permissions_result(permissions, grants):
-                if all(grants):
+                # if all(grants):
                     # Storage permissions granted, request all files access for Android 11+
-                    if api_version >= 30:
+                if api_version >= 30:
                         Environment = autoclass('android.os.Environment')
                         Intent = autoclass('android.content.Intent')
                         Settings = autoclass('android.provider.Settings')
@@ -108,7 +109,7 @@ if platform == 'android':
                             intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
                             Clock.schedule_once(lambda dt: mActivity.startActivity(intent), 2)
                 else:
-                    print("Storage permissions denied")
+                    print("Storage permissions not called Android less 11 | Feature not available 101")
 
             # Request notification permission first
             request_permissions([Permission.POST_NOTIFICATIONS], on_permissions_result)
@@ -448,7 +449,6 @@ class MyCard(RecycleDataViewBehavior,RectangularRippleBehavior,ButtonBehavior,MD
     icon=StringProperty()
     text=StringProperty()
     thumbnail_url=StringProperty()
-    thumbnail_path=StringProperty()
     is_dir=BooleanProperty()
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -461,8 +461,10 @@ class MyCard(RecycleDataViewBehavior,RectangularRippleBehavior,ButtonBehavior,MD
     def isFile(self,path:str):
         sever_ip=MDApp.get_running_app().settings.get('server', 'ip')
         port=MDApp.get_running_app().settings.get('server', 'port')
+        # print('What file ',path)
         try:
             response=requests.get(f"http://{sever_ip}:{port}/api/isfile",json={'path':path},timeout=2)
+            print(response.json())
             if response.status_code != 200:
                 # Clock.schedule_once(lambda dt:Snackbar(h1="Dev pinging for thumb valid"))
                 return False
@@ -476,13 +478,15 @@ class MyCard(RecycleDataViewBehavior,RectangularRippleBehavior,ButtonBehavior,MD
 
     def on_thumbnail_url(self, instance, value):
         """Called whenever thumbnail_url changes."""
-        self.event = Clock.schedule_interval(lambda dt: self.update_image(), 1)
+        self.event = Clock.schedule_interval(lambda dt: self.update_image(), 5)
                 
     def update_image(self):
         global validated_paths
-        if self.thumbnail_url and (self.thumbnail_path in validated_paths or self.isFile(self.thumbnail_path)):
-            if self.thumbnail_path not in validated_paths:
-                validated_paths.append(self.thumbnail_path)
+        def without_url_format(url:str):
+            return os.path.join(*url.split('/')[4:])
+        if self.thumbnail_url and (self.thumbnail_url in validated_paths or self.isFile(without_url_format(self.thumbnail_url))):
+            if self.thumbnail_url not in validated_paths:
+                validated_paths.append(self.thumbnail_url)
             
             self.icon = self.thumbnail_url
             self.event.cancel()
@@ -519,12 +523,12 @@ class PortBoxLayout(MDBoxLayout):
         self.port_input = MDTextField(
             hint_text="Enter Port Number",
             size_hint=[None,None],
-            # size_hint_y=None,
-            height=dp(40),
-            width=sp(70),
+            size_hint_y=None,
+            height=sp(25),
+            width=sp(100),
             # size=[sp(70),sp(20)],
             pos_hint={'center_y': .5},
-            # max_height=sp(45),
+            max_height=sp(40),
         )
         self.add_widget(self.port_input)
 
@@ -564,6 +568,8 @@ class PortBoxLayout(MDBoxLayout):
                 if response.status_code == 200:
                     self.app.settings.set('server', 'port', port)
                     Snackbar(h1="Port is valid")
+                else:
+                    Snackbar(h1="Try tying in code from Laner PC first")
             except Exception as e:
                 print("Dev Port Error: ",e)
             
