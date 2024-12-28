@@ -5,6 +5,7 @@ import sys
 import json
 import threading
 import traceback
+from os.path import join as _joinPath
 
 # Worker imports
 from workers.helper import (
@@ -26,7 +27,7 @@ REQUEST_COUNT = 1
 GENERATED_THUMBNAILS = []
 
 
-# 🛠️ **Utility Functions**
+# Utility Functions
 def writeErrorLog(title, value):
     """Logs errors to a file."""
     error_log_path = os.path.join(getAppFolder(), 'errors.txt')
@@ -39,13 +40,13 @@ if sys.stderr is None:
     sys.stderr = open(os.path.join(getAppFolder(), 'errors.log'), 'at')
 
 
-# 📡 **Threaded HTTP Server**
+# Threaded HTTP Server
 class ThreadingHTTPServer(ThreadingMixIn, HTTPServer):
     """Threaded HTTP Server for handling multiple requests simultaneously."""
     pass
 
 
-# 📥 **Custom HTTP Handler**
+# Custom HTTP Handler
 class CustomHandler(SimpleHTTPRequestHandler):
     video_paths = []
     def do_POST(self):
@@ -119,7 +120,17 @@ class CustomHandler(SimpleHTTPRequestHandler):
             elif self.path == "/api/isdir":
                 self._send_json_response({'data': os.path.isdir(self.parseMyPath())})
             elif self.path == "/api/isfile":
-                self._send_json_response({'data': os.path.isfile(self.parseMyPath())})
+                is_file=os.path.isfile(request_path)
+                
+                if not is_file:
+                    file_abspath=os.path.abspath(request_path)
+                    drive=os.path.splitdrive(file_abspath)[0]
+                    real_file_path= _joinPath(drive,request_path)
+                    is_file=os.path.isfile(real_file_path)
+                    print("Windows test 101: ",real_file_path)
+                    
+                self._send_json_response({'data': is_file})
+                
             elif self.path == "/ping":
                 self._send_json_response({'data': getUserPCName()})
             else:
@@ -171,7 +182,7 @@ class CustomHandler(SimpleHTTPRequestHandler):
         return "assets/icons/file.png", ''
 
 
-# 🚀 **Server Class**
+# Server Class
 class FileSharingServer:
     def __init__(self, ip, port=8000, directory="/"):
         self.ip = ip

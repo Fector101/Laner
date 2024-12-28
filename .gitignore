@@ -10,8 +10,7 @@ lab
 thumbnails
 laner-linux
 for-download/
-errors.txt
-lab
+*errors.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
