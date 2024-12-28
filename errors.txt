@@ -1,6 +1,0 @@
-====== sys.stderr is  LOG101 ====
-====== log output <_io.TextIOWrapper name='<stderr>' mode='w' encoding='utf-8'> ====
-
-====== sys.stderr is  LOG101 ====
-====== log output <_io.TextIOWrapper name='<stderr>' mode='w' encoding='utf-8'> ====
-

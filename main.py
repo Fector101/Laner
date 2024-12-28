@@ -223,10 +223,10 @@ class FileShareApp(QMainWindow):
             self.settings_screen.port_label.setValue(self.port)
             
             print("Press Ctrl+C to stop the server.")
-        except KeyboardInterrupt:
+        except KeyboardInterrupt:...
             # Stop the server on Ctrl+C
-            print("\nStopping the server...")
-            self.server.stop()
+            # print("\nStopping the server...")
+            # self.server.stop()
         except Exception as e:
             print("See uncaught Errors on App main Thread: ",e)
 
@@ -259,10 +259,10 @@ class FileShareApp(QMainWindow):
     def open_settings(self):
         self.stacked_widget.setCurrentWidget(self.settings_screen)
 
-    def closeEvent(self, event):
-        print('peek', event)
-        self.hide()
-        event.ignore()
+    # def closeEvent(self, event):
+    #     print('peek', event)
+    #     self.hide()
+    #     event.ignore()
 
 
 if __name__ == "__main__":

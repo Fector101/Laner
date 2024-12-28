@@ -1,8 +1,8 @@
-import cv2
+import cv2,os,shutil
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
-from workers.helper import gen_unique_filname
+from workers.helper import gen_unique_filname, getAppFolder
 
 
 def add_black_and_white_boxes(image):
@@ -64,7 +64,9 @@ def generate_thumbnail(video_path, output_path, time=1.0):
         # cv2.imwrite(output_path, frame, [cv2.IMWRITE_JPEG_QUALITY,10])
         # print(f"Thumbnail saved at {output_path}")
     else:
-        print(f"Failed to capture frame for {video_path}")
+        source_file = os.path.join(getAppFolder(),'assets','imgs','video.png')
+        print(f"Failed to capture frame for {video_path} ---- Using backup Thumbnail {source_file}")
+        shutil.copy(source_file, output_path)
 
     cap.release()
     

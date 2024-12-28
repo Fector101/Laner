@@ -1,280 +1,195 @@
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn
-import os,sys,json,threading,traceback
+import os
+import sys
+import json
+import threading
+import traceback
 
-from workers.helper import gen_unique_filname, getAppFolder, getFileExtension, getHomePath, getdesktopFolder, makeFolder, removeFileExtension, getUserPCName,removeFirstDot, sortedDir, urlSafePath
+# Worker imports
+from workers.helper import (
+    gen_unique_filname, getAppFolder, getFileExtension, getHomePath, getdesktopFolder,
+    makeFolder, removeFirstDot, sortedDir, urlSafePath, getUserPCName
+)
 from workers.thumbmailGen import generateThumbnails
 
-
-my_owned_icons=['.py','.js','.css','.html','.json','.deb','.md','.sql','.md','.java']
-zip_formats=['.zip','.7z','.tar','.bzip2','.gzip','.xz','.lz4','.zstd','.bz2','.gz']
-video_formats=('.mkv','.mp4', '.avi', '.mkv', '.mov')
-audio_formats=('.mp3','.wav','.aac','.ogg','.m4a','.flac','.wma','.aiff','.opus')
-picture_formats=('.png','.jpg','.jpeg','.tif','.bmp','.gif')
-special_folders=['home','pictures','templates','videos','documents','music','favorites','share','downloads']
+# File Type Definitions
+MY_OWNED_ICONS = ['.py', '.js', '.css', '.html', '.json', '.deb', '.md', '.sql', '.java']
+ZIP_FORMATS = ['.zip', '.7z', '.tar', '.bzip2', '.gzip', '.xz', '.lz4', '.zstd', '.bz2', '.gz']
+VIDEO_FORMATS = ('.mkv', '.mp4', '.avi', '.mov')
+AUDIO_FORMATS = ('.mp3', '.wav', '.aac', '.ogg', '.m4a', '.flac', '.wma', '.aiff', '.opus')
+PICTURE_FORMATS = ('.png', '.jpg', '.jpeg', '.tif', '.bmp', '.gif')
+SPECIAL_FOLDERS = ['home', 'pictures', 'templates', 'videos', 'documents', 'music', 'favorites', 'share', 'downloads']
 
 SERVER_IP = None
+REQUEST_COUNT = 1
+GENERATED_THUMBNAILS = []
 
-no = 1
 
-generated_thumbnails=[]
+# 🛠️ **Utility Functions**
+def writeErrorLog(title, value):
+    """Logs errors to a file."""
+    error_log_path = os.path.join(getAppFolder(), 'errors.txt')
+    with open(error_log_path, 'a') as log_file:
+        log_file.write(f'====== {title} LOG ====\n{value}\n\n')
 
-def writeErrorLog(title,value):
-    desktop_errorlog_path = os.path.join(getAppFolder(),'errors.txt')
-    with open(desktop_errorlog_path,'a') as log_file:
-        log_file.write(f'====== {title} LOG101 ====\n')
-        log_file.write(f'====== log output {value} ====\n')
-        log_file.write('\n')
 
-writeErrorLog('sys.stderr is ',sys.stderr)
-log_path = os.path.join(getAppFolder(),'errors.log')
-if sys.stderr is None: #    When complied to onefile in Windows sys.stderr is select to None
-    sys.stderr=open(log_path, 'at')
-    
+# Handle stderr when compiled to a single file
+if sys.stderr is None:
+    sys.stderr = open(os.path.join(getAppFolder(), 'errors.log'), 'at')
+
+
+# 📡 **Threaded HTTP Server**
 class ThreadingHTTPServer(ThreadingMixIn, HTTPServer):
+    """Threaded HTTP Server for handling multiple requests simultaneously."""
     pass
 
+
+# 📥 **Custom HTTP Handler**
 class CustomHandler(SimpleHTTPRequestHandler):
-    
-    # get uploaded data and save it to a file
+    video_paths = []
     def do_POST(self):
-        global no
+        """Handle POST requests for file uploads."""
+        global REQUEST_COUNT
+
         if self.path == "/api/upload":
-            content_length = int(self.headers['Content-Length'])
-            data = self.rfile.read(content_length)
-
-            # Get the boundary from Content-Type header
-            content_type = self.headers['Content-Type']
-            boundary = content_type.split('=')[1].encode()
-
-            # Parse multipart form data
-            parts = data.split(boundary)
-            save_path = None
-            
-            for part in parts:
-                if b'name="save_path"' in part:
-                    save_path = part.split(b'\r\n\r\n')[1].strip(b'\r\n--').decode()
-                elif b'filename=' in part:
-                    # Extract filename
-                    filename_match = part.split(b'filename="')[1].split(b'"')[0]
-                    filename = filename_match.decode()
-                    
-                    # Extract file content
-                    file_content = part.split(b'\r\n\r\n')[1].strip(b'\r\n--')
-                    if save_path:
-                        if (save_path == 'Home'):
-                            save_path = getHomePath()
-                        save_path = os.path.join(save_path, filename)
-                    else:
-                        save_path = os.path.join(getdesktopFolder(), filename)
-                        
-                    print('BLah',save_path)
-                    with open(save_path, 'wb') as f:
-                        f.write(file_content)
-
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps({'message': 'File uploaded successfully'}).encode())
-           
-    
-    def do_GET(self):
-        global no, generated_thumbnails
-        # print(no)
-        if self.path == "/api/getpathinfo":
-            request_path=self.getRequestBody('path')
-            if (request_path == None):
-                return
-            elif (request_path == 'Home'):
-              request_path = getHomePath()
-            
             try:
-                path_list:list[str] =os.listdir(request_path)
-                dir_info=[]
-                videos_paths=[]
-                
-                for each in path_list:
-                    thumbnail_url=''
-                    thumbnail_path=''
-                    each_path=os.path.join(request_path,each)
-                    is_dir=os.path.isdir(each_path)
-                    img_source=None
-                    format_=getFileExtension(each).lower()
+                content_length = int(self.headers['Content-Length'])
+                data = self.rfile.read(content_length)
+                boundary = self.headers['Content-Type'].split('=')[1].encode()
+                parts = data.split(boundary)
+                save_path = None
 
-                    if is_dir:
-                        if each.lower() in special_folders:
-                            img_source=f"assets/icons/folders/{each.lower()}.png"
-                        else:
-                            img_source="assets/icons/folders/folder.png"
-                            
-                    elif each.lower().endswith(picture_formats):
-                        print('Debugging if No Dot in front of path remove removeFirstDot function from url toss\n',each_path)
-                        img_url=urlSafePath(removeFirstDot(each_path) )
-                        print('Fixing Image problem Windows problem',img_url)
-                        img_source=f"http://{SERVER_IP}:8000{img_url}"
+                for part in parts:
+                    if b'name="save_path"' in part:
+                        save_path = part.split(b'\r\n\r\n')[1].strip(b'\r\n--').decode()
+                    elif b'filename=' in part:
+                        filename = part.split(b'filename="')[1].split(b'"')[0].decode()
+                        file_content = part.split(b'\r\n\r\n')[1].strip(b'\r\n--')
+                        save_path = os.path.join(getHomePath() if save_path == 'Home' else getdesktopFolder(), filename)
+                        with open(save_path, 'wb') as f:
+                            f.write(file_content)
 
-                    elif format_ in my_owned_icons:
-                        img_source=f"assets/icons/{format_[1:]}.png"
-
-                    elif format_ in zip_formats:
-                        img_source=f"assets/icons/packed.png"
-
-                    elif each.lower().endswith(video_formats):
-                        image_path = gen_unique_filname(each_path)
-                        thumbnail_path = os.path.join(getAppFolder(),'thumbnails',image_path+'.jpg')
-                        
-                        formatted_path_4_url=urlSafePath(removeFirstDot(thumbnail_path))
-                        thumbnail_url=f"http://{SERVER_IP}:8000{formatted_path_4_url}"
-                        
-                        img_source="assets/icons/video.png" 
-                        if each_path not in generated_thumbnails:
-                            generated_thumbnails.append(each_path)
-                            videos_paths.append(each_path)
-                    elif each.lower().endswith(audio_formats):
-                        img_source="assets/icons/audio.png"                    
-                    else:
-                        img_source="assets/icons/file.png"                    
-
-                    cur_obj={
-                        'text':each,
-                        'path':each_path,
-                        'is_dir':is_dir,'icon':img_source,
-                        'thumbnail_url':thumbnail_url,
-                        'thumbnail_path':thumbnail_path,
-                        'validated_path':False,
-                        # 'size':os.path.getsize(each_path),
-                        
-                        
-                        }
-                    dir_info.append(cur_obj)
-                
-                
-                dir_info=sortedDir(dir_info)
-                response_data={'data':dir_info}
-                
-                if len(videos_paths):
-                    th=threading.Thread(target=generateThumbnails,args=(videos_paths, os.path.join(getAppFolder(),'thumbnails'),1,10))
-                    th.daemon = True
-                    th.start()
-                self.wfile.write(json.dumps(response_data).encode("utf-8"))
-                print('Handled -----',no,' Requests')
-                
-                
-                
+                self._send_json_response({'message': 'File uploaded successfully'})
             except Exception as e:
-                writeErrorLog('Opening folder Error',traceback.format_exc())
-                self.send_response(400)
-                self.send_header("Content-type", "application/json")
-                self.end_headers()
-                self.wfile.write(json.dumps({'error':type(e).__name__}).encode("utf-8"))
+                writeErrorLog('File Upload Error', traceback.format_exc())
+                self._send_json_response({'error': str(e)}, status=400)
 
-        elif self.path == "/api/isdir":
-            request_path=self.getRequestBody('path')
-            if (request_path != None):
-                if (request_path == 'Home'):
-                    request_path = getHomePath()
-                self.wfile.write(json.dumps({'data':os.path.isdir(request_path)}).encode("utf-8"))
-            
-        elif self.path == "/api/isfile":
-            request_path=self.getRequestBody('path')
-            if (request_path != None):
-                self.wfile.write(json.dumps({'data':os.path.isfile(request_path)}).encode("utf-8"))
-            
-            
-        elif self.path == "/ping":
-            res=self.getRequestBody('passcode')
-            if res == '08112321825':
-                self.wfile.write(json.dumps({'data':getUserPCName()}).encode("utf-8"))
-                        
-        elif self.path == "/test":
-            # content_length = int(self.headers['Content-Length'])    # This will be None when no path requested (i.e no json= in request)
-            self.send_response(200)
-            self.send_header("Content-type", "application/json")
-            self.end_headers()
-            # if res == '08112321825':
-            self.wfile.write(json.dumps({'data':"Laner FT Running"}).encode("utf-8"))
-        else:
-            # writeErrorLog('Bad Password Error','Fizz')
-            print("Dev TODO -----|Block server Root")
-            self.send_response(404)
-            self.send_header("Content-type", "application/json")
-            self.end_headers()
-            # super().do_GET()
-        no+=1
-    def getRequestBody(self,request_key):
-        content_length = int(self.headers['Content-Length'])    # This will be None when no path requested (i.e no json= in request)
-        request_data = self.rfile.read(content_length)
+    def do_GET(self):
+        """Handle GET requests for various API endpoints."""
+        global REQUEST_COUNT, GENERATED_THUMBNAILS
+
         try:
-            request_path=json.loads(request_data)[request_key]
-            self.send_response(200)
-            self.send_header("Content-type", "application/json")
-            self.end_headers()
-            return request_path
-        except Exception as e:
-            self.send_response(400)
-            self.send_header("Content-type", "application/json")
-            self.end_headers()
-            self.wfile.write(json.dumps({'error': type(e).__name__ }).encode("utf-8"))
+            if self.path == "/api/getpathinfo":
+                request_path = self._get_request_body('path')
+                if request_path == 'Home':
+                    request_path = getHomePath()
 
+                dir_info = []
+                self.video_paths = []
+
+                for each in os.listdir(request_path):
+                    each_path = os.path.join(request_path, each)
+                    is_dir = os.path.isdir(each_path)
+                    format_ = getFileExtension(each).lower()
+                    img_source, thumbnail_url = self._get_file_icon(each, each_path, is_dir, format_)
+
+                    cur_obj = {
+                        'text': each,
+                        'path': each_path,
+                        'is_dir': is_dir,
+                        'icon': img_source,
+                        'thumbnail_url': thumbnail_url,
+                        'validated_path': False
+                    }
+                    dir_info.append(cur_obj)
+
+                dir_info = sortedDir(dir_info)
+                self._send_json_response({'data': dir_info})
+
+                if self.video_paths:
+                    threading.Thread(
+                        target=generateThumbnails,
+                        args=(self.video_paths, os.path.join(getAppFolder(), 'thumbnails'), 1, 10),
+                        daemon=True
+                    ).start()
+
+            elif self.path == "/api/isdir":
+                self._send_json_response({'data': os.path.isdir(self.parseMyPath())})
+            elif self.path == "/api/isfile":
+                self._send_json_response({'data': os.path.isfile(self.parseMyPath())})
+            elif self.path == "/ping":
+                self._send_json_response({'data': getUserPCName()})
+            else:
+                super().do_GET()
+                
+                # self.send_error(404, "Endpoint not found.")
+        except Exception as e:
+            writeErrorLog('Request Handling Error', traceback.format_exc())
+            self._send_json_response({'error': str(e)}, status=400)
+
+        REQUEST_COUNT += 1
+    def parseMyPath(self):
+        """ Takes unreal_path from app and format to real path eg Home --> ~ Home :) TODO Remove this"""
+        app_requested_path=self._get_request_body('path')
+        return getHomePath() if app_requested_path == 'Home' else app_requested_path
+        
+    def _get_request_body(self, key):
+        """Parses JSON from the request body."""
+        content_length = int(self.headers['Content-Length'])
+        request_data = self.rfile.read(content_length)
+        print('Why',json.loads(request_data).get(key))
+        return json.loads(request_data).get(key)
+
+    def _send_json_response(self, data, status=200):
+        """Sends a JSON response."""
+        self.send_response(status)
+        self.send_header('Content-Type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps(data).encode('utf-8'))
+
+    def _get_file_icon(self, name, path, is_dir, format_):
+        """Returns appropriate icon and thumbnail based on file type."""
+        if is_dir:
+            return f"assets/icons/folders/{name.lower()}.png" if name.lower() in SPECIAL_FOLDERS else "assets/icons/folders/folder.png", ''
+        elif format_ in MY_OWNED_ICONS:
+            return f"assets/icons/{format_[1:]}.png", ''
+        elif format_ in ZIP_FORMATS:
+            return "assets/icons/packed.png", ''
+        elif format_ in VIDEO_FORMATS:
+            self.video_paths.append(path)
+            thumbnail_path = os.path.join(getAppFolder(),'thumbnails',gen_unique_filname(path)+'.jpg')
+            formatted_path_4_url=urlSafePath(removeFirstDot(thumbnail_path))
+            print(f"http://{SERVER_IP}:8000/{formatted_path_4_url}")
+            return "assets/icons/video.png", f"http://{SERVER_IP}:8000/{formatted_path_4_url}"
+        elif format_ in AUDIO_FORMATS:
+            return "assets/icons/audio.png", ''
+        elif format_ in PICTURE_FORMATS:
+            return f"http://{SERVER_IP}:8000/{urlSafePath(path)}", ''
+        return "assets/icons/file.png", ''
+
+
+# 🚀 **Server Class**
 class FileSharingServer:
     def __init__(self, ip, port=8000, directory="/"):
         self.ip = ip
         self.port = port
         self.directory = directory
-        self.server = None
-        self.server_thread = None
-        makeFolder(os.path.join(getAppFolder(),'thumbnails'))
-    
+        makeFolder(os.path.join(getAppFolder(), 'thumbnails'))
+
     def start(self):
         global SERVER_IP
         SERVER_IP = self.ip
-        
         os.chdir(self.directory)
 
-        # Create the HTTP server
-        self.server =None
-        
-        ports =  [
-                    8080, 9090, 10000, 11000, 12000, 13000, 14000, 
-                    15000, 16000, 17000, 18000, 19000,
-                    20000, 22000, 23000, 24000, 26000,
-                    27000, 28000, 29000, 30000
-                ]
-        if self.port in ports:
-            ports.remove(self.port)
-        ports.insert(0,self.port)
-        
-        for port in ports:
-            try:
-                # Attempt to start the server on the current port
-                self.server = ThreadingHTTPServer((self.ip, port), CustomHandler)
-                print(f"Server running on port {port}")
-                self.port=port
-                break  # Exit the loop if the server starts successfully
-            except OSError:
-                print(f"Port {port} is unavailable, trying the next one...")
-            except Exception as e:
-                print(f"Error: {e}")
-        # else:
-        #     print("All specified ports are in use. Please free up a port and try again.")
-        
-        
-        
-        
-        # Start the server in a separate thread
-        self.server_thread = threading.Thread(target=self.server.serve_forever)
-        self.server_thread.daemon = True
-        self.server_thread.start()
-
+        self.server = ThreadingHTTPServer((self.ip, self.port), CustomHandler)
+        threading.Thread(target=self.server.serve_forever, daemon=True).start()
         print(f"Server started at http://{SERVER_IP}:{self.port}")
-        print(f"API endpoint available at http://{SERVER_IP}:{self.port}/api/getpathinfo")
 
     def stop(self):
-        if self.server:
-            self.server.shutdown()
-            self.server.server_close()
-            self.server_thread.join()
-            print("Server stopped.")
+        self.server.shutdown()
+        self.server.server_close()
+        print("Server stopped.")
 
 # if __name__ == "__main__":
 #     # Specify the port and directory
