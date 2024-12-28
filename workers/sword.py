@@ -71,7 +71,7 @@ class NetworkManager:
 
     def _get_windows_ip(self) -> Optional[str]:
         """Get IP on Windows systems"""
-        result = subprocess.run(['ipconfig'], capture_output=True, text=True)
+        result = subprocess.run(['ipconfig'], capture_output=True, text=True, shell=True,creationflags=subprocess.CREATE_NO_WINDOW)
         pattern = re.compile(r'IPv4.*?:\s*([\d.]+)')
         
         ips = [ip for ip in pattern.findall(result.stdout) 
