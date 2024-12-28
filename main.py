@@ -259,10 +259,10 @@ class FileShareApp(QMainWindow):
     def open_settings(self):
         self.stacked_widget.setCurrentWidget(self.settings_screen)
 
-    # def closeEvent(self, event):
-    #     print('peek', event)
-    #     self.hide()
-    #     event.ignore()
+    def closeEvent(self, event):
+        print('peek', event)
+        self.hide()
+        event.ignore()
 
 
 if __name__ == "__main__":
