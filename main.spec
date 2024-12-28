@@ -1,6 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-debugging=True
+debugging=False
 
 
 import os

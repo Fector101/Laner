@@ -43,7 +43,7 @@ class NetworkManager:
         ip = self._get_ip_from_commands(os_name)
         if ip:
             return ip
-            
+        print("Dev using netifaces")
         # Fallback to netifaces
         return self._get_ip_from_netifaces()
 
@@ -84,24 +84,29 @@ class NetworkManager:
         try:
             for iface in netifaces.interfaces():
                 # Prioritize wireless/ethernet
+                print('Dev see face',iface)
                 if iface.startswith(('wl', 'en')):
                     ip = self._get_interface_ip(iface)
                     if ip:
                         return ip
                         
             # Try other interfaces
-            for iface in netifaces.interfaces():
-                ip = self._get_interface_ip(iface)
-                if ip:
-                    return ip
+            print('Trying Something apart from Wireless')
+            return None
+            # for iface in netifaces.interfaces():
+            #     ip = self._get_interface_ip(iface)
+            #     if ip:
+            #         return ip
                     
         except Exception:
+            print("Dev neatifaces main failed")
             return None
 
     def _get_interface_ip(self, iface: str) -> Optional[str]:
         """Get IP from specific interface"""
         addrs = netifaces.ifaddresses(iface)
         if netifaces.AF_INET in addrs:
+            # print(addrs,'\n',netifaces.AF_INET,'\n','addrs netfaces')
             for addr in addrs[netifaces.AF_INET]:
                 ip = addr['addr']
                 if ip and not ip.startswith('127.'):
