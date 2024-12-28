@@ -2,7 +2,7 @@ import sys, os
 import threading
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QVBoxLayout, QLabel, QPushButton, QWidget,QHBoxLayout,
-    QSystemTrayIcon, QMenu, QAction, QDialog, QFormLayout, QLineEdit, QStackedWidget
+    QSystemTrayIcon, QMenu, QAction, QDialog, QFormLayout, QLineEdit, QStackedWidget,QSpinBox
 )
 from PyQt5.QtGui import QFont, QIcon
 from PyQt5 import QtGui
@@ -47,7 +47,10 @@ class SettingsScreen(QWidget):
         port_title.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
 
         # Create and style port value label
-        self.port_label = QLabel(self.parent.port if self.parent.port else "Server not running")
+        self.port_label = QSpinBox()
+        #(self.parent.port if self.parent.port else "Server not running")
+        self.port_label.setRange(0,30000)
+        self.port_label.setValue(8000)
         self.port_label.setFont(QFont("Arial", 18))
         self.port_label.setStyleSheet("color: gray;")
         self.port_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
@@ -212,17 +215,20 @@ class FileShareApp(QMainWindow):
     def run_server(self, port):
         # Initialize the server
         try:
-            self.server = FileSharingServer(port=port,ip=self.ip, directory= '/')
+            self.port=self.settings_screen.port_label.value()
+            self.server = FileSharingServer(port=self.port,ip=self.ip, directory= '/')
             # Start the server
             self.server.start()
             self.port=self.server.port # if args port unavailable Class will return a new port
-            self.settings_screen.port_label.setText(str(self.port))
+            self.settings_screen.port_label.setValue(self.port)
             
             print("Press Ctrl+C to stop the server.")
         except KeyboardInterrupt:
             # Stop the server on Ctrl+C
             print("\nStopping the server...")
             self.server.stop()
+        except Exception as e:
+            print("See uncaught Errors on App main Thread: ",e)
 
     def on_stop(self):
         self.main_screen.hint_message.setText("Goodbye!")

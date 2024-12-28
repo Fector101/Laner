@@ -1,10 +1,8 @@
 from http.server import SimpleHTTPRequestHandler, HTTPServer
-import os
-import json
-import threading
+from socketserver import ThreadingMixIn
+import os,sys,json,threading,traceback
 
 from workers.helper import gen_unique_filname, getAppFolder, getFileExtension, getHomePath, getdesktopFolder, makeFolder, removeFileExtension, getUserPCName,removeFirstDot, sortedDir, urlSafePath
-from workers.sword import NetworkManager
 from workers.thumbmailGen import generateThumbnails
 
 
@@ -20,8 +18,19 @@ SERVER_IP = None
 no = 1
 
 generated_thumbnails=[]
+
+def writeErrorLog(title,value):
+    desktop_errorlog_path = os.path.join(getAppFolder(),'errors.txt')
+    with open(desktop_errorlog_path,'a') as log_file:
+        log_file.write(f'====== {title} LOG101 ====\n')
+        log_file.write(f'====== log output {value} ====\n')
+        log_file.write('\n')
+
+writeErrorLog('sys.stderr is ',sys.stderr)
+log_path = os.path.join(getAppFolder(),'errors.log')
+if sys.stderr is None: #    When complied to onefile in Windows sys.stderr is select to None
+    sys.stderr=open(log_path, 'at')
     
-from socketserver import ThreadingMixIn
 class ThreadingHTTPServer(ThreadingMixIn, HTTPServer):
     pass
 
@@ -153,6 +162,7 @@ class CustomHandler(SimpleHTTPRequestHandler):
                 
                 
             except Exception as e:
+                writeErrorLog('Opening folder Error',traceback.format_exc())
                 self.send_response(400)
                 self.send_header("Content-type", "application/json")
                 self.end_headers()
@@ -175,8 +185,21 @@ class CustomHandler(SimpleHTTPRequestHandler):
             res=self.getRequestBody('passcode')
             if res == '08112321825':
                 self.wfile.write(json.dumps({'data':getUserPCName()}).encode("utf-8"))
+                        
+        elif self.path == "/test":
+            # content_length = int(self.headers['Content-Length'])    # This will be None when no path requested (i.e no json= in request)
+            self.send_response(200)
+            self.send_header("Content-type", "application/json")
+            self.end_headers()
+            # if res == '08112321825':
+            self.wfile.write(json.dumps({'data':"Laner FT Running"}).encode("utf-8"))
         else:
-            super().do_GET()
+            # writeErrorLog('Bad Password Error','Fizz')
+            print("Dev TODO -----|Block server Root")
+            self.send_response(404)
+            self.send_header("Content-type", "application/json")
+            self.end_headers()
+            # super().do_GET()
         no+=1
     def getRequestBody(self,request_key):
         content_length = int(self.headers['Content-Length'])    # This will be None when no path requested (i.e no json= in request)
@@ -212,16 +235,19 @@ class FileSharingServer:
         self.server =None
         
         ports =  [
-                    8000, 8080, 9090, 10000, 11000, 12000, 13000, 14000, 
+                    8080, 9090, 10000, 11000, 12000, 13000, 14000, 
                     15000, 16000, 17000, 18000, 19000,
                     20000, 22000, 23000, 24000, 26000,
                     27000, 28000, 29000, 30000
                 ]
-
+        if self.port in ports:
+            ports.remove(self.port)
+        ports.insert(0,self.port)
+        
         for port in ports:
             try:
                 # Attempt to start the server on the current port
-                self.server = ThreadingHTTPServer(("", port), CustomHandler)
+                self.server = ThreadingHTTPServer((self.ip, port), CustomHandler)
                 print(f"Server running on port {port}")
                 self.port=port
                 break  # Exit the loop if the server starts successfully
