@@ -51,27 +51,29 @@ class CustomHandler(SimpleHTTPRequestHandler):
     def do_POST(self):
         """Handle POST requests for file uploads."""
         global REQUEST_COUNT
-
+        print("Doing Post")
         if self.path == "/api/upload":
             try:
                 content_length = int(self.headers['Content-Length'])
                 data = self.rfile.read(content_length)
                 boundary = self.headers['Content-Type'].split('=')[1].encode()
-                parts = data.split(boundary)
+                parts = data.split(boundary) #
                 save_path = None
-
+                folder_path = getdesktopFolder()
                 for part in parts:
+                    print("A Path-----| ",part)
                     if b'name="save_path"' in part:
-                        save_path = part.split(b'\r\n\r\n')[1].strip(b'\r\n--').decode()
-                    elif b'filename=' in part:
+                        folder_path = part.split(b'\r\n\r\n')[1].strip(b'\r\n--').decode()                    
+                    if b'filename=' in part:
                         filename = part.split(b'filename="')[1].split(b'"')[0].decode()
                         file_content = part.split(b'\r\n\r\n')[1].strip(b'\r\n--')
-                        save_path = os.path.join(getHomePath() if save_path == 'Home' else getdesktopFolder(), filename)
+                        save_path = os.path.join(folder_path, filename)
                         with open(save_path, 'wb') as f:
                             f.write(file_content)
-
+                print("File Upload Successful ",save_path)
                 self._send_json_response({'message': 'File uploaded successfully'})
             except Exception as e:
+                print("File Upload Error ", e)
                 writeErrorLog('File Upload Error', traceback.format_exc())
                 self._send_json_response({'error': str(e)}, status=400)
 
