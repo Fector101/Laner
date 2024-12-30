@@ -915,9 +915,9 @@ class Laner(MDApp):
         viewport_size=getViewPortSize()
         y= Window.height - viewport_size[1] - getStatusBarHeight()
         print("Working Y-axis",y)
-        root_screen = MDScreen(size_hint=[None, None], size=viewport_size)
+        self.root_screen = MDScreen(size_hint=[None, None], size=viewport_size)
         if DEVICE_TYPE == "mobile":
-            root_screen.y=y
+            self.root_screen.y=y
         # root_screen = MDScreen(size_hint=[None, None], size=getAndroidSize(),pos_hint={'top':1})
         nav_layout = MDNavigationLayout__()
         
@@ -925,7 +925,7 @@ class Laner(MDApp):
         self.my_screen_manager = WindowManager(self.btm_sheet)
         self.bottom_navigation_bar = BottomNavigationBar(self.my_screen_manager)
         
-        self.my_screen_manager.height=viewport_size[1] - self.bottom_navigation_bar.height -1
+        self.my_screen_manager.height=viewport_size[1] - self.bottom_navigation_bar.height +2
         print('What app see\'s as window height',Window.height)
         print('BTM NAV Height',self.bottom_navigation_bar.height)
         
@@ -933,12 +933,15 @@ class Laner(MDApp):
         nav_layout.add_widget(self.bottom_navigation_bar)
         nav_layout.add_widget(self.btm_sheet)
         
-        root_screen.add_widget(nav_layout)
-        return root_screen
+        self.root_screen.add_widget(nav_layout)
+        Window.autosize=True
+        return self.root_screen
     def on_resize(self, *args):
-        screen_height=getViewPortSize()[1]
+        screen_size=getViewPortSize()
+        screen_height=screen_size[1]
         
-        # self.my_screen_manager.height=screen_height - self.bottom_navigation_bar.height -1
+        self.root_screen.size=screen_size
+        self.my_screen_manager.height=screen_height - self.bottom_navigation_bar.height +2
         btm_nav_btns=self.bottom_navigation_bar.children if isinstance(self.bottom_navigation_bar.children[0],TabButton) else []
         for btn in btm_nav_btns:
             btn.width=Window.width/3
