@@ -243,36 +243,26 @@ def getAndroidBounds():
     print(f"DPI: {metrics.densityDpi}")
 try:
   from jnius import autoclass
+  PythonActivity = autoclass('org.kivy.android.PythonActivity')
+  Context = PythonActivity.mActivity
+  
+  
 except:...
 def getViewPortSize():
   try:
-      PythonActivity = autoclass('org.kivy.android.PythonActivity')
-      Context = PythonActivity.mActivity
-
-      # Get system service for WindowManager
-      PythonActivity = autoclass('org.kivy.android.PythonActivity')
-
-
       # Create a DisplayMetrics instance and populate it
       Rect=autoclass('android.graphics.Rect')
       rect=Rect()
       Context.window.getDecorView().getWindowVisibleDisplayFrame(rect)
       print("My ViewPort: ","height ",rect.height(), " width ",rect.width())
-      
       return [rect.width(),rect.height()]
   except Exception as e:
-    print("Not Android")
     from kivy.core.window import Window
-    # return [Window.width,300]
     return [Window.width,Window.height]
 def getStatusBarHeight():
-  
-  PythonActivity = autoclass('org.kivy.android.PythonActivity')
-  Context = PythonActivity.mActivity
-
   # Create a DisplayMetrics instance and populate it
-  resources = Context.getResources()
   try:
+      resources = Context.getResources()
       resources_id=resources.getIdentifier("status_bar_height", "dimen", "android")
       height=resources.getDimensionPixelSize(resources_id)
       print("Status Bar Height: ",height)  #68
