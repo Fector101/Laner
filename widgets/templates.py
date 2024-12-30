@@ -19,7 +19,7 @@ from pathlib import Path
 from plyer import filechooser
 
 from widgets.popup import PopupDialog,Snackbar
-from workers.helper import THEME_COLOR_TUPLE, is_wine, makeDownloadFolder, truncateStr,getHiddenFilesDisplay_State, wine_path_to_unix
+from workers.helper import THEME_COLOR_TUPLE, is_wine, makeDownloadFolder, truncateStr,getHiddenFilesDisplay_State, wine_path_to_unix,getAppFolder
 from workers.sword import Settings
 
 # TODO Fix get app folder worker/helper.py returning app folder as /Laner/workers/
@@ -32,22 +32,7 @@ try:
 except Exception as e:
     print(e,"Failed ------------------- Notification")
 
-def getAppFolder1():
-    """
-    Returns the correct application folder path, whether running on native Windows,
-    Wine, or directly in Linux.
-    """
-    if hasattr(sys, "_MEIPASS"):
-        # PyInstaller creates a temp folder (_MEIPASS)
-        path__ = os.path.abspath(sys._MEIPASS)
-    else:
-        # Running from source code
-        path__ = os.path.abspath(os.path.dirname(__file__))
-        
-    if is_wine():
-        path__ = wine_path_to_unix(path__)
-    return path__
-with open(os.path.join(getAppFolder1(),"templates.kv"), encoding="utf-8") as kv_file:
+with open(os.path.join(getAppFolder(),"widgets","templates.kv"), encoding="utf-8") as kv_file:
     Builder.load_string(kv_file.read(), filename="MyBtmSheet.kv")
 
 
@@ -195,7 +180,7 @@ class RV(RecycleView):
                 print("Android Toast Error: ", e)
             Clock.schedule_once(lambda dt: screen.startSetPathInfo_Thread())
         
-        
+import shutil
         
 async def async_download_file(url, save_path):
     try:
@@ -207,7 +192,12 @@ async def async_download_file(url, save_path):
             file.write(response.content)
         try:
             from android_notify.core import send_notification
-            send_notification("Completed download", file_name)
+            PICTURE_FORMATS = ('.png', '.jpg', '.jpeg', '.tif', '.bmp', '.gif')
+            if os.path.splitext(file_name)[1] in PICTURE_FORMATS:
+                shutil.copy(save_path, os.path.join(getAppFolder(), 'assets', 'imgs', file_name))
+                send_notification("Completed download", file_name, style="large_icon", img_path=save_path)
+            else:
+                send_notification("Completed download", file_name)
         except Exception as e:
             print(e,"Failed sending Notification")
             pass
