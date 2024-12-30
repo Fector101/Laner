@@ -1,0 +1,52 @@
+# /home/fabian/Documents/my-projects-code/mobile-dev/Laner/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/bootstrap_builds/sdl2/jni/SDL2_image/.gitmodules
+# Folder to clone in "/home/fabian/Documents/my-projects-code/mobile-dev/Laner/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/bootstrap_builds/sdl2/jni/SDL2_image/external"
+
+[submodule "external/jpeg"]
+	path = external/jpeg
+	url = https://github.com/libsdl-org/jpeg.git
+	branch = v9e-SDL
+
+
+[submodule "external/libpng"]
+	path = external/libpng
+	url = https://github.com/libsdl-org/libpng.git
+	branch = v1.6.40-SDL
+
+# git clone --branch 1.0.3-SDL git@github.com:libsdl-org/libwebp.git && git clone --branch v4.2.0-SDL git@github.com:libsdl-org/libtiff.git 
+# git clone --branch v1.3-SDL git@github.com:libsdl-org/zlib.git && git clone --branch v0.6.1-SDL git@github.com:libsdl-org/libjxl.git
+# git clone --branch v1.0.2-SDL git@github.com:libsdl-org/libavif.git && git clone --branch 1.2.1-SDL git@github.com:libsdl-org/dav1d.git
+[submodule "external/libwebp"]
+	path = external/libwebp
+	url = https://github.com/libsdl-org/libwebp.git
+	branch = 1.0.3-SDL
+
+# git clone --branch v4.2.0-SDL git@github.com:libsdl-org/libtiff.git	
+[submodule "external/libtiff"]
+	path = external/libtiff
+	url = https://github.com/libsdl-org/libtiff.git
+	branch = v4.2.0-SDL
+
+# git clone --branch v1.3-SDL git@github.com:libsdl-org/zlib.git
+[submodule "external/zlib"]
+	path = external/zlib
+	url = https://github.com/libsdl-org/zlib.git
+	branch = v1.3-SDL
+
+# git clone --branch v0.6.1-SDL git@github.com:libsdl-org/libjxl.git
+[submodule "external/libjxl"]
+	path = external/libjxl
+	url = https://github.com/libsdl-org/libjxl.git
+	branch = v0.6.1-SDL
+
+# git clone --branch v1.0.2-SDL git@github.com:libsdl-org/libavif.git
+[submodule "external/libavif"]
+	path = external/libavif
+	url = https://github.com/libsdl-org/libavif.git
+	branch = v1.0.2-SDL
+
+# git clone --branch 1.2.1-SDL git@github.com:libsdl-org/dav1d.git
+[submodule "external/dav1d"]
+	path = external/dav1d
+	url = https://github.com/libsdl-org/dav1d.git
+	branch = 1.2.1-SDL
+
