@@ -4,7 +4,7 @@ try:
     getAndroidBounds()    
 except Exception as e:
     print(Window.height,Window.width)
-    print("Gettting getAndroidBounds Failed", e)
+    print("Gettting getAndroidBounds Failed")
 
 
 # For Dev
@@ -209,12 +209,14 @@ class WindowManager(MDScreenManager):
         self.size_hint=[1,None]
         self.size_hint_y=None
         self.app:Laner=MDApp.get_running_app()
-        print('BTM NAV Height',self.app.btm_sheet.height)
-        print('What app see\'s as window height',Window.height)
-        self.height=Window.height-self.app.btm_sheet.height   # Bottom nav height
-        self.pos_hint={'top': 1.02}
+        # print('BTM NAV Height',self.app.bottom_navigation_bar)
+        # print('What app see\'s as window height',Window.height)
+        
+        # self.height=getViewPortSize()[1]-self.app.bottom_navigation_bar.height   # Bottom nav height
+        # self.height=Window.height-self.app.bottom_navigation_bar.height   # Bottom nav height
+        self.pos_hint={'top': 1}
         # self.height=Window.height-sp(68) 
-        print("Unsetted height ",self.height)
+        # print("Unsetted height ",self.height)
         # Set theme colors and properties
         # self.theme_cls = MDApp.get_running_app().theme_cls
         # self.theme_cls.primaryColor = [1, 1, 1, 1]
@@ -380,7 +382,7 @@ class BottomNavigationBar(MDNavigationDrawer):
         self.spacing=0
         # self.md_bg_color = (.1, 1, 0, .5)
         # self.md_bg_color = (.1, .1, .1, 1)
-        self.pos=[0,0]
+        self.pos=[0,-1]
 
         for index in range(len(icons)):
             self.btn = TabButton(
@@ -609,7 +611,7 @@ class SettingsScreen(MDScreen):
             {"type": "switch", "switch_state": False, "title": "Show Hidden Files", "callback": self.on_checkbox_active},
             {"type": "switch", "switch_state": True if MDApp.get_running_app().get_stored_theme() == 'Dark' else False, "title": "Dark Mode", "callback": self.toggle_theme}
         ])
-        print('Saved theme',self.app.get_stored_theme())
+        
         self.add_category("Storage", [
             {"type": "button", 'id':'clear_btn', "title": "Clear Cache", "callback": self.clear_cache},
             {"type": "info", "title": "Storage Used", "value": "Calculate storage"}
@@ -678,7 +680,6 @@ class SettingsScreen(MDScreen):
                 item_layout.add_widget(item["widget"])
 
             elif item["type"] == "button":
-                print('Button',item['title'])
                 btn = MDTextButton(
                     text=item["title"],
                     size_hint=[None, None],
@@ -826,10 +827,10 @@ class SettingsScreen(MDScreen):
                 
                 Snackbar(h1="Verification Successfull")
             else:
-                self.app.bottom_navigation_bar.y=dp(int(ip_input.text))
                 Snackbar(h1="Bad Code check 'Laner PC' for right one")
 
         except Exception as e:
+            self.app.bottom_navigation_bar.y=dp(int( ip_input.text if ip_input.text else '0'))
             print("here---|",e)
             Snackbar(h1="Bad Code check \"Laner PC\" for right one")
 
@@ -861,9 +862,9 @@ class MDNavigationLayout__(MDNavigationLayout):
 class Laner(MDApp):
     # android_app = autoclass('android.app.Application')pls checkout
     
-    btm_sheet = ''
+    bottom_navigation_bar=ObjectProperty()
+    btm_sheet = ObjectProperty()
     settings = Settings()
-    
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # Default theme settings
@@ -927,6 +928,7 @@ class Laner(MDApp):
         self.title = 'Laner'
         self.theme_cls.theme_style = self.get_stored_theme()
         self.theme_cls.primary_palette = "White"
+        Window.bind(size=self.on_resize)
         # self.theme_cls.accent_palette = "Blue"
         
         # self.theme_cls.backgroundColor = THEME_COLOR_TUPLE
@@ -935,13 +937,22 @@ class Laner(MDApp):
         # self.theme_cls.material_style = "M3"
         # self.theme_cls.primary_hue = "500"
         # self.theme_cls.accent_hue = "500"
-        
-        root_screen = MDScreen()
+        viewport_size=getViewPortSize()
+        y= Window.height - viewport_size[1] - getStatusBarHeight()
+        print("Yyyyyyyyyyyyyyyyy",y)
+        root_screen = MDScreen(size_hint=[None, None], size=viewport_size)
+        if DEVICE_TYPE == "mobile":
+            root_screen.y=y
+        # root_screen = MDScreen(size_hint=[None, None], size=getAndroidSize(),pos_hint={'top':1})
         nav_layout = MDNavigationLayout__()
         
         self.btm_sheet = MyBtmSheet()
         self.my_screen_manager = WindowManager(self.btm_sheet)
         self.bottom_navigation_bar = BottomNavigationBar(self.my_screen_manager)
+        
+        self.my_screen_manager.height=viewport_size[1] - self.bottom_navigation_bar.height
+        print('What app see\'s as window height',Window.height)
+        print('BTM NAV Height',self.bottom_navigation_bar.height)
         
         nav_layout.add_widget(self.my_screen_manager)
         nav_layout.add_widget(self.bottom_navigation_bar)
@@ -949,7 +960,17 @@ class Laner(MDApp):
         
         root_screen.add_widget(nav_layout)
         return root_screen
-
+    def on_resize(self, *args):
+        screen_height=getViewPortSize()[1]
+        
+        self.my_screen_manager.height=screen_height - self.bottom_navigation_bar.height+1
+        btm_nav_btns=self.bottom_navigation_bar.children if isinstance(self.bottom_navigation_bar.children[0],TabButton) else []
+        for btn in btm_nav_btns:
+            btn.width=Window.width/3
+        # self.bottom_navigation_bar.children
+        
+        print('What app see\'s as window height',Window.height)
+        print('BTM NAV Height',self.bottom_navigation_bar.height)
 if __name__ == '__main__':
     Laner().run()
 
