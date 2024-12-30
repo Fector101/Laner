@@ -34,8 +34,21 @@ from plyer import filechooser
 
 from widgets.popup import Snackbar
 from widgets.templates import CustomDropDown, DetailsLabel, DisplayFolderScreen, Header, MDTextButton
-from workers.helper import THEME_COLOR_TUPLE, get_full_class_name, makeDownloadFolder, setHiddenFilesDisplay,getAndroidBounds
+from workers.helper import THEME_COLOR_TUPLE, get_full_class_name, makeDownloadFolder, setHiddenFilesDisplay,getAndroidBounds,getViewPortSize,getStatusBarHeight
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
 
 from workers.sword import NetworkManager, Settings
+
+# Window.size = getAndroidSize()
+# try:
+#     FLAG_FULLSCREEN=0x00000400
+#     FLAG_FORCE_NOT_FULLSCREEN=0x00000800
+#     from jnius import autoclass
+#     PythonActivity = autoclass('org.kivy.android.PythonActivity')
+#     activity = PythonActivity.mActivity
+#     activity.getWindow().clearFlags(FLAG_FORCE_NOT_FULLSCREEN)
+#     activity.getWindow().addFlags(FLAG_FULLSCREEN)
+# except Exception as e:
+#     print('Fullscreen Error: -----| ',e)
+    # print('Fullscreen Error: -----| KIVY_DPI=320 KIVY_METRICS_DENSITY=0.90 python3 main.py --size 360x760',e)
