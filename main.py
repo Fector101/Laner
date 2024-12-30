@@ -735,35 +735,10 @@ class SettingsScreen(MDScreen):
 
         except Exception as e:
             print("Fisrt Noti: ",e)
-        # permissions=[Permission.READ_EXTERNAL_STORAGE,Permission.WRITE_EXTERNAL_STORAGE]
-        # request_permissions(permissions)
 
-    # def test(self):
-    #     def test1(file_path):
-    #         print(file_path,'img path')
-    #         if file_path:
-    #             self.img.source=file_path[0]
-            # from PIL import Image as PILImage
-            # img=PILImage.open(file_path)
-            # file_name=os.path.basename(file_path)
-            # ext_and_name=os.path.splitext(file_name)
-            # new_path=os.path.join('.',f"{ext_and_name[1]}{ext_and_name[0]}")
-            # img.save(new_path,optimize=True,quality=80)
-            # exit_manager()
-            # self.img.reload()
         def exit_manager(path=''):
-            # self.filechooser.close()
             print('exit path------------|',path)
             toast('Toast more profess')
-        # filechooser.open_file(on_selection=test1)
-        
-        # print(self.manager.btm_sheet)#.set_state("toggle")
-        # layout=FloatLayout()
-        # self.filechooser=MDFileManager(exit_manager=exit_manager, select_path=test1)#rootpath=ROOT)
-        # self.filechooser.show(ROOT)
-        # filechooser.bind(on_selection=test1)
-        # layout.add_widget(filechooser)
-        # self.add_widget(layout)
         
     def on_checkbox_active(self,checkbox_instance, value):
         setHiddenFilesDisplay(value)
@@ -939,7 +914,7 @@ class Laner(MDApp):
         # self.theme_cls.accent_hue = "500"
         viewport_size=getViewPortSize()
         y= Window.height - viewport_size[1] - getStatusBarHeight()
-        print("Yyyyyyyyyyyyyyyyy",y)
+        print("Working Y-axis",y)
         root_screen = MDScreen(size_hint=[None, None], size=viewport_size)
         if DEVICE_TYPE == "mobile":
             root_screen.y=y
@@ -950,7 +925,7 @@ class Laner(MDApp):
         self.my_screen_manager = WindowManager(self.btm_sheet)
         self.bottom_navigation_bar = BottomNavigationBar(self.my_screen_manager)
         
-        self.my_screen_manager.height=viewport_size[1] - self.bottom_navigation_bar.height
+        self.my_screen_manager.height=viewport_size[1] - self.bottom_navigation_bar.height -1
         print('What app see\'s as window height',Window.height)
         print('BTM NAV Height',self.bottom_navigation_bar.height)
         
@@ -963,7 +938,7 @@ class Laner(MDApp):
     def on_resize(self, *args):
         screen_height=getViewPortSize()[1]
         
-        self.my_screen_manager.height=screen_height - self.bottom_navigation_bar.height+1
+        # self.my_screen_manager.height=screen_height - self.bottom_navigation_bar.height -1
         btm_nav_btns=self.bottom_navigation_bar.children if isinstance(self.bottom_navigation_bar.children[0],TabButton) else []
         for btn in btm_nav_btns:
             btn.width=Window.width/3
