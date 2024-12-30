@@ -120,8 +120,8 @@ class CustomHandler(SimpleHTTPRequestHandler):
             elif self.path == "/api/isdir":
                 self._send_json_response({'data': os.path.isdir(self.parseMyPath())})
             elif self.path == "/api/isfile":
+                request_path = self._get_request_body('path')
                 is_file=os.path.isfile(request_path)
-                
                 if not is_file:
                     file_abspath=os.path.abspath(request_path)
                     drive=os.path.splitdrive(file_abspath)[0]
