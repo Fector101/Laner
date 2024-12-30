@@ -4,6 +4,8 @@ import json
 import socket
 import sys
 import hashlib
+from kivymd.material_resources import DEVICE_TYPE # if mobile or PC
+
 # import subprocess
 # THEME_COLOR_TUPLE=(.6, .9, .2, 1)
 THEME_COLOR_TUPLE=(.6, .9, .8, 1)
@@ -56,25 +58,43 @@ import platform
 import re
 import shutil
 
+# def getAndroidAppFolder():
+#   from android.storage import app_storage_path # type: ignore
+#   return os.path.join(app_storage_path(),'app')
 
-
+# def getAppFolder1():
+#     """
+#     Returns the correct application folder path, whether running on native Windows,
+#     Wine, or directly in Linux.
+#     """
+#     if hasattr(sys, "_MEIPASS"):
+#         # PyInstaller creates a temp folder (_MEIPASS)
+#         path__ = os.path.abspath(sys._MEIPASS)
+#     else:
+#         # Running from source code
+#         path__ = os.path.abspath(os.path.dirname(__file__))
+        
+#     if is_wine():
+#         path__ = wine_path_to_unix(path__)
+        
 def getAppFolder():
-    """
-    Returns the correct application folder path, whether running on native Windows,
-    Wine, or directly in Linux.
-    """
-    if hasattr(sys, "_MEIPASS"):
-        # PyInstaller creates a temp folder (_MEIPASS)
-        path__ = os.path.abspath(sys._MEIPASS)
-    else:
-        # Running from source code
-        path__ = os.path.abspath(os.path.dirname(__file__))
+  """
+  Returns the correct application folder path, whether running on native Windows,
+  Wine, or directly in Linux.
+  """
+  if hasattr(sys, "_MEIPASS"): # PyInstaller creates a temp folder (_MEIPASS)
+    path__ = os.path.abspath(sys._MEIPASS)
+  elif DEVICE_TYPE == 'mobile':
+    from android.storage import app_storage_path # type: ignore
+    path__= os.path.join(app_storage_path(),'app')
+  else: # Running from source code
+    function_folder_formatted_to_get_app_folder = os.path.join(os.path.dirname(__file__),'..')
+    path__=os.path.abspath(function_folder_formatted_to_get_app_folder)
 
+  if is_wine(): # Uses path from _MEIPASS or source code
     # Normalize path for Wine compatibility
-    if is_wine():
-        path__ = wine_path_to_unix(path__)
-
-    return path__
+    path__ = wine_path_to_unix(path__) 
+  return path__
 
 def is_wine():
     """
@@ -206,6 +226,13 @@ def getAndroidBounds():
 
     # Create a DisplayMetrics instance and populate it
     metrics = DisplayMetrics()
+    
+    Rect=autoclass('android.graphics.Rect')
+    rect=Rect()
+    Context.window.getDecorView().getWindowVisibleDisplayFrame(rect)
+    print("height ",rect.height(), " width ",rect.width())
+    print("Width",rect.right-rect.left, "Height",rect.bottom-rect.top)
+      
     window_manager.getDefaultDisplay().getMetrics(metrics)
 
     # Print DisplayMetrics values
@@ -214,3 +241,49 @@ def getAndroidBounds():
     print(f"Height: {metrics.heightPixels}px")
     print(f"Density: {metrics.density}")
     print(f"DPI: {metrics.densityDpi}")
+try:
+  from jnius import autoclass
+except:...
+def getViewPortSize():
+  try:
+      PythonActivity = autoclass('org.kivy.android.PythonActivity')
+      Context = PythonActivity.mActivity
+
+      # Get system service for WindowManager
+      PythonActivity = autoclass('org.kivy.android.PythonActivity')
+
+
+      # Create a DisplayMetrics instance and populate it
+      Rect=autoclass('android.graphics.Rect')
+      rect=Rect()
+      Context.window.getDecorView().getWindowVisibleDisplayFrame(rect)
+      print("My ViewPort: ","height ",rect.height(), " width ",rect.width())
+      
+      return [rect.width(),rect.height()]
+  except Exception as e:
+    print("Not Android")
+    from kivy.core.window import Window
+    # return [Window.width,300]
+    return [Window.width,Window.height]
+def getStatusBarHeight():
+  
+  PythonActivity = autoclass('org.kivy.android.PythonActivity')
+  Context = PythonActivity.mActivity
+
+  # Create a DisplayMetrics instance and populate it
+  resources = Context.getResources()
+  try:
+      resources_id=resources.getIdentifier("status_bar_height", "dimen", "android")
+      height=resources.getDimensionPixelSize(resources_id)
+      print("Status Bar Height: ",height)  #68
+      return height
+  except Exception as e:
+    print("Status Bar Height Error")
+    return 0
+  # try:
+  #   resources_id=resources.getIdentifier("navigation_bar_height", "dimen", "android")
+  #   print("Navigation Bar Height: ",resources.getDimensionPixelSize(resources_id))
+  #   return resources.getDimensionPixelSize(resources_id) #94
+  # except Exception as e:
+  #   print("Navigation Bar Height Error: ",e)
+  #   return 0
