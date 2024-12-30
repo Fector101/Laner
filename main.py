@@ -1,44 +1,12 @@
-from kivy.uix.filechooser import FileChooserListView
-from kivymd.app import MDApp
-from kivymd.uix.button import MDButton, MDButtonText, MDIconButton
-from kivymd.uix.scrollview import MDScrollView
-from kivy.clock import Clock
-from kivy.properties import (ObjectProperty, BooleanProperty, ListProperty, StringProperty)
-from kivy.core.window import Window
-from kivymd.uix.label import MDIcon, MDLabel
-from kivy.metrics import dp,sp
-from kivymd.uix.boxlayout import MDBoxLayout
-from kivy.uix.screenmanager import ScreenManager, SlideTransition,NoTransition
-from kivy.uix.label import Label
-from kivymd.uix.behaviors import RectangularRippleBehavior
-from kivy.uix.behaviors import ButtonBehavior
-from kivymd.uix.relativelayout import MDRelativeLayout
-from kivymd.uix.screen import MDScreen
-from kivymd.uix.screenmanager import MDScreenManager
-from kivy.lang import Builder
-from kivymd.uix.textfield import MDTextField
-from kivy.uix.recycleview.views import RecycleDataViewBehavior
-from kivy.uix.recyclegridlayout import RecycleGridLayout
-from kivymd.uix.selectioncontrol import MDCheckbox
-from kivy.uix.image import AsyncImage,Image
-from kivy.uix.spinner import Spinner
-from kivy.utils import platform # OS
-from kivymd.material_resources import DEVICE_TYPE # if mobile or PC
-from kivymd.uix.filemanager import MDFileManager
-from kivymd.uix.navigationdrawer import (MDNavigationDrawer,
-                MDNavigationLayout)
-from kivymd.uix.divider import MDDivider
-import requests
-import os, sys, json
-from plyer import filechooser
+from imports import *
 
-from widgets.popup import Snackbar
-from widgets.templates import CustomDropDown, DetailsLabel, DisplayFolderScreen, Header, MDTextButton
-from workers.helper import THEME_COLOR_TUPLE, makeDownloadFolder, setHiddenFilesDisplay
-from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.boxlayout import BoxLayout
+try:
+    getAndroidBounds()    
+except Exception as e:
+    print(Window.height,Window.width)
+    print("Gettting getAndroidBounds Failed", e)
 
-from workers.sword import NetworkManager, Settings
+
 # For Dev
 if DEVICE_TYPE != "mobile":
     # Window.size = (400, 600)
@@ -196,6 +164,13 @@ Builder.load_string('''
         #     Rectangle:
         #         pos: self.pos
         #         size: self.size
+<MDNavigationLayout__>:
+    canvas.before:
+        Color:
+            rgba: 1, 0, 0, 1  # Red color
+        Rectangle:
+            pos: self.pos
+            size: self.size
         
 ''')
 
@@ -232,9 +207,14 @@ class WindowManager(MDScreenManager):
         self.btm_sheet=btm_sheet
         self.md_bg_color =[.12,.12,.12,1] if self.theme_cls.theme_style == "Dark" else [0.98, 0.98, 0.98, 1]
         self.size_hint=[1,None]
-        self.height=Window.height-sp(68)   # Bottom nav height
-        self.pos_hint={'top':1}
-        
+        self.size_hint_y=None
+        self.app:Laner=MDApp.get_running_app()
+        print('BTM NAV Height',self.app.btm_sheet.height)
+        print('What app see\'s as window height',Window.height)
+        self.height=Window.height-self.app.btm_sheet.height   # Bottom nav height
+        self.pos_hint={'top': 1.02}
+        # self.height=Window.height-sp(68) 
+        print("Unsetted height ",self.height)
         # Set theme colors and properties
         # self.theme_cls = MDApp.get_running_app().theme_cls
         # self.theme_cls.primaryColor = [1, 1, 1, 1]
@@ -393,12 +373,14 @@ class BottomNavigationBar(MDNavigationDrawer):
         for_label_text = ['Home','Storage','Link']
         screens=screen_manager.screen_names
         self.size_hint =[ 1, None]
+        self.size_hint_y= None
         self.height='70sp'
+        # self.height=sp(70)
         self.padding=0
         self.spacing=0
         # self.md_bg_color = (.1, 1, 0, .5)
         # self.md_bg_color = (.1, .1, .1, 1)
-        # self.pos=[0,-2]
+        self.pos=[0,0]
 
         for index in range(len(icons)):
             self.btn = TabButton(
@@ -817,7 +799,7 @@ class SettingsScreen(MDScreen):
                     Clock.schedule_once(lambda dt: kivyThreadBussiness())
                     break
             except Exception as e:
-                print("Dev Auto Connect Error: ",e)
+                print("Dev Auto Connect Error: ", get_full_class_name(e))
 
         
     def setIP(self, widget_at_called):
@@ -844,6 +826,7 @@ class SettingsScreen(MDScreen):
                 
                 Snackbar(h1="Verification Successfull")
             else:
+                self.app.bottom_navigation_bar.y=dp(int(ip_input.text))
                 Snackbar(h1="Bad Code check 'Laner PC' for right one")
 
         except Exception as e:
@@ -873,7 +856,8 @@ class SettingsScreen(MDScreen):
 from widgets.templates import MyBtmSheet
 
 # from kivymd.color_definitions import colors
-
+class MDNavigationLayout__(MDNavigationLayout):
+    md_bg_color=ListProperty()
 class Laner(MDApp):
     # android_app = autoclass('android.app.Application')pls checkout
     
@@ -953,7 +937,7 @@ class Laner(MDApp):
         # self.theme_cls.accent_hue = "500"
         
         root_screen = MDScreen()
-        nav_layout = MDNavigationLayout()
+        nav_layout = MDNavigationLayout__()
         
         self.btm_sheet = MyBtmSheet()
         self.my_screen_manager = WindowManager(self.btm_sheet)

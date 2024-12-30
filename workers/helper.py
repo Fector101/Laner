@@ -181,3 +181,36 @@ def setHiddenFilesDisplay(state):
   SHOW_HIDDEN_FILES=state
 def getHiddenFilesDisplay_State():
   return SHOW_HIDDEN_FILES
+
+
+def get_full_class_name(obj):
+    module = obj.__class__.__module__
+    if module is None or module == str.__class__.__module__:
+        return obj.__class__.__name__
+    return module + '.' + obj.__class__.__name__
+  
+def getAndroidBounds():
+    from jnius import autoclass
+    
+    PythonActivity = autoclass('org.kivy.android.PythonActivity')
+    Context = PythonActivity.mActivity
+
+    # Access the Android Context and WindowManager
+    WindowManager = autoclass('android.view.WindowManager')
+    DisplayMetrics = autoclass('android.util.DisplayMetrics')
+
+    # Get system service for WindowManager
+    PythonActivity = autoclass('org.kivy.android.PythonActivity')
+    window_manager = Context.getSystemService(Context.WINDOW_SERVICE)
+  
+
+    # Create a DisplayMetrics instance and populate it
+    metrics = DisplayMetrics()
+    window_manager.getDefaultDisplay().getMetrics(metrics)
+
+    # Print DisplayMetrics values
+    print("Android 15 broken sizing: ")
+    print(f"Width: {metrics.widthPixels}px")
+    print(f"Height: {metrics.heightPixels}px")
+    print(f"Density: {metrics.density}")
+    print(f"DPI: {metrics.densityDpi}")

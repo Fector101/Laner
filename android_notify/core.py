@@ -24,6 +24,8 @@ BitmapFactory = autoclass('android.graphics.BitmapFactory')
 BuildVersion = autoclass('android.os.Build$VERSION')
 PendingIntent = autoclass('android.app.PendingIntent')
 Intent = autoclass('android.content.Intent')
+context = PythonActivity.mActivity # Get the app's context 
+
 
 def asks_permission_if_needed():
     """
@@ -73,8 +75,7 @@ def send_notification(title, message, style=None, img_path=None, channel_id="def
     
     
     
-    # Get the app's context and notification manager
-    context = PythonActivity.mActivity
+    # Get notification manager
     notification_manager = context.getSystemService(context.NOTIFICATION_SERVICE)
 
     importance= autoclass('android.app.NotificationManager').IMPORTANCE_HIGH # also works #NotificationManager.IMPORTANCE_DEFAULT

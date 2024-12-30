@@ -200,16 +200,18 @@ class RV(RecycleView):
 async def async_download_file(url, save_path):
     try:
         response = requests.get(url)
-        file_name = save_path
-        file_path = os.path.join(my_downloads_folder, file_name)
-        with open(file_path, "wb") as file:
+        file_name = os.path.basename(save_path)
+        print("This is file name: ", file_name)
+        print("This is save_path: ", save_path)
+        with open(save_path, "wb") as file:
             file.write(response.content)
         try:
             from android_notify.core import send_notification
             send_notification("Completed download", file_name)
         except Exception as e:
             print(e,"Failed sending Notification")
-        Clock.schedule_once(lambda dt: Snackbar(confirm_txt='Open',h1=f'Successfully Saved { truncateStr(Path(file_path).parts[-1],10) }'))
+            pass
+        Clock.schedule_once(lambda dt: Snackbar(confirm_txt='Open',h1=f'Successfully Saved { file_name }'))
     except Exception as e:
         Clock.schedule_once(lambda dt: Snackbar(confirm_txt='Open',h1="Download Failed try Checking Laner on PC"))
         print(e,"Failed Download")
@@ -492,7 +494,7 @@ class MyBtmSheet(MDBottomSheet):
         super().__init__(**kwargs)
         # super(MyBtmSheet,self).__init__(**kwargs)
         self.size_hint_y=None
-        self.height='150dp'
+        self.height=sp(150)
         
         self.drag_sheet= MDBottomSheetDragHandle(
                             
