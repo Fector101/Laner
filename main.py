@@ -515,10 +515,6 @@ class SettingsScreen(MDScreen):
         pass
     def testx(self):
         print("sending new notification")
-
-        from android_notify.core import send_notification
-        from android_notify.styles import NotificationStyles
-
             
         i=self.ipAddressInput.text
         try:

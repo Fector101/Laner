@@ -41,16 +41,9 @@ from workers.helper import THEME_COLOR_TUPLE, get_full_class_name, makeDownloadF
 
 from workers.sword import NetworkManager, Settings
 
-# Window.size = getAndroidSize()
-# try:
-#     FLAG_FULLSCREEN=0x00000400
-#     FLAG_FORCE_NOT_FULLSCREEN=0x00000800
-#     from jnius import autoclass
-#     PythonActivity = autoclass('org.kivy.android.PythonActivity')
-#     activity = PythonActivity.mActivity
-#     activity.getWindow().clearFlags(FLAG_FORCE_NOT_FULLSCREEN)
-#     activity.getWindow().addFlags(FLAG_FULLSCREEN)
-# except Exception as e:
-#     print('Fullscreen Error: -----| ',e)
-    # print('Fullscreen Error: -----| KIVY_DPI=320 KIVY_METRICS_DENSITY=0.90 python3 main.py --size 360x760',e)
-    
+
+
+if platform == 'android':
+    from kivymd.toast import toast
+    from android_notify.core import send_notification
+    from android_notify.styles import NotificationStyles
