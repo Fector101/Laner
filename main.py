@@ -1,94 +1,12 @@
 from imports import *
 
-try:
-    getAndroidBounds()    
-except Exception as e:
-    print(Window.height,Window.width)
-    print("Gettting getAndroidBounds Failed")
-
-
-# For Dev
-if DEVICE_TYPE != "mobile":
-    # Window.size = (400, 600)
-    ...
-
-
-
 #Making/Getting Downloads Folder
-my_downloads_folder=makeDownloadFolder()
-ROOT='/home'
 if platform == 'android':
-    from kivymd.toast import toast
-    from jnius import autoclass
+    my_downloads_folder=makeDownloadFolder()
+    requestMultiplePermissions()
+else:
+    Window.size = (400, 600)
     
-    try:
-        from android import mActivity # type: ignore
-        context =  mActivity.getApplicationContext()
-        SERVICE_NAME = str(context.getPackageName()) + '.Service' + 'Sendnoti'
-        service = autoclass(SERVICE_NAME)
-        service.start(mActivity,'')
-        print('returned service')
-    except Exception as e:
-        print(f'Foreground service failed {e}')
-
-
-    from android.permissions import request_permissions, Permission,check_permission # type: ignore
-    from android.storage import app_storage_path, primary_external_storage_path # type: ignore
-
-
-    ROOT=primary_external_storage_path() if primary_external_storage_path() else '.'
-    print(primary_external_storage_path(),'|ROOT|',ROOT)
-
-    print('Asking permission...')
-    def check_permissions(permissions):
-        for permission in permissions:
-            if check_permission(permission) != True:
-                return False
-        return True
-
-
-    def request_all_permission():
-        try:
-            from android import api_version  # type: ignore
-
-            def on_permissions_result(permissions, grants):
-                print('What grants is ---->',grants)
-                if Permission.POST_NOTIFICATIONS in permissions and grants[permissions.index(Permission.POST_NOTIFICATIONS)]:
-                # if Permission.POST_NOTIFICATIONS in permissions and permissions.index(Permission.POST_NOTIFICATIONS) < len(grants) and grants[permissions.index(Permission.POST_NOTIFICATIONS)]:
-                    # Notification permission granted, request storage permissions
-                    storage_permissions = [
-                        Permission.READ_EXTERNAL_STORAGE,
-                        Permission.WRITE_EXTERNAL_STORAGE
-                    ]
-                    request_permissions(storage_permissions, on_storage_permissions_result)
-                else:
-                    on_storage_permissions_result(None, None)
-                    print("Notification permission denied")
-
-            def on_storage_permissions_result(permissions, grants):
-                # if all(grants):
-                    # Storage permissions granted, request all files access for Android 11+
-                if api_version >= 30:
-                        Environment = autoclass('android.os.Environment')
-                        Intent = autoclass('android.content.Intent')
-                        Settings = autoclass('android.provider.Settings')
-
-                        if not Environment.isExternalStorageManager():
-                            intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
-                            Clock.schedule_once(lambda dt: mActivity.startActivity(intent), 2)
-                else:
-                    print("Storage permissions not called Android less 11 | Feature not available 101")
-
-            # Request notification permission first
-            request_permissions([Permission.POST_NOTIFICATIONS], on_permissions_result)
-
-
-        except Exception as e:
-            print(f"Failed to request storage permission: {e}") 
-    
-    request_all_permission()
-
-
 class My_RecycleGridLayout(RecycleGridLayout):
     screen_history = []  # Stack to manage visited screens
     def __init__(self, **kwargs):
@@ -450,8 +368,6 @@ class PortBoxLayout(MDBoxLayout):
         else:
             Snackbar(h1="Invalid port Check 'Laner PC' for right one")
 
-import asyncio
-import threading
 class SettingsScreen(MDScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -719,9 +635,7 @@ class SettingsScreen(MDScreen):
         
         print('Disconnected')
 
-from widgets.templates import MyBtmSheet
 
-# from kivymd.color_definitions import colors
 class MDNavigationLayout__(MDNavigationLayout):
     md_bg_color=ListProperty()
 class Laner(MDApp):

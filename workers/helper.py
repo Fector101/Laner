@@ -5,6 +5,7 @@ import socket
 import sys
 import hashlib
 from kivymd.material_resources import DEVICE_TYPE # if mobile or PC
+from kivy.clock import Clock
 
 THEME_COLOR_TUPLE=(.6, .9, .8, 1)
 def getSystemName():
@@ -177,12 +178,17 @@ def get_full_class_name(obj):
     if module is None or module == str.__class__.__module__:
         return obj.__class__.__name__
     return module + '.' + obj.__class__.__name__
-  
+
+
+
+if DEVICE_TYPE == 'mobile':
+	from jnius import autoclass
+	from kivymd.toast import toast
+	from android import api_version  # type: ignore
+	PythonActivity = autoclass('org.kivy.android.PythonActivity')
+	Context = PythonActivity.mActivity
+
 def getAndroidBounds():
-    from jnius import autoclass
-    
-    PythonActivity = autoclass('org.kivy.android.PythonActivity')
-    Context = PythonActivity.mActivity
 
     # Access the Android Context and WindowManager
     WindowManager = autoclass('android.view.WindowManager')
@@ -210,11 +216,6 @@ def getAndroidBounds():
     print(f"Height: {metrics.heightPixels}px")
     print(f"Density: {metrics.density}")
     print(f"DPI: {metrics.densityDpi}")
-try:
-	from jnius import autoclass
-	PythonActivity = autoclass('org.kivy.android.PythonActivity')
-	Context = PythonActivity.mActivity
-except:...
 
 def getViewPortSize():
 	try:
@@ -240,3 +241,58 @@ def getStatusBarHeight():
 		print("Status Bar Height Error")
 		return 0
   
+def requestMultiplePermissions(permissions:list):
+
+    
+    # try:
+	from android import mActivity # type: ignore
+    #     context =  mActivity.getApplicationContext()
+    #     SERVICE_NAME = str(context.getPackageName()) + '.Service' + 'Sendnoti'
+    #     service = autoclass(SERVICE_NAME)
+    #     service.start(mActivity,'')
+    #     print('returned service')
+    # except Exception as e:
+    #     print(f'Foreground service failed {e}')
+
+
+	from android.permissions import request_permissions, Permission,check_permission # type: ignore
+	from android.storage import app_storage_path, primary_external_storage_path # type: ignore
+
+
+	print('Asking permission...')
+	def check_permissions(permissions):
+		for permission in permissions:
+			if check_permission(permission) != True:
+				return False
+		return True
+
+
+	def request_all_permission():
+		def on_permissions_result(permissions, grants):
+			print('What grants is ---->',grants)
+			if Permission.POST_NOTIFICATIONS in permissions and not grants[permissions.index(Permission.POST_NOTIFICATIONS)]:
+				print("Notification permission denied")
+			storage_permissions = [Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE]
+			request_permissions(storage_permissions, on_storage_permissions_result)
+      
+		def on_storage_permissions_result(permissions, grants):
+			# Storage permissions granted, request all files access for Android 11+
+			if api_version >= 30:
+					Environment = autoclass('android.os.Environment')
+					Intent = autoclass('android.content.Intent')
+					Settings = autoclass('android.provider.Settings')
+
+					if not Environment.isExternalStorageManager():
+						intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+						Clock.schedule_once(lambda dt: mActivity.startActivity(intent), 2)
+			else:
+				print("Storage permissions not called Android less 11 | Feature not available 101")
+
+        # Request notification permission first
+		request_permissions([Permission.POST_NOTIFICATIONS], on_permissions_result)
+
+	try:
+		request_all_permission()
+	except Exception as e:
+		print(f"Failed to request permissions: {e}") 
+    
