@@ -89,64 +89,6 @@ if platform == 'android':
     request_all_permission()
 
 
-    
-Builder.load_string('''
-
-<MyCard>:
-    radius: dp(5)
-    size_hint:(1,1)
-    # theme_bg_color: "Custom"
-    on_release: app.my_screen_manager.current_screen.setPath(self.path)
-    
-    AsyncImage:
-        id: test_stuff
-        source: root.icon
-        size_hint: [.8,.6] if root.icon=='assets/icons/file.png' else [.9,.7]
-        fit_mode: 'contain'
-        mipmap: True
-        pos_hint: {"top":1}
-        radius: (dp(5),dp(5),0,0)
-    MDButton:
-        # theme_bg_color:  "Custom"
-        theme_height:  "Custom"
-        theme_width:  "Custom"
-        opacity: 0 if root.is_dir else 1
-        radius: '15sp'
-        size_hint:  [None, None]
-        width:  '35sp'
-        height: '35sp'
-        # md_bg_color: [.7,.6,.9,1]
-        pos_hint: {"top": .979, "right": .97}
-        on_release: app.my_screen_manager.current_screen.showDownloadDialog(root.path)
-        
-        MDButtonIcon:
-            icon: "download"
-            pos_hint: {'x':.23,'y':.2}
-            # theme_icon_color: "Custom"
-            # icon_color: [1,1,1,1]
-        
-    MDLabel:
-        text: root.myFormat(root.text)
-        theme_font_size:'Custom'
-        font_size: '11sp'
-        size_hint: [None, None]
-        size: (root.width, 40)
-        text_size: (root.width, None)
-
-<RV>:
-    viewclass: 'MyCard'
-    My_RecycleGridLayout:
-        id: scroll_content
-        default_size: 1, '140sp' # children widgets default size
-        default_size_hint: 1, None
-        cols:4
-        spacing:18
-        padding:"10dp"
-        size_hint: (1, None)
-        height: self.minimum_height + 140
-''')
-
-
 class My_RecycleGridLayout(RecycleGridLayout):
     screen_history = []  # Stack to manage visited screens
     def __init__(self, **kwargs):
@@ -299,37 +241,13 @@ class TabButton(RectangularRippleBehavior,ButtonBehavior,MDBoxLayout):
             each_btn.checkWidgetDesign(cur_screen)
 
     def checkWidgetDesign(self,cur_screen):
-        # return
-        # print(self.screen, "==", cur_screen)
         if self.screen == cur_screen:
-            # self.btn_icon.theme_text_color = "Custom"
-            # self.btn_icon.text_color = THEME_COLOR_TUPLE
             self.label.color = self.theme_cls.primaryColor  
             self.btn_icon.icon_color = self.theme_cls.primaryColor
-            
-            # self.btn_icon.theme_text_color = "Primary"
-            # self.label.theme_text_color = "Primary"
         else:
-            # self.btn_icon.theme_text_color = "Primary"
-            # self.label.color = self.theme_cls.primaryColor
-            # self.btn_icon.icon_color = self.theme_cls.primaryColor
             grey_color=[.6,.6,.6,1]
             self.label.color = grey_color
             self.btn_icon.icon_color = grey_color
-
-
-        # with open(MY_DATABASE_PATH) as change_mode1:
-        #     Bool_theme = json.load(change_mode1)
-        #     if Bool_theme['Dark Mode']:
-        #         self.btn_icon.text_color=self.label.color = [1, 1, 1, 1]
-
-        #     else:
-        #         self.btn_icon.text_color=self.label.color = [0, 0, 0, 1]
-
-        #     if self.screen == cur_screen:
-        #         # print(self.screen,cur_screen)
-        #         # MDIcon.text_color=Label.color = THEME_COLOR_TUPLE
-        #         self.btn_icon.text_color=self.label.color = self.theme_cls.backgroundColor
 
 class BottomNavigationBar(MDNavigationDrawer):
     screen = StringProperty()
@@ -814,15 +732,6 @@ class Laner(MDApp):
     settings = Settings()
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        # Default theme settings
-        # self.theme_cls.theme_style='Dark'
-        # self.theme_cls.dark_palette = "Amber"
-        # self.theme_cls.primary_palette = "Blue"
-        # self.theme_cls.accent_palette = "Amber"
-        # Default theme settings
-        # self.theme_cls.primary_palette = "Blue"
-        # self.theme_cls.accent_palette = "Amber"
-        # self.theme_cls.theme_style = self.get_stored_theme()
            
     def get_stored_theme(self):
         return self.settings.get('display', 'theme')
@@ -837,15 +746,6 @@ class Laner(MDApp):
             if isinstance(each, TabButton):
                 each.checkWidgetDesign(self.my_screen_manager.current)
                 
-        # Update header title colors
-        # for screen in self.my_screen_manager.screens:
-        #     # if hasattr(screen, 'header'):
-        #     #     # screen.header.header_label.theme_text_color = "Custom"
-        #     #     # screen.header.header_label.text_color = THEME_COLOR_TUPLE
-            
-        #     #     screen.header.header_label.theme_text_color = "Primary"
-        #     #     screen.header.header_label.text_color = self.theme_cls.primaryColor
-            
         light_grey_for_dark_theme=[.15,.15,.15,1]
         light_grey_for_light_theme=[0.92, 0.92, 0.92, 1]
         if self.theme_cls.theme_style == "Dark":
@@ -876,14 +776,7 @@ class Laner(MDApp):
         self.theme_cls.theme_style = self.get_stored_theme()
         self.theme_cls.primary_palette = "White"
         Window.bind(size=self.on_resize)
-        # self.theme_cls.accent_palette = "Blue"
         
-        # self.theme_cls.backgroundColor = THEME_COLOR_TUPLE
-        
-        # Theme configuration
-        # self.theme_cls.material_style = "M3"
-        # self.theme_cls.primary_hue = "500"
-        # self.theme_cls.accent_hue = "500"
         viewport_size=getViewPortSize()
         y= Window.height - viewport_size[1] - getStatusBarHeight()
         print("Working Y-axis",y)
@@ -917,15 +810,8 @@ class Laner(MDApp):
         btm_nav_btns=self.bottom_navigation_bar.children if isinstance(self.bottom_navigation_bar.children[0],TabButton) else []
         for btn in btm_nav_btns:
             btn.width=Window.width/3
-        # self.bottom_navigation_bar.children
         
         print('What app see\'s as window height',Window.height)
         print('BTM NAV Height',self.bottom_navigation_bar.height)
 if __name__ == '__main__':
     Laner().run()
-
-    # theme_store = JsonStore('theme_settings.json')
-
-# def print_settings_properties(self):
-#         for key in self.theme_store:
-#             print(f"{key}: {self.theme_store.get(key)}")    
