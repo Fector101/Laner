@@ -89,11 +89,6 @@ if platform == 'android':
     request_all_permission()
 
 
-
-# class MDLabel(MDLabel):
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-#         self.md_bg_color= self.theme_cls.primaryColor
     
 Builder.load_string('''
 
@@ -137,18 +132,9 @@ Builder.load_string('''
         size_hint: [None, None]
         size: (root.width, 40)
         text_size: (root.width, None)
-        # max_lines: 2
 
 <RV>:
     viewclass: 'MyCard'
-    # size_hint: (.5, None)
-    # pos_hint: {'center_x': 0.4}
-    canvas.before:
-        # Color:
-        #     rgba: 1, 1, 0, 1  # Red color
-        Rectangle:
-            pos: self.pos
-            size: self.size
     My_RecycleGridLayout:
         id: scroll_content
         default_size: 1, '140sp' # children widgets default size
@@ -158,20 +144,6 @@ Builder.load_string('''
         padding:"10dp"
         size_hint: (1, None)
         height: self.minimum_height + 140
-        # canvas.before:
-        #     Color:
-        #         rgba: 1, 0, 0, 1  # Red color
-        #     Rectangle:
-        #         pos: self.pos
-        #         size: self.size
-<MDNavigationLayout__>:
-    canvas.before:
-        Color:
-            rgba: 1, 0, 0, 1  # Red color
-        Rectangle:
-            pos: self.pos
-            size: self.size
-        
 ''')
 
 
