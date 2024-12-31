@@ -1,48 +1,8 @@
-import subprocess
-import os
-import json
-import socket
-import sys
-import hashlib
+import os,sys,platform
 from kivymd.material_resources import DEVICE_TYPE # if mobile or PC
 from kivy.clock import Clock
 
 THEME_COLOR_TUPLE=(.6, .9, .8, 1)
-def getSystemName():
-  # Windows
-	USER_HOME_PATH=os.getenv('HOMEPATH')
-	os_name='Win'
-	if(USER_HOME_PATH == None):
-		USER_HOME_PATH=os.getenv('HOME')
-	os_name='Linux'
-	return os_name
-
-def getHomePath():
-  # Windows
-	USER_HOME_PATH=os.getenv('HOMEPATH')  # Can also be editable to downloads path or something else
-	if(USER_HOME_PATH == None):
-		USER_HOME_PATH=os.getenv('HOME')
-	return USER_HOME_PATH
-
-def findClosestParent(path:str):...
-
-def scanFolder(inputted_folder_path:str):
-	folder_paths=[]
-	file_paths=[]
-	try:
-		all_paths = os.listdir(inputted_folder_path)
-		for folder_or_file_name in all_paths:
-			found_path=os.path.join(inputted_folder_path, folder_or_file_name)
-			if os.path.isdir(found_path):
-				folder_paths.append(found_path)
-			else:
-				file_paths.append(found_path)
-	except Exception as e:
-		print(e) # Display Error in Log Screen "As is" i mean in the same format it's printed out in console (Will Probably only get error if Access Denied or Folder Moved)
-	return {'folders':folder_paths,'files':file_paths}
-  
-import subprocess
-import platform
 
         
 def getAppFolder():
@@ -104,45 +64,6 @@ def makeFolder(my_folder:str):
 
 	if not os.path.exists(my_folder):
 		os.makedirs(my_folder)
-        
-def sortedDir(dir_info:list):
-    """Sorts objects Alphabetically and Pushes files with dot to the back.
-
-    Args:
-        dir_info (list): a list of objects with a key 'text'
-
-    Returns:
-        list: returns a list sort objects according to 'text' attr
-    """
-    dir_info=sorted(dir_info,key=lambda path: path['text'])
-    
-    # Push files with dot at front to the back
-    items_with_dot=[]
-    items_without_dot=[]
-    for each in dir_info:
-        if each['text'][0] == '.':
-            items_with_dot.append(each)
-        else:
-            items_without_dot.append(each)
-    
-    return [*items_without_dot, *items_with_dot]
-
-def removeFileExtension(file_path:str):
-	return os.path.splitext(os.path.basename(file_path))[0]
-
-def getFileExtension(file_path:str):
-	return os.path.splitext(os.path.basename(file_path))[1]
-def gen_unique_filname(file_path:str):
-	hash_obj=hashlib.sha256(file_path.encode('utf-8'))
-	unique_name=hash_obj.hexdigest()
-	return unique_name
-
-def removeFirstDot(path:str):
-	if path[0] == '.':
-		return path[1:]
-	else:
-		return path
-
 
 def makeDownloadFolder():
 	"""Makes downlod folder and returns path
@@ -156,8 +77,6 @@ def makeDownloadFolder():
 		makeFolder(folder_path)
   	
 	return folder_path
-
-
 
 def truncateStr(text:str,limit=20):
 	if len(text) > limit:
@@ -183,7 +102,6 @@ def get_full_class_name(obj):
 
 if DEVICE_TYPE == 'mobile':
 	from jnius import autoclass
-	from kivymd.toast import toast
 	from android import api_version  # type: ignore
 	PythonActivity = autoclass('org.kivy.android.PythonActivity')
 	Context = PythonActivity.mActivity
