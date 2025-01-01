@@ -71,12 +71,14 @@ class CustomHandler(SimpleHTTPRequestHandler):
                 save_path = None
                 
                 for part in parts:
-                    if b'name="save_path"' in part:
+                    # print("This is a part: ",part)
+                    if b'name="save_path"' in part and folder_path == getdesktopFolder():
                         folder_path = (
                             part.split(b'\r\n')[3]  # More precise splitting
                             .decode()
                             .strip()
                         )
+                        print("My folder path variable ----- ", folder_path)
                         os.makedirs(folder_path, exist_ok=True)
                     
                     if b'filename=' in part:
@@ -87,6 +89,7 @@ class CustomHandler(SimpleHTTPRequestHandler):
                             .split(b'"')[0]
                             .decode()
                         )
+                        print("Found file name: ----- ", filename)
                         
                         save_path = os.path.join(folder_path, filename)
                         
@@ -255,3 +258,5 @@ class FileSharingServer:
 #         # Stop the server on Ctrl+C
 #         print("\nStopping the server...")
 #         server.stop()
+# filename="helper.py"\r\n\r\n
+# filename="server.py"\r\n\r\n
