@@ -55,26 +55,57 @@ class CustomHandler(SimpleHTTPRequestHandler):
         print("Doing Post")
         if self.path == "/api/upload":
             try:
-                content_length = int(self.headers['Content-Length'])
+                # Get content length and read raw data
+                content_length = int(self.headers.get('Content-Length', 0))
                 data = self.rfile.read(content_length)
-                boundary = self.headers['Content-Type'].split('=')[1].encode()
-                parts = data.split(boundary) #
-                save_path = None
+                
+                # Extract boundary from Content-Type
+                content_type = self.headers.get('Content-Type')
+                if not content_type or 'boundary=' not in content_type:
+                    raise ValueError("Content-Type header is missing or invalid.")
+                
+                boundary = content_type.split('=')[1].encode()
+                parts = data.split(b'--' + boundary)
+                
                 folder_path = getdesktopFolder()
+                save_path = None
+                
                 for part in parts:
-                    print("A Path-----| ",part)
                     if b'name="save_path"' in part:
-                        folder_path = part.split(b'\r\n\r\n')[1].strip(b'\r\n--').decode()                    
+                        folder_path = (
+                            part.split(b'\r\n')[3]  # More precise splitting
+                            .decode()
+                            .strip()
+                        )
+                        os.makedirs(folder_path, exist_ok=True)
+                    
                     if b'filename=' in part:
-                        filename = part.split(b'filename="')[1].split(b'"')[0].decode()
-                        file_content = part.split(b'\r\n\r\n')[1].strip(b'\r\n--')
+                        # Extract filename
+                        headers, file_content = part.split(b'\r\n\r\n', 1)
+                        filename = (
+                            headers.split(b'filename="')[1]
+                            .split(b'"')[0]
+                            .decode()
+                        )
+                        
                         save_path = os.path.join(folder_path, filename)
+                        
+                        # Remove any trailing boundary markers
+                        file_content = file_content.rstrip(b'\r\n--')
+                        
+                        # Write file safely
                         with open(save_path, 'wb') as f:
                             f.write(file_content)
-                print("File Upload Successful ",save_path)
-                self._send_json_response({'message': 'File uploaded successfully'})
+                
+                if save_path:
+                    print("File Upload Successful:", save_path)
+                    self._send_json_response({'message': 'File uploaded successfully'})
+                else:
+                    self._send_json_response({'error': "No file content found in the uploaded data."}, status=400)
+                    # raise ValueError("No file content found in the uploaded data.")
+            
             except Exception as e:
-                print("File Upload Error ", e)
+                print("File Upload Error:", e)
                 writeErrorLog('File Upload Error', traceback.format_exc())
                 self._send_json_response({'error': str(e)}, status=400)
 
