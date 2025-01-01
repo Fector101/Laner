@@ -45,5 +45,31 @@ from workers.sword import NetworkManager, Settings
 
 if platform == 'android':
     from kivymd.toast import toast
-    from android_notify.core import send_notification
-    from android_notify.styles import NotificationStyles
+    from jnius import autoclass, cast
+    PythonActivity = autoclass('org.kivy.android.PythonActivity')
+    activity = PythonActivity.mActivity
+    Intent = autoclass('android.content.Intent')
+    
+from android_notify import send_notification
+from android_notify import NotificationStyles
+
+try:
+    Settings = autoclass('android.provider.Settings')
+    Uri = autoclass('android.net.Uri')
+
+    activity = PythonActivity.mActivity
+    intent = Intent()
+    intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+    intent.setData(Uri.parse(f"package:{activity.getPackageName()}"))
+    activity.startActivity(intent)
+except Exception as e:
+    print("Error battery stuff: ",e)
+try:
+    activity = PythonActivity.mActivity
+    context = cast('android.content.Context', activity)
+    # Start Foreground Service
+    service_intent = Intent(context, PythonActivity)
+    service_intent.setAction("START_FOREGROUND_SERVICE")
+    context.startForegroundService(service_intent)
+except Exception as e:
+    print("Error Start foreground service: ",e)

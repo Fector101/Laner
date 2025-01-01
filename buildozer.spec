@@ -41,7 +41,7 @@ version = 1.0
 # comma separated e.g. requirements = sqlite3,kivy
 
 #requirements = python3,kivy,kivymd,materialyoucolor,asynckivy,asyncgui,aiohttp,multidict,attrs,yarl,propcache,async_timeout
-requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,materialyoucolor,asynckivy,asyncgui,pyjnius,plyer,docutils,netifaces
+requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,materialyoucolor,asynckivy,asyncgui,pyjnius,plyer,docutils,netifaces,android-notify
 # requirements = python3,kivy,kivymd,materialyoucolor,asynckivy,asyncgui,pyjnius,plyer,docutils,android-notify
 
 # (str) Custom source folders for requirements
@@ -102,7 +102,7 @@ fullscreen = 0
 # (list) Permissions
 # (See https://python-for-android.readthedocs.io/en/latest/buildoptions/#build-options-1 for all the supported syntaxes and properties)
 #android.permissions = android.permission.INTERNET,WRITE_EXTERNAL_STORAGE
-android.permissions = android.permission.INTERNET, FOREGROUND_SERVICE,POST_NOTIFICATIONS, READ_EXTERNAL_STORAGE, MANAGE_EXTERNAL_STORAGE
+android.permissions = android.permission.INTERNET, FOREGROUND_SERVICE,POST_NOTIFICATIONS, READ_EXTERNAL_STORAGE, MANAGE_EXTERNAL_STORAGE, REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
 # android.permissions = android.permission.INTERNET, FOREGROUND_SERVICE, READ_EXTERNAL_STORAGE,RECEIVE_BOOT_COMPLETED,NOTIFICATION
 
 # (list) features (adds uses-feature -tags to manifest)
