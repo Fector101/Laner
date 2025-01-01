@@ -162,15 +162,16 @@ def getStatusBarHeight():
 def requestMultiplePermissions():
 
     
-    # try:
 	from android import mActivity # type: ignore
-    #     context =  mActivity.getApplicationContext()
-    #     SERVICE_NAME = str(context.getPackageName()) + '.Service' + 'Sendnoti'
-    #     service = autoclass(SERVICE_NAME)
-    #     service.start(mActivity,'')
-    #     print('returned service')
-    # except Exception as e:
-    #     print(f'Foreground service failed {e}')
+	
+	# try:
+	# 	context =  mActivity.getApplicationContext()
+	# 	SERVICE_NAME = str(context.getPackageName()) + '.Service' + 'Sendnoti'
+	# 	service = autoclass(SERVICE_NAME)
+	# 	service.start(mActivity,'')
+	# 	print('returned service')
+	# except Exception as e:
+	# 	print(f'Foreground service failed {e}')
 
 
 	from android.permissions import request_permissions, Permission,check_permission # type: ignore
