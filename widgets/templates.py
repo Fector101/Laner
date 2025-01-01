@@ -219,6 +219,7 @@ class DisplayFolderScreen(MDScreen):
     current_dir = StringProperty('.')
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.pos_hint={'top': 1}
         self.app=MDApp.get_running_app()
         
         self.spinner = Grid(opacity=0)
@@ -230,10 +231,9 @@ class DisplayFolderScreen(MDScreen):
         self.layout=MDBoxLayout(orientation='vertical')
         self.header=Header(
                            text=self.current_dir,
-                           size_hint=[1,.1],
+                           size_hint=[1,None],
+                            height='50sp',
                            text_halign='center',
-                        #    theme_text_color='Custom',
-                        #    title_color  = THEME_COLOR_TUPLE
                            theme_text_color='Primary',
                            title_color=self.theme_cls.primaryColor,
                            )
@@ -247,20 +247,12 @@ class DisplayFolderScreen(MDScreen):
         # Clock.schedule_once(lambda dt: self.startSetPathInfo_Thread())
 
         self.layout.add_widget(self.screen_scroll_box)
-        # icon.theme_text_color="Custom"
-        # icon.text_color=[1,0,0,1]
-        THEME_COLOR=(.12, .65, .46, 1)
-        # THEME_COLOR=(.12, .85, .6, 1)
         self.upload_btn=MDFabButton(
-                #FF0000
                 icon="upload",
                 style= "standard",
-                # MDExtendedFabButtonIcon(,theme_text_color="Custom",text_color=THEME_COLOR),
-                # MDExtendedFabButtonText(text="Upload",text_color=(.12, .55, .4, 1),theme_text_color="Custom"),
-                pos_hint={"center_x": .82, "center_y": .19},
+                pos_hint={"center_x": .82, "center_y": .25},
                 on_release=lambda x:self.choose_file()
         )
-        # self.upload_btn.md_bg_color=[1,0,0,1]
         
         # Adding directory details
         self.details_box=MDRelativeLayout(
@@ -272,19 +264,15 @@ class DisplayFolderScreen(MDScreen):
         
         self.details_label=DetailsLabel(text='0 files and 0 folders')
         
-        self.add_widget(self.layout)
         
         self.details_box.add_widget(self.details_label)
-        self.add_widget(self.details_box)
+        self.layout.add_widget(self.details_box)
+        self.layout.add_widget(MDBoxLayout(height='70sp',size_hint=[1,None]))  # Buffer cause of bottom nav bar (will change to padding later)
+        self.add_widget(self.layout)
         self.add_widget(self.upload_btn)
         
         self.add_widget(self.spinner)
         
-        # self.spinner_anim = Animation(height=80,spacing=[10,10], duration=0.5)
-        # self.spinner_anim += Animation(height=60,spacing=[5,5], duration=0.5)
-        # self.spinner_anim += Animation(height=self.angle, duration=0.5)
-        # # self.angle +=5
-        # self.spinner_anim.repeat = True
            
     def getSERVER_IP(self):
         return self.app.settings.get('server', 'ip')

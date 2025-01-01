@@ -38,26 +38,15 @@ class WindowManager(MDScreenManager):
         super().__init__(**kwargs)
         self.btm_sheet=btm_sheet
         self.md_bg_color =[.12,.12,.12,1] if self.theme_cls.theme_style == "Dark" else [0.98, 0.98, 0.98, 1]
-        self.size_hint=[1,None]
-        self.size_hint_y=None
+        # self.size_hint=[1,None]
+        # self.size_hint_y=None
         self.app:Laner=MDApp.get_running_app()
-        # print('BTM NAV Height',self.app.bottom_navigation_bar)
-        # print('What app see\'s as window height',Window.height)
-        
-        # self.height=getViewPortSize()[1]-self.app.bottom_navigation_bar.height   # Bottom nav height
-        # self.height=Window.height-self.app.bottom_navigation_bar.height   # Bottom nav height
         self.pos_hint={'top': 1}
-        # self.height=Window.height-sp(68) 
-        # print("Unsetted height ",self.height)
-        # Set theme colors and properties
-        # self.theme_cls = MDApp.get_running_app().theme_cls
-        # self.theme_cls.primaryColor = [1, 1, 1, 1]
-        
         self.add_widget(DisplayFolderScreen(name='upload',current_dir='Home'))
         self.add_widget(DisplayFolderScreen(name='download',current_dir='.'))
         self.add_widget(SettingsScreen())
         self.transition=NoTransition()
-        self.current='settings'
+        # self.current='settings'
         Window.bind(on_keyboard=self.Android_back_click)
 
     def changeScreenAnimation(self, screen_name):
@@ -428,6 +417,7 @@ class SettingsScreen(MDScreen):
         scroll.add_widget(self.content)
         self.layout.add_widget(self.header)
         self.layout.add_widget(scroll)
+        self.layout.add_widget(MDBoxLayout(height='70sp',size_hint=[1,None]))  # Buffer cause of bottom nav bar (will change to padding later)
         self.add_widget(self.layout)
         Clock.schedule_once(lambda dt: self.startAutoConnectThread(), 1)
 
@@ -632,8 +622,6 @@ class SettingsScreen(MDScreen):
         print('Disconnected')
 
 
-class MDNavigationLayout__(MDNavigationLayout):
-    md_bg_color=ListProperty()
 class Laner(MDApp):
     # android_app = autoclass('android.app.Application')pls checkout
     
@@ -688,21 +676,18 @@ class Laner(MDApp):
         Window.bind(size=self.on_resize)
         
         viewport_size=getViewPortSize()
-        y= Window.height - viewport_size[1] - getStatusBarHeight()
-        print("Working Y-axis",y)
         self.root_screen = MDScreen(size_hint=[None, None], size=viewport_size)
+        
         if DEVICE_TYPE == "mobile":
+            y= Window.height - viewport_size[1] - getStatusBarHeight()
+            print("Working Y-axis",y)
             self.root_screen.y=y
-        # root_screen = MDScreen(size_hint=[None, None], size=getAndroidSize(),pos_hint={'top':1})
-        nav_layout = MDNavigationLayout__()
+            
+        nav_layout = MDNavigationLayout()
         
         self.btm_sheet = MyBtmSheet()
         self.my_screen_manager = WindowManager(self.btm_sheet)
         self.bottom_navigation_bar = BottomNavigationBar(self.my_screen_manager)
-        
-        self.my_screen_manager.height=viewport_size[1] - self.bottom_navigation_bar.height +2
-        print('What app see\'s as window height',Window.height)
-        print('BTM NAV Height',self.bottom_navigation_bar.height)
         
         nav_layout.add_widget(self.my_screen_manager)
         nav_layout.add_widget(self.bottom_navigation_bar)
@@ -712,11 +697,7 @@ class Laner(MDApp):
         Window.autosize=True
         return self.root_screen
     def on_resize(self, *args):
-        screen_size=getViewPortSize()
-        screen_height=screen_size[1]
-        
-        self.root_screen.size=screen_size
-        self.my_screen_manager.height=screen_height - self.bottom_navigation_bar.height +2
+        self.root_screen.size=getViewPortSize()
         btm_nav_btns=self.bottom_navigation_bar.children if isinstance(self.bottom_navigation_bar.children[0],TabButton) else []
         for btn in btm_nav_btns:
             btn.width=Window.width/3

@@ -4,11 +4,10 @@ add audio icon and find a way to extract audio covers
 
 
 resize assets/icon/file.png with a photo editor
-Make Code Cleaner
 add a section to show server logs in desktop version like how it is when installing desktop apps
-watch youtube video for custom spinner
-Move all design to kv files
 
+
+[done]watch youtube video for custom spinner
 [done]Use sp for bottomnav height not percentage and add infos/deatails bar no files,no folders,size
 [done]get permission to manage all files like pydroid3 app
 [done]Create Two branchs First for (Linux|Macos|Windows) second for Android
