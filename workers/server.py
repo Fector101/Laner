@@ -68,11 +68,13 @@ class CustomHandler(SimpleHTTPRequestHandler):
                 parts = data.split(b'--' + boundary)
                 
                 folder_path = getdesktopFolder()
+                found_folder=False
                 save_path = None
                 
                 for part in parts:
                     # print("This is a part: ",part)
-                    if b'name="save_path"' in part and folder_path == getdesktopFolder():
+                    if b'name="save_path"' in part and not found_folder:
+                        found_folder=True
                         folder_path = (
                             part.split(b'\r\n')[3]  # More precise splitting
                             .decode()
