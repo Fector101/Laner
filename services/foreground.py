@@ -35,6 +35,8 @@
 # notification_id = 1
 # notification_manager.notify(notification_id, builder.build())
 
+
+
 # # Simulate Download Progress
 # import time
 # for progress in range(0, 101, 10):  # Increment progress in steps of 10%
@@ -49,13 +51,65 @@
 # notification_manager.notify(notification_id, builder.build())
 
 
-from jnius import autoclass
-import time
 
 
-PythonService = autoclass('org.kivy.android.PythonService')
-PythonService.mService.setAutoRestartService(True)
+# from jnius import autoclass
+# import time
 
-while True:
-    print('this is my service and its running')
-    time.sleep(3)
+
+# PythonService = autoclass('org.kivy.android.PythonService')
+# PythonService.mService.setAutoRestartService(True)
+
+# while True:
+#     print('this is my service and its running')
+#     time.sleep(3)
+
+
+
+try:
+    from jnius import autoclass, cast
+    from time import sleep
+
+    # Android Classes
+    Context = autoclass('android.content.Context')
+    Intent = autoclass('android.content.Intent')
+    PythonActivity = autoclass('org.kivy.android.PythonActivity')
+    NotificationChannel = autoclass('android.app.NotificationChannel')
+    NotificationManager = autoclass('android.app.NotificationManager')
+    NotificationCompat = autoclass('androidx.core.app.NotificationCompat')
+    Build = autoclass('android.os.Build')
+    Service = autoclass('android.app.Service')
+
+    # Constants
+    SERVICE_CHANNEL = "python_foreground_service"
+    SERVICE_NAME = "PythonBackgroundService"
+
+    def create_notification(context):
+        """ Create a foreground notification """
+        if Build.VERSION.SDK_INT >= 26:  # Android 8.0 (API Level 26)
+            channel = NotificationChannel(
+                SERVICE_CHANNEL,
+                "Python Foreground Service",
+                NotificationManager.IMPORTANCE_DEFAULT
+            )
+            manager = context.getSystemService(Context.NOTIFICATION_SERVICE)
+            manager.createNotificationChannel(channel)
+
+        builder = NotificationCompat.Builder(context, SERVICE_CHANNEL)
+        builder.setContentTitle("Background Service")
+        builder.setContentText("Python service is running in the background")
+        builder.setSmallIcon(17301642)  # Default Android icon
+
+        return builder.build()
+
+    activity = PythonActivity.mActivity
+    context = cast('android.content.Context', activity)
+    notification = create_notification(context)
+    
+        
+    # Keep the Service Alive
+    while True:
+        print("Service is running...")
+        sleep(3)
+except Exception as e:
+    print("Error foreground file: ",e)
