@@ -46,7 +46,7 @@ class WindowManager(MDScreenManager):
         self.add_widget(DisplayFolderScreen(name='download',current_dir='.'))
         self.add_widget(SettingsScreen())
         self.transition=NoTransition()
-        # self.current='settings'
+        self.current='settings'
         Window.bind(on_keyboard=self.Android_back_click)
 
     def changeScreenAnimation(self, screen_name):
@@ -355,6 +355,12 @@ class PortBoxLayout(MDBoxLayout):
                 print("Dev Port Error: ",e)
             
         else:
+            # change bottom nav icon size
+            text=self.port_input.text
+            buttons = MDApp.get_running_app().bottom_navigation_bar.children
+            for btn in buttons:
+                if isinstance(btn, TabButton):
+                    btn.label.font_size=text
             Snackbar(h1="Invalid port Check 'Laner PC' for right one")
 
 class SettingsScreen(MDScreen):
@@ -372,7 +378,7 @@ class SettingsScreen(MDScreen):
 
         # Header
         self.header = Header(
-            size_hint=[1, 0.1],
+            # size_hint=[1, 0.1],
             text="Settings",
             text_halign='left',
             theme_text_color='Primary',
@@ -544,7 +550,6 @@ class SettingsScreen(MDScreen):
         threading.Thread(target=queryAutoConnectAsync).start()
         
         
-        
     async def autoConnect(self):
         ip_input=self.ids['ip_addr_input']
         pervious_connections=self.app.settings.get('recent_connections')
@@ -570,7 +575,7 @@ class SettingsScreen(MDScreen):
                 print("Dev Auto Connect Error: ", get_full_class_name(e))
 
         
-    def setIP(self, widget_at_called):
+    def setIP(self, widget_that_called):
         ip_input=self.ids['ip_addr_input']
         input_ip_address:str=ip_input.text.strip()
         self.app.settings.set('server', 'ip', input_ip_address)
@@ -597,8 +602,15 @@ class SettingsScreen(MDScreen):
                 Snackbar(h1="Bad Code check 'Laner PC' for right one")
 
         except Exception as e:
-            self.app.bottom_navigation_bar.y=dp(int( ip_input.text if ip_input.text else '0'))
             print("here---|",e)
+            text=ip_input.text
+            buttons = MDApp.get_running_app().bottom_navigation_bar.children
+            for btn in buttons:
+                if 'sp' not in text:
+                    btn.spacing=text
+                    
+                else:
+                    btn.btn_icon.font_size=text
             Snackbar(h1="Bad Code check \"Laner PC\" for right one")
 
         print(input_ip_address,'===', self.app.settings.get('server', 'ip'))
@@ -675,13 +687,15 @@ class Laner(MDApp):
         self.theme_cls.primary_palette = "White"
         Window.bind(size=self.on_resize)
         
-        viewport_size=getViewPortSize()
-        self.root_screen = MDScreen(size_hint=[None, None], size=viewport_size)
+        self.root_screen = MDScreen()
         
-        if DEVICE_TYPE == "mobile":
-            y= Window.height - viewport_size[1] - getStatusBarHeight()
-            print("Working Y-axis",y)
-            self.root_screen.y=y
+        if DEVICE_TYPE == "mobile":...
+            # viewport_size=getViewPortSize()
+            # self.root_screen.size_hint=[None, None]
+            # self.root_screen.size=viewport_size
+            # y= Window.height - viewport_size[1] - getStatusBarHeight()
+            # print("Working Y-axis",y)
+            # self.root_screen.y=y
             
         nav_layout = MDNavigationLayout()
         
@@ -694,7 +708,7 @@ class Laner(MDApp):
         nav_layout.add_widget(self.btm_sheet)
         
         self.root_screen.add_widget(nav_layout)
-        Window.autosize=True
+        # Window.autosize=True
         return self.root_screen
     def on_resize(self, *args):
         self.root_screen.size=getViewPortSize()
@@ -702,7 +716,7 @@ class Laner(MDApp):
         for btn in btm_nav_btns:
             btn.width=Window.width/3
         
-        print('What app see\'s as window height',Window.height)
-        print('BTM NAV Height',self.bottom_navigation_bar.height)
+        # print('What app see\'s as window height',Window.height)
+        # print('BTM NAV Height',self.bottom_navigation_bar.height)
 if __name__ == '__main__':
     Laner().run()

@@ -159,7 +159,7 @@ def getStatusBarHeight():
 		print("Status Bar Height Error")
 		return 0
   
-def requestMultiplePermissions(permissions:list):
+def requestMultiplePermissions():
 
     
     # try:

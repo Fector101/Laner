@@ -55,7 +55,8 @@ class Header(MDBoxLayout):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.md_bg_color =[.15,.15,.15,1] if self.theme_cls.theme_style == "Dark" else  [0.92, 0.92, 0.92, 1]
-        
+        self.size_hint=[1,None]
+        self.height=sp(70)
         self.header_label=MDLabel(
             text_color=self.title_color,
             theme_text_color=self.theme_text_color,
@@ -231,8 +232,7 @@ class DisplayFolderScreen(MDScreen):
         self.layout=MDBoxLayout(orientation='vertical')
         self.header=Header(
                            text=self.current_dir,
-                           size_hint=[1,None],
-                            height='50sp',
+                           
                            text_halign='center',
                            theme_text_color='Primary',
                            title_color=self.theme_cls.primaryColor,
