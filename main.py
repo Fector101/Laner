@@ -117,7 +117,7 @@ class TabButton(RectangularRippleBehavior,ButtonBehavior,MDBoxLayout):
         self.line_color=(.2, .2, .2, 0)
         self._radius=1
         self.id=self.text
-        self.spacing="2sp"
+        self.spacing="10"
         self.size_hint=[None,1]
         self.width=Window.width/3
         self.label= MDLabel(
@@ -125,11 +125,12 @@ class TabButton(RectangularRippleBehavior,ButtonBehavior,MDBoxLayout):
             font_name='assets/fonts/Helvetica.ttf',
             # theme_text_color="Primary",
             # text_color=self.theme_cls.primaryColor,
-            font_size=sp(13),
+            font_size=sp(12),
             )
         self.btn_icon = MDIcon(
                 icon=self.icon,
-                # font_size__='40sp',
+                font_size=sp(30),
+                theme_font_size="Custom",
                 # size_hint=[.5,.5],
                 pos_hint={'center_x': 0.5},
                 # theme_text_color="Primary",
@@ -356,11 +357,11 @@ class PortBoxLayout(MDBoxLayout):
             
         else:
             # change bottom nav icon size
-            text=self.port_input.text
-            buttons = MDApp.get_running_app().bottom_navigation_bar.children
-            for btn in buttons:
-                if isinstance(btn, TabButton):
-                    btn.label.font_size=text
+            # text=self.port_input.text
+            # buttons = MDApp.get_running_app().bottom_navigation_bar.children
+            # for btn in buttons:
+            #     if isinstance(btn, TabButton):
+            #         btn.label.font_size=text
             Snackbar(h1="Invalid port Check 'Laner PC' for right one")
 
 class SettingsScreen(MDScreen):
@@ -603,14 +604,14 @@ class SettingsScreen(MDScreen):
 
         except Exception as e:
             print("here---|",e)
-            text=ip_input.text
-            buttons = MDApp.get_running_app().bottom_navigation_bar.children
-            for btn in buttons:
-                if 'sp' not in text:
-                    btn.spacing=text
+            # text=ip_input.text
+            # buttons = MDApp.get_running_app().bottom_navigation_bar.children
+            # for btn in buttons:
+            #     if 'sp' not in text:
+            #         btn.spacing=text
                     
-                else:
-                    btn.btn_icon.font_size=text
+            #     else:
+            #         btn.btn_icon.font_size=text
             Snackbar(h1="Bad Code check \"Laner PC\" for right one")
 
         print(input_ip_address,'===', self.app.settings.get('server', 'ip'))
