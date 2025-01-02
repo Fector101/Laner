@@ -67,37 +67,44 @@ class Snackbar(MDWidget):
     # successCallBack=ObjectProperty()
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-
         self.snackbar = MDSnackbar(
             MDSnackbarSupportingText(
                 text=self.h1 or "Saved",
                 theme_text_color="Custom",
                 text_color=(0, 40/255, 0, 1)
             ),
-            MDSnackbarButtonContainer(
+            
+            y=sp(80),
+            orientation="horizontal",
+            pos_hint={"center_x": 0.5},
+            size_hint_x=0.9,
+            padding=[0,0,sp(5),0],
+            background_color=(.85, .95, .88, .9)
+        )
+        buttons_container = MDSnackbarButtonContainer(pos_hint={"center_y": 0.5})
+        if self.confirm_txt:
+            buttons_container.add_widget(
                 MDSnackbarActionButton(
                     MDSnackbarActionButtonText(
                         text=self.confirm_txt,
                         theme_text_color="Custom",
                         text_color=(0, 40/255, 0, 1)
                     ),
-                        # theme_bg_color="Custom",
-                    
-                        # md_bg_color=
-                ),
-                MDSnackbarCloseButton(
-                    icon="close",
-                    # theme_text_color="Custom",
-                    theme_icon_color="Custom",
-                    icon_color=(0.2, 40/255, 0.3, 1),
-                    on_release=lambda _:self.snackbar.dismiss()
-                ),
-                pos_hint={"center_y": 0.5}
-            ),
-            y=sp(80),
-            orientation="horizontal",
-            pos_hint={"center_x": 0.5},
-            size_hint_x=0.9,
-            background_color=(.85, .95, .88, .9)
+                    # on_release=lambda x: self.snackbar.dismiss()
+                )
+            )
+        buttons_container.add_widget(
+            MDSnackbarCloseButton(
+                icon="close",
+                theme_icon_color="Custom",
+                icon_color=(0.2, 40/255, 0.3, 1),
+                on_release=lambda x: self.snackbar.dismiss()
+            )
         )
+        self.snackbar.add_widget(buttons_container)
+                
+        
+        
+        
         self.snackbar.open()
+        
