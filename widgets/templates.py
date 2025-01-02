@@ -411,6 +411,7 @@ class DisplayFolderScreen(MDScreen):
             return 404
     def setPath(self,path,add_to_history=True):
         if self.isDir(path) != 404 and not self.isDir(path):
+            self.manager.btm_sheet.enable_swiping=True
             self.manager.btm_sheet.set_state("toggle")
             
             return
@@ -472,7 +473,7 @@ class MyBtmSheet(MDBottomSheet):
         super().__init__(**kwargs)
         # super(MyBtmSheet,self).__init__(**kwargs)
         self.size_hint_y=None
-        self.height=sp(150)
+        self.height=sp(170)
         
         self.drag_sheet= MDBottomSheetDragHandle(
                             
@@ -495,8 +496,10 @@ class MyBtmSheet(MDBottomSheet):
 
         self.content = MDBoxLayout(padding=[0, 0, 0, "16dp"])
         self.add_widget(self.drag_sheet)
-        # self.generate_content()
         self.add_widget(self.content)
+        self.enable_swiping=0
+        # self.generate_content()
+        # self.set_state('close')
         # self.on_open=asynckivy.start(self.generate_content())
         
     async def generate_content(self):        
@@ -524,7 +527,34 @@ class MyBtmSheet(MDBottomSheet):
                         selected=not i,
                     )
                 )
+    def on_touch_move(self, touch):
+        if self.enable_swiping:
+            # if self.status == "closed":
+            #     pass
+            #     if (
+            #         self.get_dist_from_side(touch.oy) <= self.swipe_edge_width
+            #         and abs(touch.y - touch.oy) > self.swipe_distance
+            #     ):
+            #         self.status = "opening_with_swipe"
+            if self.status == "opened" and abs(touch.y - touch.oy) > self.swipe_distance:
+                self.status = "closing_with_swipe"
 
+        if self.status == "closing_with_swipe":
+            self.open_progress = max(
+                min(
+                    self.open_progress
+                    + (touch.dy if self.anchor == "left" else -touch.dy)
+                    / self.height,
+                    1,
+                ),
+                0,
+            )
+            return True
+        return super().on_touch_move(touch)
+    def on_close(self, *args):
+        self.enable_swiping=0
+        return super().on_close(*args)
+        
 
 from kivymd.uix.button import MDButton, MDButtonText
 class MDTextButton(MDButton):
@@ -581,3 +611,31 @@ class CustomDropDown(MDBoxLayout):
             # self.ids.dropdown_content.height = self.ids.dropdown_content.minimum_height
         else:
             super().add_widget(widget, index=index, canvas=canvas)        
+            
+
+
+# use for refresh, this function is from kivymd bottomsheet class
+    # def on_touch_move(self, touch):
+    #     if self.enable_swiping:
+    #         if self.status == "closed":
+    #             if (
+    #                 self.get_dist_from_side(touch.oy) <= self.swipe_edge_width
+    #                 and abs(touch.y - touch.oy) > self.swipe_distance
+    #             ):
+    #                 self.status = "opening_with_swipe"
+    #         elif self.status == "opened":
+    #             if abs(touch.y - touch.oy) > self.swipe_distance:
+    #                 self.status = "closing_with_swipe"
+
+    #     if self.status in ("opening_with_swipe", "closing_with_swipe"):
+    #         self.open_progress = max(
+    #             min(
+    #                 self.open_progress
+    #                 + (touch.dy if self.anchor == "left" else -touch.dy)
+    #                 / self.height,
+    #                 1,
+    #             ),
+    #             0,
+    #         )
+    #         return True
+    #     return super().on_touch_move(touch)

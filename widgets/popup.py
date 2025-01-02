@@ -102,9 +102,5 @@ class Snackbar(MDWidget):
             )
         )
         self.snackbar.add_widget(buttons_container)
-                
-        
-        
-        
         self.snackbar.open()
         
