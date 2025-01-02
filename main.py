@@ -126,6 +126,8 @@ class TabButton(RectangularRippleBehavior,ButtonBehavior,MDBoxLayout):
             # theme_text_color="Primary",
             # text_color=self.theme_cls.primaryColor,
             font_size=sp(12),
+            theme_font_size="Custom"
+            
             )
         self.btn_icon = MDIcon(
                 icon=self.icon,
@@ -167,7 +169,7 @@ class BottomNavigationBar(MDNavigationDrawer):
         
         
         self.screen_manager=screen_manager
-        icons = ['home', 'download', 'connection']
+        icons = ['home', 'download', 'link']
         # icons = ['home', 'server-network-outline', 'connection']
         
         for_label_text = ['Home','Storage','Link']
@@ -712,7 +714,6 @@ class Laner(MDApp):
         # Window.autosize=True
         return self.root_screen
     def on_resize(self, *args):
-        self.root_screen.size=getViewPortSize()
         btm_nav_btns=self.bottom_navigation_bar.children if isinstance(self.bottom_navigation_bar.children[0],TabButton) else []
         for btn in btm_nav_btns:
             btn.width=Window.width/3
