@@ -27,10 +27,10 @@ import sys
 from kivymd.uix.button import MDFabButton
 
 try:
-    from android_notify.core import send_notification
-    # send_notification("Completed download", 'file_name')/
+    from android_notify import send_notification
+    from kivymd.toast import toast
 except Exception as e:
-    print(e,"Failed ------------------- Notification")
+    print(e,"Android Import Error")
 
 with open(os.path.join(getAppFolder(),"widgets","templates.kv"), encoding="utf-8") as kv_file:
     Builder.load_string(kv_file.read(), filename="MyBtmSheet.kv")
@@ -173,10 +173,8 @@ class RV(RecycleView):
     def refresh(self):
         screen = self.parent.parent if isinstance(self.parent.parent, DisplayFolderScreen) else None
         if screen:
-            # toaster
             try:
-                from kivymd.toast import toast
-                toast("Refreshing...")
+                toast("Refreshing...",length_long=True)
             except Exception as e:
                 print("Android Toast Error: ", e)
             Clock.schedule_once(lambda dt: screen.startSetPathInfo_Thread())
@@ -192,7 +190,7 @@ async def async_download_file(url, save_path):
         with open(save_path, "wb") as file:
             file.write(response.content)
         try:
-            from android_notify.core import send_notification
+            
             PICTURE_FORMATS = ('.png', '.jpg', '.jpeg', '.tif', '.bmp', '.gif')
             if os.path.splitext(file_name)[1] in PICTURE_FORMATS:
                 shutil.copy(save_path, os.path.join(getAppFolder(), 'assets', 'imgs', file_name))
@@ -290,7 +288,7 @@ class DisplayFolderScreen(MDScreen):
                 return
             Clock.schedule_once(lambda dt:Snackbar(h1="File Uploaded Successfully"))
             try:
-                from android_notify.core import send_notification
+                
                 send_notification("Completed upload", os.path.basename(file_path))
                 # send_notification("Completed", os.path.basename(file_path) + " has been uploaded", style=NotificationStyles.BIG_TEXT)
             except Exception as e:
@@ -639,3 +637,10 @@ class CustomDropDown(MDBoxLayout):
     #         )
     #         return True
     #     return super().on_touch_move(touch)
+
+
+# for android stuff
+# from android.runnable import run_on_ui_thread
+
+# @run_on_ui_thread
+# def toast(text,
