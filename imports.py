@@ -116,12 +116,19 @@ try:
     # intent.setClassName(context.getPackageName(), f"{context.getPackageName()}.ServiceSendnoti")
     # context.startService(intent)
 
+    # context =  mActivity.getApplicationContext()
+    # SERVICE_NAME = str(context.getPackageName()) + '.Service' + 'Sendnoti'
+    # service = autoclass(SERVICE_NAME)
+    # service_intent = Intent(mActivity, service) # Create intent
+    # context.startForegroundService(service_intent)  # Start the service
+    # print("Foreground Service Started! -----------------")
+    
     context =  mActivity.getApplicationContext()
     SERVICE_NAME = str(context.getPackageName()) + '.Service' + 'Sendnoti'
     service = autoclass(SERVICE_NAME)
-    service_intent = Intent(mActivity, service) # Create intent
-    context.startForegroundService(service_intent)  # Start the service
-    # print("Foreground Service Started! -----------------")
-    
+    # try:
+    #     service.startForegroundService()
+    # except Exception as e:
+    service.start(mActivity,'')
 except Exception as e:
     print("Error Start foreground service: ",e)

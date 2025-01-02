@@ -104,8 +104,9 @@ try:
 
         return builder.build()
 
-    activity = PythonActivity.mActivity
-    context = cast('android.content.Context', activity)
+    # activity = PythonActivity.mActivity
+    context = PythonActivity.mActivity # Get the app's context 
+    # context = cast('android.content.Context', activity)
     notification = create_notification(context)
     
         
