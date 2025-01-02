@@ -12,29 +12,22 @@ class My_RecycleGridLayout(RecycleGridLayout):
     def __init__(self, **kwargs):
         # print(Window.width)
         super().__init__(**kwargs)
-        if Window.width > 800:
-            self.cols=5
+        super().__init__(**kwargs)
+        self.adjust_columns()
+
+    def adjust_columns(self):
+        if Window.width > 500:
+            self.cols = 4
         else:
-            try:
-                self.cols= int(str(Window.width)[0]) -2
-            except:
-                self.cols=2
-              
+            self.cols = max(2, int(Window.width / 200))
+
     def on_size(self, *args):
-        if Window.width > 800:
-            self.cols=5
-        elif Window.width < 300:
-            self.cols=3
-        elif Window.width < 200:
-            self.cols=2
-        else:
-            self.cols=4
+        self.adjust_columns()
 
 
 class WindowManager(MDScreenManager):
     screen_history = []  # Stack to manage visited screens
     def __init__(self, btm_sheet,**kwargs):
-    # def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.btm_sheet=btm_sheet
         self.md_bg_color =[.12,.12,.12,1] if self.theme_cls.theme_style == "Dark" else [0.98, 0.98, 0.98, 1]
@@ -50,10 +43,7 @@ class WindowManager(MDScreenManager):
         Window.bind(on_keyboard=self.Android_back_click)
 
     def changeScreenAnimation(self, screen_name):
-        if self.screen_names.index(screen_name) > self.screen_names.index(self.current):
-            self.transition=SlideTransition(direction='left')
-        else:
-            self.transition=SlideTransition(direction='right')
+         self.transition = SlideTransition(direction='left' if self.screen_names.index(screen_name) > self.screen_names.index(self.current) else 'right')
     def change_screen(self, screen_name):
         """Navigate to a specific screen and record history."""
         self.changeScreenAnimation(screen_name)
@@ -645,7 +635,9 @@ class Laner(MDApp):
     settings = Settings()
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-           
+        self.theme_cls.theme_style = self.get_stored_theme()
+        self.theme_cls.primary_palette = "White"
+        
     def get_stored_theme(self):
         return self.settings.get('display', 'theme')
     def toggle_theme(self):
@@ -686,8 +678,6 @@ class Laner(MDApp):
                     
     def build(self):
         self.title = 'Laner'
-        self.theme_cls.theme_style = self.get_stored_theme()
-        self.theme_cls.primary_palette = "White"
         Window.bind(size=self.on_resize)
         
         self.root_screen = MDScreen()
