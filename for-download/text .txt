@@ -1,0 +1,137 @@
+# main.py
+from kivy.app import App
+from kivy.uix.button import Button
+from kivy.uix.boxlayout import BoxLayout
+from jnius import autoclass, cast
+from android.config import JAVA_NAMESPACE
+
+# Java classes we need to create the service
+Context = autoclass('android.content.Context')
+Intent = autoclass('android.content.Intent')
+PendingIntent = autoclass('android.app.PendingIntent')
+AndroidString = autoclass('java.lang.String')
+NotificationBuilder = autoclass('android.app.Notification$Builder')
+NotificationManager = autoclass('android.app.NotificationManager')
+NotificationChannel = autoclass('android.app.NotificationChannel')
+Service = autoclass(f'{JAVA_NAMESPACE}.ServiceExample')
+
+class ServiceApp(App):
+    def build(self):
+        layout = BoxLayout(orientation='vertical')
+        start_button = Button(text='Start Service')
+        stop_button = Button(text='Stop Service')
+        
+        start_button.bind(on_press=self.start_service)
+        stop_button.bind(on_press=self.stop_service)
+        
+        layout.add_widget(start_button)
+        layout.add_widget(stop_button)
+        return layout
+    
+    def start_service(self, instance):
+        # Get the service class
+        service = autoclass(f'{JAVA_NAMESPACE}.ServiceExample')
+        # Get context
+        mActivity = autoclass('org.kivy.android.PythonActivity').mActivity
+        context = cast('android.content.Context', mActivity)
+        
+        # Create notification channel for Android 8.0+
+        channel_id = "my_service_channel"
+        channel_name = AndroidString("My Service Channel")
+        channel_description = AndroidString("Foreground Service Channel")
+        
+        notification_manager = context.getSystemService(Context.NOTIFICATION_SERVICE)
+        channel = NotificationChannel(
+            channel_id,
+            channel_name,
+            NotificationManager.IMPORTANCE_DEFAULT
+        )
+        channel.setDescription(channel_description)
+        notification_manager.createNotificationChannel(channel)
+        
+        # Create intent
+        service_intent = Intent(mActivity, service)
+        
+        # Start the service
+        context.startForegroundService(service_intent)
+    
+    def stop_service(self, instance):
+        service = autoclass(f'{JAVA_NAMESPACE}.ServiceExample')
+        mActivity = autoclass('org.kivy.android.PythonActivity').mActivity
+        context = cast('android.content.Context', mActivity)
+        
+        service_intent = Intent(mActivity, service)
+        context.stopService(service_intent)
+
+if __name__ == '__main__':
+    ServiceApp().run()
+
+# Create ServiceExample.java in your project's .buildozer/android/platform/python-for-android/pythonforandroid/recipes/kivy/src/main/java/org/kivy/android/ directory:
+
+package org.kivy.android;
+
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.Service;
+import android.content.Intent;
+import android.os.Build;
+import android.os.IBinder;
+
+public class ServiceExample extends Service {
+    private static final int NOTIFICATION_ID = 1;
+    private static final String CHANNEL_ID = "my_service_channel";
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        createNotification();
+        // Return sticky to keep the service running
+        return START_STICKY;
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+
+    private void createNotification() {
+        Intent notificationIntent = new Intent(this, PythonActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+            this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE
+        );
+
+        Notification.Builder builder;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            builder = new Notification.Builder(this, CHANNEL_ID);
+        } else {
+            builder = new Notification.Builder(this);
+        }
+
+        Notification notification = builder
+            .setContentTitle("My Service")
+            .setContentText("Service is running")
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setContentIntent(pendingIntent)
+            .build();
+
+        startForeground(NOTIFICATION_ID, notification);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        stopForeground(true);
+    }
+}
+
+# buildozer.spec modifications:
+# Add these lines to your buildozer.spec:
+
+android.permissions = FOREGROUND_SERVICE
+android.services = ServiceExample:org.kivy.android.ServiceExample

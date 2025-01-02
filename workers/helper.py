@@ -101,6 +101,7 @@ def get_full_class_name(obj):
 
 
 if DEVICE_TYPE == 'mobile':
+	from kivymd.toast import toast
 	from jnius import autoclass
 	from android import api_version  # type: ignore
 	PythonActivity = autoclass('org.kivy.android.PythonActivity')
@@ -202,8 +203,17 @@ def requestMultiplePermissions():
 					Settings = autoclass('android.provider.Settings')
 
 					if not Environment.isExternalStorageManager():
-						intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
-						Clock.schedule_once(lambda dt: mActivity.startActivity(intent), 2)
+						mActivity = PythonActivity.mActivity
+						Uri = autoclass('android.net.Uri')
+						intent = Intent()
+						try:
+							intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+							print(f"package:{mActivity.getPackageName()}") # package:org.laner.lan_ft
+							intent.setData(Uri.parse(f"package:{mActivity.getPackageName()}"))
+							Clock.schedule_once(lambda dt: mActivity.startActivity(intent), 2)
+						except Exception as e:
+							Clock.schedule_once(lambda dt: toast("Failed to request storage permissions"), 2)
+           
 			else:
 				print("Storage permissions not called Android less 11 | Feature not available 101")
 

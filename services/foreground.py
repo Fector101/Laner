@@ -36,6 +36,8 @@
 # notification_manager.notify(notification_id, builder.build())
 
 
+print("Entered Service is running...")
+
 
 # # Simulate Download Progress
 # import time
