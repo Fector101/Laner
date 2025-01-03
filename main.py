@@ -47,10 +47,11 @@ class SettingsScreen(QWidget):
         port_title.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
 
         # Create and style port value label
-        self.port_label = QSpinBox()
-        #(self.parent.port if self.parent.port else "Server not running")
-        self.port_label.setRange(0,30000)
-        self.port_label.setValue(8000)
+        # self.port_label = QSpinBox()
+        # self.port_label.setRange(0,30000)
+        # self.port_label.setValue(8000)
+        self.port_label = QLabel(self.parent.port if self.parent.port else "Server not running")
+
         self.port_label.setFont(QFont("Arial", 18))
         self.port_label.setStyleSheet("color: gray;")
         self.port_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
@@ -215,15 +216,16 @@ class FileShareApp(QMainWindow):
     def run_server(self, port):
         # Initialize the server
         try:
-            self.port=self.settings_screen.port_label.value()
-            self.server = FileSharingServer(port=self.port,ip=self.ip, directory= '/')
+            self.server = FileSharingServer(port=8000,ip=self.ip, directory= '/')
             # Start the server
             self.server.start()
             self.port=self.server.port # if args port unavailable Class will return a new port
-            self.settings_screen.port_label.setValue(self.port)
+            # self.settings_screen.port_label.setValue(self.port)
+            self.settings_screen.port_label.setText(str(self.port))
+            
             
             print("Press Ctrl+C to stop the server.")
-        except KeyboardInterrupt:...
+        # except KeyboardInterrupt:
             # Stop the server on Ctrl+C
             # print("\nStopping the server...")
             # self.server.stop()
@@ -270,4 +272,8 @@ if __name__ == "__main__":
     window = FileShareApp()
     window.show()
     # app.exec_()
-    sys.exit(app.exec_())
+    try:
+        sys.exit(app.exec_())
+    except KeyboardInterrupt:
+        # When running from cmd and User try to close App with CTRL+C, i don't want to log error after closing with tray
+        pass
