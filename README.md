@@ -88,29 +88,37 @@ Laner is a fast and secure file-sharing application that allows seamless file tr
 # FAQs
 
 ### 1. **Do I need an active internet connection to use Laner?**  
+
 No, Laner works entirely over a local network. Both devices must be connected to the same Wi-Fi or hotspot.  
 
 ### 2. **Where are downloaded files saved on my phone?**  
+
 All downloaded files are stored in the `Downloads/Laner` folder on your phone.  
 
 ### 3. **How do I stop the server on my desktop?**  
+
 Click the **End Server** button in the desktop app. This stops hosting files and ends the connection.  
 
 ### 4. **What if I can’t connect my phone to the server?**  
+
 - Ensure both devices are connected to the same local network.  
 - Verify the IP address (code) shown on the desktop app matches the one entered on your phone.  
 - Restart the desktop server or your router if necessary.  
 
 ### 5. **Can I hide files from being shared?**  
+
 Yes, hidden files can be excluded by default. Use the **Show Hidden Files** toggle in the phone app's settings to control this.  
 
 ### 6. **What happens when I minimize the desktop app?**  
+
 The desktop app runs in the system tray. You can reopen it by right-clicking the tray icon and selecting **Show**.  
 
 ### 7. **Can I upload files from my phone to the PC?**  
+
 Yes, use the **Upload** button in the phone app to select files for upload. Files will be saved to the desktop folder on your PC.  
 
 ### 8. **Does Laner support large file transfers?**  
+
 Yes, but ensure both devices have sufficient storage space and a stable connection for large files.  
 
 ---
@@ -147,6 +155,7 @@ Yes, but ensure both devices have sufficient storage space and a stable connecti
 
 2. **Changing the Default Port**
    - By default, Laner uses port `8000` for the server.  
+
 - To scan a list of ports and use the first available one, update the `run_server()` method in the desktop app's main file:
 
    ```python
