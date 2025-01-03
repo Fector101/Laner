@@ -1,0 +1,7 @@
+Package: laner-pc
+Version: 1.0
+Architecture: all
+Maintainer: Fabian <fabianjoseph063@gmail.com>
+Description: A Desktop app for Accessing PC files on Phone.
+Section: utils
+Installed-Size: 115784

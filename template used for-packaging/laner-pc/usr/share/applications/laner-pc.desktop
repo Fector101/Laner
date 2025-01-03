@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Laner PC
+Exec=/usr/local/bin/laner-pc
+Icon=laner-pc
+X-GNOME-Autostart-enabled=true
+NoDisplay=false
+Hidden=false
+Comment=A Desktop app for Accessing PC files on Phone

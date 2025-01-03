@@ -268,10 +268,17 @@ class FileShareApp(QMainWindow):
 
 
 if __name__ == "__main__":
+    print(sys.argv)
+    auto_start = "--autostart" in sys.argv
+
     app = QApplication(sys.argv)
     window = FileShareApp()
-    window.show()
-    # app.exec_()
+
+    if auto_start:
+        window.start_server()
+    else:
+        window.show()
+        
     try:
         sys.exit(app.exec_())
     except KeyboardInterrupt:
