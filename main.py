@@ -278,7 +278,6 @@ if __name__ == "__main__":
         window.start_server()
     else:
         window.show()
-        
     try:
         sys.exit(app.exec_())
     except KeyboardInterrupt:

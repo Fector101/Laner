@@ -30,7 +30,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='Laner-PC',
+    name='laner-pc',
     debug=debugging,
     bootloader_ignore_signals=False,
     strip=False,
