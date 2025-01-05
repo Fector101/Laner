@@ -205,7 +205,6 @@ def requestMultiplePermissions():
 					if not Environment.isExternalStorageManager():
 						mActivity = PythonActivity.mActivity
 						Uri = autoclass('android.net.Uri')
-						intent = Intent()
 						try:
 							intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
 							print(f"package:{mActivity.getPackageName()}") # package:org.laner.lan_ft

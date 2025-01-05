@@ -194,9 +194,9 @@ async def async_download_file(url, save_path):
             PICTURE_FORMATS = ('.png', '.jpg', '.jpeg', '.tif', '.bmp', '.gif')
             if os.path.splitext(file_name)[1] in PICTURE_FORMATS:
                 shutil.copy(save_path, os.path.join(getAppFolder(), 'assets', 'imgs', file_name))
-                send_notification("Completed download", file_name, style="large_icon", img_path=save_path)
+                send_notification("Completed download", file_name, style="large_icon", img_path=save_path,channel_name="Download Completed")
             else:
-                send_notification("Completed download", file_name)
+                send_notification("Completed download", file_name,channel_name="Download Completed")
         except Exception as e:
             print(e,"Failed sending Notification")
             pass
@@ -289,8 +289,7 @@ class DisplayFolderScreen(MDScreen):
             Clock.schedule_once(lambda dt:Snackbar(h1="File Uploaded Successfully"))
             try:
                 
-                send_notification("Completed upload", os.path.basename(file_path))
-                # send_notification("Completed", os.path.basename(file_path) + " has been uploaded", style=NotificationStyles.BIG_TEXT)
+                send_notification("Completed upload", os.path.basename(file_path),channel_name="Upload Completed")
             except Exception as e:
                 print(e,"Failed sending Notification")
             Clock.schedule_once(lambda dt: self.startSetPathInfo_Thread())
