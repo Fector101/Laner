@@ -41,7 +41,7 @@ version = 1.0
 # comma separated e.g. requirements = sqlite3,kivy
 
 #requirements = python3,kivy,kivymd,materialyoucolor,asynckivy,asyncgui,aiohttp,multidict,attrs,yarl,propcache,async_timeout
-requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,materialyoucolor,asynckivy,asyncgui,pyjnius,plyer,docutils,netifaces,android-notify
+requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,materialyoucolor,asynckivy,asyncgui,pyjnius,plyer,docutils,netifaces,android-notify==1.24.2
 # requirements = python3,kivy,kivymd,materialyoucolor,asynckivy,asyncgui,pyjnius,plyer,docutils,android-notify
 
 # (str) Custom source folders for requirements
@@ -59,7 +59,7 @@ icon.filename = %(source.dir)s/assets/imgs/icon.png
 orientation = portrait
 
 # (list) List of service to declare
-services = Sendnoti:./services/foreground.py
+services = Sendnoti:./services/foreground.py:True
 #services = NAME:ENTRYPOINT_TO_PY,NAME2:ENTRYPOINT2_TO_PY
 
 #
@@ -80,7 +80,7 @@ osx.kivy_version = 1.9.1
 #
 
 # (bool) Indicate if the application should be fullscreen or not
-# fullscreen = 0
+fullscreen = 0
 
 # (string) Presplash background color (for android toolchain)
 # Supported formats are: #RRGGBB #AARRGGBB or one of the following names:
@@ -102,7 +102,8 @@ osx.kivy_version = 1.9.1
 # (list) Permissions
 # (See https://python-for-android.readthedocs.io/en/latest/buildoptions/#build-options-1 for all the supported syntaxes and properties)
 #android.permissions = android.permission.INTERNET,WRITE_EXTERNAL_STORAGE
-android.permissions = android.permission.INTERNET, FOREGROUND_SERVICE,POST_NOTIFICATIONS, READ_EXTERNAL_STORAGE, MANAGE_EXTERNAL_STORAGE, REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+android.permissions = android.permission.INTERNET, FOREGROUND_SERVICE,POST_NOTIFICATIONS, READ_EXTERNAL_STORAGE, MANAGE_EXTERNAL_STORAGE
+# android.permissions = android.permission.INTERNET, FOREGROUND_SERVICE,POST_NOTIFICATIONS, READ_EXTERNAL_STORAGE, MANAGE_EXTERNAL_STORAGE, REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, FOREGROUND_SERVICE_DATA_SYNC
 # android.permissions = android.permission.INTERNET, FOREGROUND_SERVICE, READ_EXTERNAL_STORAGE,RECEIVE_BOOT_COMPLETED,NOTIFICATION
 
 # (list) features (adds uses-feature -tags to manifest)
@@ -330,7 +331,7 @@ android.allow_backup = True
 #p4a.fork = kivy
 
 # (str) python-for-android branch to use, defaults to master
-p4a.branch = develop
+# p4a.branch = develop
 
 # (str) python-for-android specific commit to use, defaults to HEAD, must be within p4a.branch
 #p4a.commit = HEAD

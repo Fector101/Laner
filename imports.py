@@ -82,7 +82,7 @@ def is_battery_optimization_enabled():
     package_name = mActivity.getPackageName()
     return not power_manager.isIgnoringBatteryOptimizations(package_name)
 
-def start_service():
+def useUnlimitedBatteryPower():
     if is_battery_optimization_enabled():
         print("Battery optimization is enabled. Requesting exclusion...")
         requestBatteryOptimization()
@@ -90,45 +90,43 @@ def start_service():
         print("Battery optimization is already disabled.")
 
 
-try:
-    start_service()
-except Exception as e:
-    print("Error1 battery stuff: ",e)
 
-try:
-    # Start Foreground Service
-    # service_intent = Intent(context, PythonActivity)
-    # service_intent.setAction("START_FOREGROUND_SERVICE")
-    # context.startForegroundService(service_intent)
-    # print("Foreground Service Started!")
+     
+def startService():
+    try:
     
-    # # Define the path to the service script
-    # service_path = os.path.join(getAppFolder(),'services', "service.py")
-    # print(f"Service Path: {service_path}")
-    # # Start the service via an intent
-    # intent = Intent(context, PythonActivity)
-    # intent.setAction("START_FOREGROUND_SERVICE")
-    # intent.putExtra("service_script", service_path)    
-    # context.startForegroundService(intent)
-    # print("Foreground Service Started!")
+        mActivity = autoclass('org.kivy.android.PythonActivity').mActivity
+        context =  mActivity.getApplicationContext()
+        SERVICE_NAME = str(context.getPackageName()) + '.Service' + 'Sendnoti'
+        service = autoclass(SERVICE_NAME)
+        service.start(mActivity,'')
+        print('returned service')
+    except Exception as e:
+        print(f'Foreground service failed {e}')
+startService()
+# def ran_With_No_Error_But_DidNot_Start_Service_1():
+#     print("Fore 2 -----------------")
+#     try:
+#         context =  mActivity.getApplicationContext()
+#         service_path = os.path.join(getAppFolder(),'services', "foreground.py")
+#         Uri = autoclass('android.net.Uri')
+#         intent = Intent(context, PythonActivity)
+#         intent.setAction("START_FOREGROUND_SERVICE")
+#         intent.putExtra("service_script", service_path)    
+#         context.startForegroundService(intent)
+#     except Exception as e:
+#         serviceTry3()
+#         print("Fore Error 2 ----------------- ",e)
+# serviceTry2()
 
-    # intent = Intent(context, PythonActivity)
-    # intent.setClassName(context.getPackageName(), f"{context.getPackageName()}.ServiceSendnoti")
-    # context.startService(intent)
-
-    # context =  mActivity.getApplicationContext()
-    # SERVICE_NAME = str(context.getPackageName()) + '.Service' + 'Sendnoti'
-    # service = autoclass(SERVICE_NAME)
-    # service_intent = Intent(mActivity, service) # Create intent
-    # context.startForegroundService(service_intent)  # Start the service
-    # print("Foreground Service Started! -----------------")
-    
-    context =  mActivity.getApplicationContext()
-    SERVICE_NAME = str(context.getPackageName()) + '.Service' + 'Sendnoti'
-    service = autoclass(SERVICE_NAME)
-    # try:
-    #     service.startForegroundService()
-    # except Exception as e:
-    service.start(mActivity,'')
-except Exception as e:
-    print("Error Start foreground service: ",e)
+# def ran_With_No_Error_But_DidNot_Start_Service():# But Also cause app to Crash
+#     print("Fore 1 -----------------")
+#     try:
+#         context =  mActivity.getApplicationContext()
+#         SERVICE_NAME = str(context.getPackageName()) + '.Service' + 'Sendnoti'
+#         service = autoclass(SERVICE_NAME)
+#         service_intent = Intent(mActivity, service) # Create intent
+#         context.startForegroundService(service_intent)  # Start the service
+#     except Exception as e:
+#         serviceTry2()
+#         print("Fore Error 1 ----------------- ",e)
