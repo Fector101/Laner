@@ -42,7 +42,7 @@ notification_manager.notify(notification_id, builder.build())
 # # Simulate Download Progress
 import time
 for progress in range(0, 101, 10):  # Increment progress in steps of 10%
-    time.sleep(5)  # Simulate time taken for download
+    time.sleep(20)  # Simulate time taken for download
     builder.setProgress(100, progress, False)
     builder.setContentText(AndroidString(f"{progress}% downloaded"))
     notification_manager.notify(notification_id, builder.build())

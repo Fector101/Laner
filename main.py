@@ -677,31 +677,32 @@ class Laner(MDApp):
                     
                     
     def build(self):
+        
+            
         self.title = 'Laner'
         Window.bind(size=self.on_resize)
         
+        # self.__root_screen = ScreenManager()
         self.root_screen = MDScreen()
-        
-        if DEVICE_TYPE == "mobile":...
-            # viewport_size=getViewPortSize()
-            # self.root_screen.size_hint=[None, None]
-            # self.root_screen.size=viewport_size
-            # y= Window.height - viewport_size[1] - getStatusBarHeight()
-            # print("Working Y-axis",y)
-            # self.root_screen.y=y
-            
         nav_layout = MDNavigationLayout()
         
         self.btm_sheet = MyBtmSheet()
         self.my_screen_manager = WindowManager(self.btm_sheet)
         self.bottom_navigation_bar = BottomNavigationBar(self.my_screen_manager)
         
+        # if DEVICE_TYPE == "mobile":
+        #     viewport_size=getViewPortSize()
+        #     self.root_screen.size_hint=[None, None]
+        #     self.root_screen.size=viewport_size
+        #     y= Window.height - viewport_size[1] - getStatusBarHeight()
+        #     print("Working Y-axis",y)
+        #     self.root_screen.y=y
         nav_layout.add_widget(self.my_screen_manager)
         nav_layout.add_widget(self.bottom_navigation_bar)
         nav_layout.add_widget(self.btm_sheet)
         
         self.root_screen.add_widget(nav_layout)
-        # Window.autosize=True
+        # self.__root_screen.add_widget(self.root_screen)
         return self.root_screen
     def on_resize(self, *args):
         btm_nav_btns=self.bottom_navigation_bar.children if isinstance(self.bottom_navigation_bar.children[0],TabButton) else []
