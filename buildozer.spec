@@ -1,13 +1,13 @@
 [app]
 
 # (str) Title of your application
-title = Laner
+title = ANTester
 
 # (str) Package name
-package.name = lan_ft
+package.name = an_tester
 
 # (str) Package domain (needed for android/ios packaging)
-package.domain = org.laner
+package.domain = org.antester
 
 # (str) Source code where the main.py live
 source.dir = ./
@@ -41,7 +41,9 @@ version = 1.0
 # comma separated e.g. requirements = sqlite3,kivy
 
 #requirements = python3,kivy,kivymd,materialyoucolor,asynckivy,asyncgui,aiohttp,multidict,attrs,yarl,propcache,async_timeout
-requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,materialyoucolor,asynckivy,asyncgui,pyjnius,plyer,docutils,netifaces,android-notify==1.24.2
+requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,materialyoucolor,asynckivy,asyncgui,pyjnius,plyer,docutils,netifaces,filetype
+# requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,materialyoucolor,asynckivy,asyncgui,pyjnius,plyer,docutils,netifaces,https://github.com/fector101/android_notify/archive/main.zip
+# requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,materialyoucolor,asynckivy,asyncgui,pyjnius,plyer,docutils,netifaces,android-notify==1.24.2
 # requirements = python3,kivy,kivymd,materialyoucolor,asynckivy,asyncgui,pyjnius,plyer,docutils,android-notify
 
 # (str) Custom source folders for requirements

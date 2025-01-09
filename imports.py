@@ -17,11 +17,13 @@ from kivy.utils import platform # OS
 
 from kivymd.app import MDApp
 from kivymd.uix.button import MDButton, MDButtonText, MDIconButton
+from kivy.uix.scrollview import ScrollView
 from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.label import MDIcon, MDLabel
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.behaviors import RectangularRippleBehavior
 from kivymd.uix.relativelayout import MDRelativeLayout
+from kivymd.uix.stacklayout import MDStackLayout
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.screenmanager import MDScreenManager
 from kivymd.uix.textfield import MDTextField

@@ -27,10 +27,34 @@ import sys
 from kivymd.uix.button import MDFabButton
 
 try:
-    from android_notify import send_notification
+    # from android_notify import send_notification,Notification
+    import time
+    # Notification(title='My Title',channel_name='Go')#,logs=False)
+    # notify = Notification(title='My Title',message='some message',channel_name='Go')
+    # notify.send()
+    # print('1')
+    # Notification(style='inbox',title='Some Title',message='Line 1\nLine 2\nLine 3',channel_name='Python').send()
+    # print('2')
+    # Notification(style="big_text",title='Them titles',message='This is a sample notification.',channel_name='Java').send()
+    # print('3')
+    # Notification(style="large_icon",title='Super Man',message='Nice Profile pic',channel_name='Java',large_icon_path="assets/icons/might/applications-python.png").send()
+    # print('4')
+    # Notification(style='big_picture',title='Spider Man',message='Cool Lagre Image.',channel_name='Jam',big_picture_path='assets/icons/file.png').send()
+    # print('5')
+    # Notification(style='both_imgs',big_picture_path='assets/icons/file.png',large_icon_path="assets/icons/might/applications-python.png",
+    # title='Alot of stuff',message='Line 1\nLine 2\nLine 3',channel_name='Butter1').send()
+    # print('6')
+    # Notification(style='both_imgs',channel_id='some_stuff',title='Alot of stuff',message='Line 1\nLine 2\nLine 3',channel_name='Butter2',
+    # large_icon_path='assets/icons/file.png',big_picture_path="assets/icons/might/applications-python.png"
+    # ).send()
+    # print('7')
+    
+    # time.sleep(15)
+    # notify.updateTitle('New Title Change')
+    
     from kivymd.toast import toast
 except Exception as e:
-    print(e,"Android Import Error")
+    print(e,"Android Import Error101")
 
 with open(os.path.join(getAppFolder(),"widgets","templates.kv"), encoding="utf-8") as kv_file:
     Builder.load_string(kv_file.read(), filename="MyBtmSheet.kv")
@@ -384,7 +408,7 @@ class DisplayFolderScreen(MDScreen):
                     
         except Exception as e:
             Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
-            print(e,"Failed opening Folder async")
+            print("Failed opening Folder async ",e)
                    
     def on_enter(self, *args):
         # print(self.data_received)

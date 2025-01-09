@@ -626,7 +626,9 @@ class SettingsScreen(MDScreen):
         
         print('Disconnected')
 
-
+class ScrollView_(ScrollView):
+    def __init__(self,**kwargs):
+        super().__init__(**kwargs)
 class Laner(MDApp):
     # android_app = autoclass('android.app.Application')pls checkout
     
@@ -680,10 +682,11 @@ class Laner(MDApp):
         
             
         self.title = 'Laner'
-        Window.bind(size=self.on_resize)
-        
+        # Window.bind(size=self.on_resize)
+        # 
         # self.__root_screen = ScreenManager()
-        self.root_screen = MDScreen()
+        self.root_screen = BoxLayout(size_hint=[1,1])#,md_bg_color=[1,0,0,1])
+        # self.root_screen = MDScreen()
         nav_layout = MDNavigationLayout()
         
         self.btm_sheet = MyBtmSheet()
@@ -703,6 +706,9 @@ class Laner(MDApp):
         
         self.root_screen.add_widget(nav_layout)
         # self.__root_screen.add_widget(self.root_screen)
+        # print(self.root_screen)
+        # BODY=ScrollView(size_hint=[1,1],do_scroll_y=False,do_scroll_x=False)
+        # BODY.add_widget(self.root_screen)
         return self.root_screen
     def on_resize(self, *args):
         btm_nav_btns=self.bottom_navigation_bar.children if isinstance(self.bottom_navigation_bar.children[0],TabButton) else []
