@@ -13,6 +13,10 @@ laner-linux
 auto_stuff.sh
 _main.py
 
+# Remove this when you want to upload
+for-download/
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
