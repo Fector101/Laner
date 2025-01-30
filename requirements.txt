@@ -1,6 +1,8 @@
 kivy
-kivymd
+https://github.com/kivymd/KivyMD/archive/master.zip
 opencv-python-headless
 plyer
 android-notify
-netifaces
+buildozer
+setuptools
+Cython
