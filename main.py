@@ -501,36 +501,7 @@ class SettingsScreen(MDScreen):
     def clear_cache(self, instance):
         # Cache clearing implementation
         
-        pass
-    def testx(self):
-        print("sending new notification")
-            
-        i=self.ipAddressInput.text
-        try:
-            if i=='1':
-                send_notification("Hello", "This is a basic notification.")
-            elif i=='2':
-                send_notification("Big Text", "This is a notification with a lot of text to show.", style=NotificationStyles.BIG_TEXT)
-            elif i=='3':
-                send_notification("Large Icon", "Here's a notification with a picture.", style=NotificationStyles.LARGE_ICON, img_path='assets/icons/sql.png')
-            elif i == '4':
-                send_notification("Big Picture", "Here's a notification with a picture.", style=NotificationStyles.BIG_PICTURE, img_path='assets/imgs/icon.png')
-            elif i == '5':
-                send_notification(
-                    "Inbox Style",
-                    "Line 1\nLine 2\nLine 3\nLine 4",
-                    style=NotificationStyles.INBOX
-                )
-            else:
-                send_notification("Hello!", i if i else "This is a notification from Kivy.")
-
-        except Exception as e:
-            print("Fisrt Noti: ",e)
-
-        def exit_manager(path=''):
-            print('exit path------------|',path)
-            toast('Toast more profess')
-        
+        pass        
     def on_checkbox_active(self,checkbox_instance, value):
         setHiddenFilesDisplay(value)
 
