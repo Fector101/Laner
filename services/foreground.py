@@ -1,5 +1,5 @@
 from jnius import autoclass
-print("Entered Sendnoti Service is running...")
+print("Entered Sendnoti Service is running... python")
 
 # Android classes
 Context = autoclass('android.content.Context')
