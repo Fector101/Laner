@@ -57,34 +57,6 @@
         height: self.minimum_height if root.is_open else 0
         opacity: 1 if root.is_open else 0
 
-# <Grid>
-#     id: loadingx
-#     canvas.before:
-#         PushMatrix
-#         Rotate:
-#             angle: self.angle
-#             origin: self.center
-#     canvas.after:
-#         PopMatrix
-#     angle:0
-#     rows: 2
-#     cols:2
-#     size_hint: None,None
-#     height:40
-#     width: 40
-#     pos_hint: {'center_x': 0.5}#,'center_y': 0.85} # use actual values later TODO
-#     spacing:5
-#     Image:
-#         source: "assets/icons/loading.png"
-            
-#         # MDFloatLayout:
-#         #     md_bg_color: rgba(242, 80, 34, 255)
-#         # MDFloatLayout:
-#         #     md_bg_color: rgba(127, 186, 0, 255)
-#         # MDFloatLayout:
-#         #     md_bg_color: rgba(0, 164, 239, 255)
-#         # MDFloatLayout:
-#         #     md_bg_color: rgba(255, 185, 0, 255)
 
 # MDFloatLayout:
 <MDTextButton>:
