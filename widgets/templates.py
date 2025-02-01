@@ -1,5 +1,6 @@
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.button import MDButton, MDButtonText,MDButtonIcon,MDIconButton
 from kivymd.uix.label import MDLabel
 from kivy.uix.spinner import Spinner
 from kivy.uix.gridlayout import GridLayout
@@ -10,6 +11,7 @@ from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.lang import Builder
 # from app_settings import SHOW_HIDDEN_FILES
+from android_notify import send_notification,Notification,NotificationStyles
 
 import threading
 import asyncio
@@ -26,32 +28,8 @@ from workers.sword import Settings
 import sys
 from kivymd.uix.button import MDFabButton
 
+import time
 try:
-    # from android_notify import send_notification,Notification
-    import time
-    # Notification(title='My Title',channel_name='Go')#,logs=False)
-    # notify = Notification(title='My Title',message='some message',channel_name='Go')
-    # notify.send()
-    # print('1')
-    # Notification(style='inbox',title='Some Title',message='Line 1\nLine 2\nLine 3',channel_name='Python').send()
-    # print('2')
-    # Notification(style="big_text",title='Them titles',message='This is a sample notification.',channel_name='Java').send()
-    # print('3')
-    # Notification(style="large_icon",title='Super Man',message='Nice Profile pic',channel_name='Java',large_icon_path="assets/icons/might/applications-python.png").send()
-    # print('4')
-    # Notification(style='big_picture',title='Spider Man',message='Cool Lagre Image.',channel_name='Jam',big_picture_path='assets/icons/file.png').send()
-    # print('5')
-    # Notification(style='both_imgs',big_picture_path='assets/icons/file.png',large_icon_path="assets/icons/might/applications-python.png",
-    # title='Alot of stuff',message='Line 1\nLine 2\nLine 3',channel_name='Butter1').send()
-    # print('6')
-    # Notification(style='both_imgs',channel_id='some_stuff',title='Alot of stuff',message='Line 1\nLine 2\nLine 3',channel_name='Butter2',
-    # large_icon_path='assets/icons/file.png',big_picture_path="assets/icons/might/applications-python.png"
-    # ).send()
-    # print('7')
-    
-    # time.sleep(15)
-    # notify.updateTitle('New Title Change')
-    
     from kivymd.toast import toast
 except Exception as e:
     print(e,"Android Import Error101")
@@ -63,7 +41,20 @@ with open(os.path.join(getAppFolder(),"widgets","templates.kv"), encoding="utf-8
 from kivy.utils import get_color_from_hex
 my_downloads_folder=makeDownloadFolder()
 
+class HeaderBtn(MDFabButton):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+         # self.back_btn.radius=0
+        self.theme_bg_color="Custom"
+        self.theme_shadow_color="Custom"
+        self.shadow_color=[0,0,0,0]
+        self.md_bg_color=[0,0,0,0]
+        
+        self.font_size=sp(20)    
+        size__=35
+        self.size=[sp(size__),sp(size__)]
 
+from kivymd.uix.menu import MDDropdownMenu
 class Header(MDBoxLayout):
     """_summary_
 
@@ -87,19 +78,44 @@ class Header(MDBoxLayout):
             text='~ '+self.text if self.text == 'Home' else self.text,
             halign=self.text_halign,
             valign='center',
-            shorten_from='center',
+            shorten_from='left',
             shorten=True,
-
+            # md_bg_color=[1,0,0,1]
             )
         if self.text_halign == 'left':
             self.header_label.padding=[sp(40),0,0,0]
         else:
-            self.header_label.padding=[sp(10),0,sp(10),0]
+            def fun():
+                print(self.parent.parent.manager.Android_back_click('_',27))
+            self.back_btn = HeaderBtn(icon="arrow-left", style= "standard", pos_hint={"center_y": .5},x=sp(10),on_release=lambda x:fun())
+           
+            self.add_widget(self.back_btn)
+            # self.header_label.padding=[sp(10),0,sp(10),0]
+            self.padding=[sp(10),0,sp(10),0]
 
         self.add_widget(self.header_label)
+        if self.text_halign != 'left':
+            self.opts_btn = HeaderBtn(icon="dots-vertical", style= "standard", pos_hint={"center_y": .5},x=sp(10),on_release=lambda this:self.open_menu(this))
+            self.add_widget(self.opts_btn)
+        def u():
+            self.header_label.text='/home/fabian/Documents/my-projects-code/packages'
+        # Clock.schedule_once(lambda x:u(),2)
     def changeTitle(self,text):
         self.header_label.text='~ '+ text if text == 'Home' else text
-        
+    def open_menu(self, item):
+        icons=['refresh','file','folder']
+        titles=['Refresh','New file','New folder']
+        menu_items = [
+            {
+                "text": titles[i],
+                'leading_icon': icons[i],
+                'height': sp(45),
+                
+                "on_release": lambda x=f"Item {icons}": self.menu_callback(x),
+            } for i in range(len(icons))
+        ]
+        MDDropdownMenu(caller=item, items=menu_items).open()
+    
 
 from kivy.uix.image import Image
 from kivy.animation import Animation
@@ -231,6 +247,7 @@ async def async_download_file(url, save_path):
      
 from kivy.uix.label import Label
 from kivymd.uix.relativelayout import MDRelativeLayout
+from kivymd.uix.floatlayout import MDFloatLayout
 
 class DetailsLabel(Label):
     pass
@@ -252,6 +269,12 @@ class DisplayFolderScreen(MDScreen):
         self.could_not_open_path_msg="Couldn't Open Folder Check Laner on PC"
         # self.md_bg_color=[1,1,0,1]
         self.layout=MDBoxLayout(orientation='vertical')
+
+
+        absolute_layout = MDFloatLayout(pos_hint={'top':1},size_hint_y=None,height=sp(70))
+        # absolute_layout.md_bg_color=[1,0,0,1]
+        # absolute_layout.add_widget(self.back_btn)
+
         self.header=Header(
                            text=self.current_dir,
                            
@@ -292,6 +315,7 @@ class DisplayFolderScreen(MDScreen):
         self.layout.add_widget(MDBoxLayout(height='70sp',size_hint=[1,None]))  # Buffer cause of bottom nav bar (will change to padding later)
         self.add_widget(self.layout)
         self.add_widget(self.upload_btn)
+        # self.add_widget(absolute_layout)
         
         self.add_widget(self.spinner)
         
@@ -412,8 +436,8 @@ class DisplayFolderScreen(MDScreen):
                    
     def on_enter(self, *args):
         # print(self.data_received)
-        Clock.schedule_once(lambda dt: self.startSetPathInfo_Thread())
-        # pass
+        # Clock.schedule_once(lambda dt: self.startSetPathInfo_Thread())
+        pass
         
         
             
@@ -577,7 +601,6 @@ class MyBtmSheet(MDBottomSheet):
         return super().on_close(*args)
         
 
-from kivymd.uix.button import MDButton, MDButtonText
 class MDTextButton(MDButton):
     text = StringProperty('Fizz')
     # text_widget = ObjectProperty() # for on_text if statement to work
