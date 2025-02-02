@@ -172,7 +172,11 @@ class FileShareApp(QMainWindow):
         # Create tray menu
         tray_menu = QMenu()
 
-        show_action = QAction("Show", self)
+        self.start_stop_action = QAction("Quick Connect", self)
+        self.start_stop_action.triggered.connect(self.start_server)
+        tray_menu.addAction(self.start_stop_action)
+
+        show_action = QAction("Show Code", self)
         show_action.triggered.connect(self.show)
         tray_menu.addAction(show_action)
 
@@ -185,7 +189,6 @@ class FileShareApp(QMainWindow):
 
     def start_server(self):
         if self.running:
-            self.main_screen.status_label.setText("Server is already running! Don't share the code.")
             self.on_stop()
             return
 
@@ -212,6 +215,7 @@ class FileShareApp(QMainWindow):
         self.main_screen.hide_ip_button.setVisible(True)
         self.main_screen.start_button.setText("End Server")
         self.main_screen.status_label.setText("Server Running. Don't share the code.\nWrite the exact code in the Link Tab on Your Phone.")
+        self.start_stop_action.setText("Disconnect")
 
     def run_server(self, port):
         # Initialize the server
@@ -234,7 +238,7 @@ class FileShareApp(QMainWindow):
 
     def on_stop(self):
         self.main_screen.hint_message.setText("Goodbye!")
-
+        self.start_stop_action.setText("Quick Connect")
         self.running = False
         self.main_screen.start_button.setText("Start Server")
         self.main_screen.status_label.setText("Server Ended!")
