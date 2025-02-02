@@ -32,7 +32,6 @@ from kivymd.material_resources import DEVICE_TYPE # if mobile or PC
 from kivymd.uix.filemanager import MDFileManager
 from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDNavigationLayout)
 from kivymd.uix.divider import MDDivider
-# from kivymd.color_definitions import colors
 
 import os, sys, json, requests, asyncio, threading
 from plyer import filechooser
@@ -63,8 +62,7 @@ if platform == 'android':
     context = cast('android.content.Context', mActivity)
     
     
-from android_notify import send_notification
-from android_notify import NotificationStyles
+from android_notify import send_notification,Notification,NotificationStyles
 
 def requestBatteryOptimization():
     try:
@@ -96,7 +94,6 @@ def useUnlimitedBatteryPower():
      
 def startService():
     try:
-    
         mActivity = autoclass('org.kivy.android.PythonActivity').mActivity
         context =  mActivity.getApplicationContext()
         SERVICE_NAME = str(context.getPackageName()) + '.Service' + 'Sendnoti'
@@ -106,29 +103,3 @@ def startService():
     except Exception as e:
         print(f'Foreground service failed {e}')
 startService()
-# def ran_With_No_Error_But_DidNot_Start_Service_1():
-#     print("Fore 2 -----------------")
-#     try:
-#         context =  mActivity.getApplicationContext()
-#         service_path = os.path.join(getAppFolder(),'services', "foreground.py")
-#         Uri = autoclass('android.net.Uri')
-#         intent = Intent(context, PythonActivity)
-#         intent.setAction("START_FOREGROUND_SERVICE")
-#         intent.putExtra("service_script", service_path)    
-#         context.startForegroundService(intent)
-#     except Exception as e:
-#         serviceTry3()
-#         print("Fore Error 2 ----------------- ",e)
-# serviceTry2()
-
-# def ran_With_No_Error_But_DidNot_Start_Service():# But Also cause app to Crash
-#     print("Fore 1 -----------------")
-#     try:
-#         context =  mActivity.getApplicationContext()
-#         SERVICE_NAME = str(context.getPackageName()) + '.Service' + 'Sendnoti'
-#         service = autoclass(SERVICE_NAME)
-#         service_intent = Intent(mActivity, service) # Create intent
-#         context.startForegroundService(service_intent)  # Start the service
-#     except Exception as e:
-#         serviceTry2()
-#         print("Fore Error 1 ----------------- ",e)

@@ -6,12 +6,9 @@ if platform == 'android':
     requestMultiplePermissions()
 else:
     Window.size = (400, 600)
-    
+
 class My_RecycleGridLayout(RecycleGridLayout):
-    screen_history = []  # Stack to manage visited screens
     def __init__(self, **kwargs):
-        # print(Window.width)
-        super().__init__(**kwargs)
         super().__init__(**kwargs)
         self.adjust_columns()
 
@@ -19,7 +16,8 @@ class My_RecycleGridLayout(RecycleGridLayout):
         if Window.width > 500:
             self.cols = 4
         else:
-            self.cols = max(2, int(Window.width / 200))
+            value = max(2, int(Window.width / 100))
+            self.cols = 2 if value < 2 else value
 
     def on_size(self, *args):
         self.adjust_columns()
@@ -39,26 +37,21 @@ class WindowManager(MDScreenManager):
         self.add_widget(DisplayFolderScreen(name='download',current_dir='.'))
         self.add_widget(SettingsScreen())
         self.transition=NoTransition()
-        self.current='settings'
+        self.current='upload'
+        Window.update_viewport()
         Window.bind(on_keyboard=self.Android_back_click)
 
     def changeScreenAnimation(self, screen_name):
          self.transition = SlideTransition(direction='left' if self.screen_names.index(screen_name) > self.screen_names.index(self.current) else 'right')
     def change_screen(self, screen_name):
-        """Navigate to a specific screen and record history."""
+        """Navigate to a specific screen and record history. (don't call directly outside class, this is a helper function)"""
         self.changeScreenAnimation(screen_name)
 
         if self.current != screen_name:
             self.screen_history.append(self.current)
             self.current = screen_name
-
+    
     def findTabButtonsAndChangeDesign(self):
-        # TODO Google a way to select children by id prop
-        # print([type(widget) for widget in self.walk(loopback=True)][0].ids)
-        # test = [type(widget) for widget in self.walk(loopback=True)][0].ids
-        # print(test)
-        # print(test.att())
-        # print(self.parent.children,self.parent.children[1].children)
         tabs_buttons_list=self.parent.children[1].children
         for each_btn in tabs_buttons_list:
             each_btn.checkWidgetDesign(self.current)
@@ -81,7 +74,7 @@ class WindowManager(MDScreenManager):
             else:
                 # Exit the app if no history
                 return False
-
+    
 
 class MY_MDIcon(MDIcon):
     "MDIcon Font size doesn't work unless creating my own class and passing MDIcon in it."
@@ -217,20 +210,17 @@ class MySwitch(MDBoxLayout):
         self.add_widget(self.checkbox_)
         
 
-validated_paths=[]
 class MyCard(RecycleDataViewBehavior,RectangularRippleBehavior,ButtonBehavior,MDRelativeLayout):
     path=StringProperty()
     icon=StringProperty()
     text=StringProperty()
     thumbnail_url=StringProperty()
     is_dir=BooleanProperty()
+    validated_paths=[] # Suppose to save across instances
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.ripple_effect=False
-        # print(self.thumbnail_url,'lll')
-        # if not self.is_dir:
-        #     print('polrwda---wdewwniw====')
-        # Clock.schedule_once(lambda dt: self.update_image(), 6)
+        self.thumbnail_update_interval=None
 
     def isFile(self,path:str):
         sever_ip=MDApp.get_running_app().settings.get('server', 'ip')
@@ -252,20 +242,20 @@ class MyCard(RecycleDataViewBehavior,RectangularRippleBehavior,ButtonBehavior,MD
 
     def on_thumbnail_url(self, instance, value):
         """Called whenever thumbnail_url changes."""
-        self.event = Clock.schedule_interval(lambda dt: self.update_image(), 5)
+        self.thumbnail_update_interval = Clock.schedule_interval(lambda dt: self.update_image(), 2)
                 
     def update_image(self):
-        global validated_paths
+        print('entered 33')
         def without_url_format(url:str):
             return os.path.join(*url.split('/')[4:])
-        if self.thumbnail_url and (self.thumbnail_url in validated_paths or self.isFile(without_url_format(self.thumbnail_url))):
-            if self.thumbnail_url not in validated_paths:
-                validated_paths.append(self.thumbnail_url)
+        if self.thumbnail_url and (self.thumbnail_url in self.validated_paths or self.isFile(without_url_format(self.thumbnail_url))):
+            if self.thumbnail_url not in self.validated_paths:
+                self.validated_paths.append(self.thumbnail_url)
             
             self.icon = self.thumbnail_url
-            self.event.cancel()
+            self.thumbnail_update_interval.cancel()
         elif not self.thumbnail_url:
-            self.event.cancel()
+            self.thumbnail_update_interval.cancel()
             
             
     def myFormat(self, text:str):
@@ -306,12 +296,6 @@ class PortBoxLayout(MDBoxLayout):
         )
         self.add_widget(self.port_input)
 
-        # self.verify_button = MDTextButton(
-        #     text="Verify",
-        #     size_hint=[1, None],
-        #     height=sp(40),
-        #     
-        # )
         self.add_widget(
             MDTextButton(
                 text='Verify',
@@ -321,8 +305,6 @@ class PortBoxLayout(MDBoxLayout):
                 radius=0,pos_hint={'center_y': .5}
             )
         )
-        
-        # self.add_widget(self.verify_button)
 
     def verify_port(self, instance):
         port = self.port_input.text
@@ -348,12 +330,6 @@ class PortBoxLayout(MDBoxLayout):
                 print("Dev Port Error: ",e)
             
         else:
-            # change bottom nav icon size
-            # text=self.port_input.text
-            # buttons = MDApp.get_running_app().bottom_navigation_bar.children
-            # for btn in buttons:
-            #     if isinstance(btn, TabButton):
-            #         btn.label.font_size=text
             Snackbar(h1="Invalid port Check 'Laner PC' for right one")
 
 class SettingsScreen(MDScreen):
@@ -372,6 +348,7 @@ class SettingsScreen(MDScreen):
         # Header
         self.header = Header(
             # size_hint=[1, 0.1],
+            screen=self,
             text="Settings",
             text_halign='left',
             theme_text_color='Primary',
@@ -512,8 +489,7 @@ class SettingsScreen(MDScreen):
             loop.run_until_complete(self.autoConnect())
             loop.close()
         threading.Thread(target=queryAutoConnectAsync).start()
-        
-        
+
     async def autoConnect(self):
         ip_input=self.ids['ip_addr_input']
         pervious_connections=self.app.settings.get('recent_connections')
@@ -597,15 +573,13 @@ class SettingsScreen(MDScreen):
         
         print('Disconnected')
 
-class ScrollView_(ScrollView):
-    def __init__(self,**kwargs):
-        super().__init__(**kwargs)
 class Laner(MDApp):
     # android_app = autoclass('android.app.Application')pls checkout
     
     bottom_navigation_bar=ObjectProperty()
     btm_sheet = ObjectProperty()
     settings = Settings()
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.theme_cls.theme_style = self.get_stored_theme()
@@ -613,6 +587,7 @@ class Laner(MDApp):
         
     def get_stored_theme(self):
         return self.settings.get('display', 'theme')
+
     def toggle_theme(self):
         current = self.theme_cls.theme_style
         new_theme = 'Dark' if current == 'Light' else 'Light'
@@ -650,11 +625,8 @@ class Laner(MDApp):
                     
                     
     def build(self):
-        
-            
         self.title = 'Laner'
-        # Window.bind(size=self.on_resize)
-        # 
+        Window.bind(size=self.on_resize)
         # self.__root_screen = ScreenManager()
         self.root_screen = BoxLayout(size_hint=[1,1])#,md_bg_color=[1,0,0,1])
         # self.root_screen = MDScreen()
@@ -676,10 +648,6 @@ class Laner(MDApp):
         nav_layout.add_widget(self.btm_sheet)
         
         self.root_screen.add_widget(nav_layout)
-        # self.__root_screen.add_widget(self.root_screen)
-        # print(self.root_screen)
-        # BODY=ScrollView(size_hint=[1,1],do_scroll_y=False,do_scroll_x=False)
-        # BODY.add_widget(self.root_screen)
         return self.root_screen
     def on_resize(self, *args):
         btm_nav_btns=self.bottom_navigation_bar.children if isinstance(self.bottom_navigation_bar.children[0],TabButton) else []
@@ -688,5 +656,6 @@ class Laner(MDApp):
         
         # print('What app see\'s as window height',Window.height)
         # print('BTM NAV Height',self.bottom_navigation_bar.height)
+
 if __name__ == '__main__':
     Laner().run()
