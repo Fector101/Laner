@@ -37,7 +37,10 @@ import os, sys, json, requests, asyncio, threading
 from plyer import filechooser
 
 from widgets.popup import Snackbar
-from widgets.templates import CustomDropDown, DetailsLabel, DisplayFolderScreen, Header, MDTextButton,MyBtmSheet
+from widgets.templates import CustomDropDown, MDTextButton,MyBtmSheet
+from widgets.screens import DisplayFolderScreen
+from widgets.header import Header
+
 from workers.helper import (
     THEME_COLOR_TUPLE, get_full_class_name,
     makeDownloadFolder, setHiddenFilesDisplay,
