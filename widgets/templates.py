@@ -29,10 +29,9 @@ import sys
 from kivymd.uix.button import MDFabButton
 
 import time
-try:
+from kivy.utils import platform # OS
+if platform == 'android':
     from kivymd.toast import toast
-except Exception as e:
-    print(e,"Android Import Error101")
 
 with open(os.path.join(getAppFolder(),"widgets","templates.kv"), encoding="utf-8") as kv_file:
     Builder.load_string(kv_file.read(), filename="MyBtmSheet.kv")
@@ -40,6 +39,7 @@ with open(os.path.join(getAppFolder(),"widgets","templates.kv"), encoding="utf-8
 
 from kivy.utils import get_color_from_hex
 my_downloads_folder=makeDownloadFolder()
+class RV(RecycleView):...
 
 class HeaderBtn(MDFabButton):
     def __init__(self, **kwargs):
@@ -67,8 +67,9 @@ class Header(MDBoxLayout):
     text_halign=StringProperty()
     title_color=ListProperty([1,1,1,1])
     theme_text_color=StringProperty()
-    def __init__(self, **kwargs):
+    def __init__(self,screen, **kwargs):
         super().__init__(**kwargs)
+        self.screen=screen
         self.md_bg_color =[.15,.15,.15,1] if self.theme_cls.theme_style == "Dark" else  [0.92, 0.92, 0.92, 1]
         self.size_hint=[1,None]
         self.height=sp(70)
@@ -86,9 +87,10 @@ class Header(MDBoxLayout):
             self.header_label.padding=[sp(40),0,0,0]
         else:
             def fun():
-                print(self.parent.parent.manager.Android_back_click('_',27))
-            self.back_btn = HeaderBtn(icon="arrow-left", style= "standard", pos_hint={"center_y": .5},x=sp(10),on_release=lambda x:fun())
-           
+                print(screen.manager.Android_back_click('_',27))
+            self.back_btn = HeaderBtn(icon="arrow-left", style= "standard", pos_hint={"center_y": .5},x=sp(10))
+            if isinstance(screen,DisplayFolderScreen):
+                self.back_btn.on_release=screen.lastFolderScreen
             self.add_widget(self.back_btn)
             # self.header_label.padding=[sp(10),0,sp(10),0]
             self.padding=[sp(10),0,sp(10),0]
@@ -100,23 +102,29 @@ class Header(MDBoxLayout):
         def u():
             self.header_label.text='/home/fabian/Documents/my-projects-code/packages'
         # Clock.schedule_once(lambda x:u(),2)
+        self.dropDown = None
     def changeTitle(self,text):
         self.header_label.text='~ '+ text if text == 'Home' else text
     def open_menu(self, item):
-        icons=['refresh','file','folder']
+        icons=['refresh',
+        # 'file','folder'
+        ]
         titles=['Refresh','New file','New folder']
+        functions = [self.refreshBtnClicked,self.screen.startSetPathInfo_Thread,self.screen.startSetPathInfo_Thread]
         menu_items = [
             {
                 "text": titles[i],
                 'leading_icon': icons[i],
                 'height': sp(45),
                 
-                "on_release": lambda x=f"Item {icons}": self.menu_callback(x),
+                "on_release": lambda real_index=i:functions[real_index](),
             } for i in range(len(icons))
         ]
-        MDDropdownMenu(caller=item, items=menu_items).open()
-    
-
+        self.dropDown=MDDropdownMenu(caller=item, items=menu_items)
+        self.dropDown.open()
+    def refreshBtnClicked(self):
+        self.screen.startSetPathInfo_Thread(frm_btn_bool='frm_btn')
+        self.dropDown.dismiss()
         
 import shutil
         
@@ -160,21 +168,20 @@ class DisplayFolderScreen(MDScreen):
         super().__init__(**kwargs)
         self.pos_hint={'top': 1}
         self.app=MDApp.get_running_app()
+        self.screen_history = []
         
         # self.spinner = Grid(opacity=0)
         self.data_received=False
-        self.screen_history = []
         self.current_dir_info:list[dict]=[]
         self.could_not_open_path_msg="Couldn't Open Folder Check Laner on PC"
         # self.md_bg_color=[1,1,0,1]
         self.layout=MDBoxLayout(orientation='vertical')
 
-
         absolute_layout = MDFloatLayout(pos_hint={'top':1},size_hint_y=None,height=sp(70))
         # absolute_layout.md_bg_color=[1,0,0,1]
         # absolute_layout.add_widget(self.back_btn)
 
-        self.header=Header(
+        self.header=Header(screen=self,
                            text=self.current_dir,
                            
                            text_halign='center',
@@ -183,7 +190,7 @@ class DisplayFolderScreen(MDScreen):
                            )
         self.layout.add_widget(self.header)
 
-        self.screen_scroll_box = RecycleView()
+        self.screen_scroll_box = RV()
         # self.screen_scroll_box.children[0].bind(height=self.spinner.setter('y'))
         
         
@@ -218,7 +225,11 @@ class DisplayFolderScreen(MDScreen):
         
         # self.add_widget(self.spinner)
         
-           
+    def lastFolderScreen(self):
+        if self.screen_history:
+            last_dir = self.screen_history.pop()
+            self.setPath(last_dir, False)
+            
     def getSERVER_IP(self):
         return self.app.settings.get('server', 'ip')
     def getPortNumber(self):
@@ -262,22 +273,23 @@ class DisplayFolderScreen(MDScreen):
         # filechooser.open_file(on_selection=lambda x: print(x))
         
                     
-    def startSetPathInfo_Thread(self):
+    def startSetPathInfo_Thread(self,frm_btn_bool=False):
         # print(self.data_received)
-        threading.Thread(target=self.querySetPathInfoAsync).start()
+        threading.Thread(target=self.querySetPathInfoAsync,args=[frm_btn_bool]).start()
         # time.sleep(0.2)
         # if not self.data_received:
         #     self.pop_up = PopupDialog()
         
-    def querySetPathInfoAsync(self):
+    def querySetPathInfoAsync(self,frm_btn_bool):
         # Run the async function in the event loop
         
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        loop.run_until_complete(self.asyncSetPathInfo())
+        loop.run_until_complete(self.asyncSetPathInfo(frm_btn_bool))
         loop.close()
                      
-    async def asyncSetPathInfo(self):
+    async def asyncSetPathInfo(self,frm_btn_bool):
+        print(frm_btn_bool)
         try:
             # self.data_received=False
             
@@ -322,6 +334,8 @@ class DisplayFolderScreen(MDScreen):
             # return
                 
             self.screen_scroll_box.data=self.current_dir_info
+            if frm_btn_bool and platform == 'android':
+                toast("Refresh Done")
             # self.data_received=True
             
             # self.pop_up.update_pop_up_text(self.name)
