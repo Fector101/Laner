@@ -10,12 +10,10 @@ package.name = lan_ft
 package.domain = org.laner
 
 # (str) Source code where the main.py live
-source.dir = ./
+source.dir = .
 
 # (list) Source files to include (let empty to include all the files)
 source.include_exts = py,png,jpg,kv,atlas,ttf,json
-
-
 
 # (list) List of inclusions using pattern matching
 #source.include_patterns = assets/*,images/*.png
@@ -39,13 +37,7 @@ version = 1.0
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-
-#requirements = python3,kivy,kivymd,materialyoucolor,asynckivy,asyncgui,aiohttp,multidict,attrs,yarl,propcache,async_timeout
-# requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,materialyoucolor,asynckivy,asyncgui,pyjnius,plyer,docutils,netifaces,filetype
-requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,materialyoucolor,asynckivy,asyncgui,pyjnius,plyer,docutils,netifaces,filetype,https://github.com/fector101/android_notify/archive/main.zip
-# requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,materialyoucolor,asynckivy,asyncgui,pyjnius,plyer,docutils,netifaces,android-notify==1.24.2
-# requirements = python3,kivy,kivymd,materialyoucolor,asynckivy,asyncgui,pyjnius,plyer,docutils,android-notify
-
+requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,materialyoucolor,asynckivy,asyncgui,pyjnius,plyer,docutils,netifaces,filetype,android-notify
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
 # requirements.source.kivy = ../../kivy
@@ -61,8 +53,8 @@ icon.filename = %(source.dir)s/assets/imgs/icon.png
 orientation = portrait
 
 # (list) List of service to declare
-services = Sendnoti:./services/foreground.py:True
 #services = NAME:ENTRYPOINT_TO_PY,NAME2:ENTRYPOINT2_TO_PY
+services = Sendnoti:./services/foreground.py:True
 
 #
 # OSX Specific
@@ -82,7 +74,7 @@ osx.kivy_version = 1.9.1
 #
 
 # (bool) Indicate if the application should be fullscreen or not
-fullscreen = 0
+fullscreen = 1
 
 # (string) Presplash background color (for android toolchain)
 # Supported formats are: #RRGGBB #AARRGGBB or one of the following names:
@@ -103,11 +95,8 @@ fullscreen = 0
 
 # (list) Permissions
 # (See https://python-for-android.readthedocs.io/en/latest/buildoptions/#build-options-1 for all the supported syntaxes and properties)
-#android.permissions = android.permission.INTERNET,WRITE_EXTERNAL_STORAGE
-# android.permissions = INTERNET, POST_NOTIFICATIONS
-android.permissions = android.permission.INTERNET, FOREGROUND_SERVICE,POST_NOTIFICATIONS, READ_EXTERNAL_STORAGE, MANAGE_EXTERNAL_STORAGE
-# android.permissions = android.permission.INTERNET, FOREGROUND_SERVICE,POST_NOTIFICATIONS, READ_EXTERNAL_STORAGE, MANAGE_EXTERNAL_STORAGE, REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, FOREGROUND_SERVICE_DATA_SYNC
-# android.permissions = android.permission.INTERNET, FOREGROUND_SERVICE, READ_EXTERNAL_STORAGE,RECEIVE_BOOT_COMPLETED,NOTIFICATION
+#android.permissions = android.permission.INTERNET, (name=android.permission.WRITE_EXTERNAL_STORAGE;maxSdkVersion=18)
+android.permissions = INTERNET, FOREGROUND_SERVICE,POST_NOTIFICATIONS, READ_EXTERNAL_STORAGE, MANAGE_EXTERNAL_STORAGE
 
 # (list) features (adds uses-feature -tags to manifest)
 #android.features = android.hardware.usb.host
@@ -122,7 +111,8 @@ android.api = 35
 #android.sdk = 20
 
 # (str) Android NDK version to use
-android.ndk = 25b
+#android.ndk = 23b
+# android.ndk = 25b # Before cleanup
 
 # (int) Android NDK API to use. This is the minimum API your app will support, it should usually match android.minapi.
 #android.ndk_api = 21
@@ -168,7 +158,6 @@ android.ndk = 25b
 # (str) Full name including package path of the Java class that implements Python Service
 # use that parameter to set custom Java class which extends PythonService
 #android.service_class_name = org.kivy.android.PythonService
-android.service = True
 
 # (str) Android app theme, default is ok for Kivy-based app
 # android.apptheme = "@android:style/Theme.NoTitleBar"
@@ -214,8 +203,9 @@ android.service = True
 #android.add_resources =
 
 # (list) Gradle dependencies to add
-#android.gradle_dependencies =
 android.gradle_dependencies = androidx.core:core-ktx:1.15.0, androidx.core:core:1.6.0
+
+
 # (bool) Enable AndroidX support. Enable when 'android.gradle_dependencies'
 # contains an 'androidx' package, or any package from Kotlin source.
 # android.enable_androidx requires android.api >= 28
@@ -334,7 +324,7 @@ android.allow_backup = True
 #p4a.fork = kivy
 
 # (str) python-for-android branch to use, defaults to master
-# p4a.branch = develop
+#p4a.branch = master
 
 # (str) python-for-android specific commit to use, defaults to HEAD, must be within p4a.branch
 #p4a.commit = HEAD
