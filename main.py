@@ -141,6 +141,7 @@ class FileShareApp(QMainWindow):
         super().__init__()
         self.setWindowTitle("Laner")
         self.icon=getAbsPath("assets", "imgs", "img.ico" if os.name == 'nt' else "icon.png")
+        self.tray_live_icon=getAbsPath("assets", "imgs", "live.ico" if os.name == 'nt' else "live.png")
         self.setWindowIcon(QtGui.QIcon(self.icon))
         self.setGeometry(100, 100, 500, 500)
         self.server_thread = None
@@ -216,6 +217,7 @@ class FileShareApp(QMainWindow):
         self.main_screen.start_button.setText("End Server")
         self.main_screen.status_label.setText("Server Running. Don't share the code.\nWrite the exact code in the Link Tab on Your Phone.")
         self.start_stop_action.setText("Disconnect")
+        self.tray.setIcon(QIcon(self.tray_live_icon))
 
     def run_server(self, port):
         # Initialize the server
@@ -238,6 +240,7 @@ class FileShareApp(QMainWindow):
 
     def on_stop(self):
         self.main_screen.hint_message.setText("Goodbye!")
+        self.tray.setIcon(QIcon(self.icon))
         self.start_stop_action.setText("Quick Connect")
         self.running = False
         self.main_screen.start_button.setText("Start Server")
