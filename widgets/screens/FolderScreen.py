@@ -20,12 +20,125 @@ from workers.helper import getHiddenFilesDisplay_State,makeDownloadFolder,getApp
 from kivy.lang import Builder
 import shutil
 from kivy.utils import platform # OS
+
+
 if platform == 'android':
     from kivymd.toast import toast
 my_downloads_folder=makeDownloadFolder()
 
 
 
+from jnius import autoclass,cast
+from android import activity,mActivity
+from android.activity import bind as android_bind
+Intent = autoclass('android.content.Intent')
+String = autoclass('java.lang.String')
+Uri = autoclass('android.net.Uri')
+
+# PythonActivity = autoclass('org.kivy.android.PythonActivity')
+# activity = PythonActivity.mActivity
+# def open_input_stream(uri):
+#     """
+#     Open an InputStream from the given content URI.
+#     Returns a Java InputStream.
+#     """
+#     PythonActivity = autoclass('org.kivy.android.PythonActivity')
+#     activity = PythonActivity.mActivity
+#     content_resolver = activity.getContentResolver()
+#     return content_resolver.openInputStream(uri)
+
+def open_input_stream(uri):
+    """
+    Open an InputStream from the given content URI.
+    Returns a Java InputStream.
+    """
+    content_resolver = mActivity.getContentResolver()
+    return content_resolver.openInputStream(uri)
+
+def read_file_data(input_stream):
+    """
+    Read the file data from the InputStream and return it as Python bytes.
+    """
+    BufferedInputStream = autoclass('java.io.BufferedInputStream')
+    ByteArrayOutputStream = autoclass('java.io.ByteArrayOutputStream')
+    buffered_input_stream = BufferedInputStream(input_stream)
+    byte_array_output_stream = ByteArrayOutputStream()
+
+    # Read the file data in chunks
+    buffer = bytearray(1024)
+    length = 0
+    while (length := buffered_input_stream.read(buffer)) != -1:
+        byte_array_output_stream.write(buffer, 0, length)
+
+    # Convert the ByteArrayOutputStream to a Python bytes object
+    byte_array = byte_array_output_stream.toByteArray()
+    file_data = bytes(byte_array)  # Convert to Python bytes
+    return file_data
+
+def get_file_name(uri):
+    """
+    Query the ContentResolver to get the file name from the URI.
+    """
+    content_resolver = mActivity.getContentResolver()
+    cursor = content_resolver.query(uri, None, None, None, None)
+    if cursor:
+        try:
+            if cursor.moveToFirst():
+                # Column index for the display name
+                print('cursor ',cursor)
+                display_name_index = cursor.getColumnIndex("_display_name")
+                if display_name_index != -1:
+                    return cursor.getString(display_name_index)
+        finally:
+            cursor.close()
+    return None
+def get_file_path(uri):
+    """ Attempt to resolve the file path from the content URI. """
+    if not uri:
+        return None
+    DocumentsContract = autoclass('android.provider.DocumentsContract')
+    # Check if the URI is a document URI
+    selection = "_id=?"
+    selection_args=[]
+    if DocumentsContract.isDocumentUri(mActivity, uri):
+        # Extract the document ID
+        doc_id = DocumentsContract.getDocumentId(uri)
+
+        # Handle different URI authorities
+        if uri.getAuthority() == "com.android.providers.media.documents":
+            # Media documents (e.g., images, videos)
+            print('doc_id --->',doc_id)
+            if doc_id.startswith("image:"):
+                id__ = doc_id.split(":")[1]
+                selection_args = [id__]
+                uri = Uri.parse("content://media/external/images/media")
+
+            elif doc_id.startswith("video:"):
+                id__ = doc_id.split(":")[1]
+                selection_args = [id__]
+                uri = Uri.parse("content://media/external/video/media")
+
+            elif doc_id.startswith("audio:"):
+                id__ = doc_id.split(":")[1]
+                selection_args = [id__]
+                uri = Uri.parse("content://media/external/audio/media")
+
+    if selection and selection_args:
+        # Query the URI to get the file path
+        content_resolver = mActivity.getContentResolver()
+        cursor = content_resolver.query(uri, None, selection, selection_args, None)
+        if cursor:
+            try:
+                if cursor.moveToFirst():
+                    # Column index for the data (file path)
+                    data_index = cursor.getColumnIndex("_data")
+                    if data_index != -1:
+                        return cursor.getString(data_index)
+            finally:
+                cursor.close()
+
+    # Fallback: Return None if the file path cannot be resolved
+    return None
 with open(
     os.path.join(getAppFolder(),"widgets","screens","folderscreen.kv"), encoding="utf-8"
 ) as kv_file:
@@ -101,20 +214,19 @@ class DisplayFolderScreen(MDScreen):
         return self.app.settings.get('server', 'ip')
     def getPortNumber(self):
         return self.app.settings.get('server', 'port')
-    async def uploadFile(self,file_path):
+    async def uploadFile(self,file_path,file_data=False):
         try:
             response = requests.post(
                 f"http://{self.getSERVER_IP()}:{self.getPortNumber()}/api/upload",
-                files={'file': open(file_path, 'rb')},
-                data={'save_path': self.current_dir}
-            )
+                data={'save_path': self.current_dir},
+                files={'file': file_data if file_data else open(file_path, 'rb')},timeout=0
+                            )
             if response.status_code != 200:
                 Clock.schedule_once(lambda dt:Snackbar(h1='Connection Error Check Laner on PC'))
                 return
             Clock.schedule_once(lambda dt:Snackbar(h1="File Uploaded Successfully"))
             try:
-                
-                send_notification("Completed upload", os.path.basename(file_path),channel_name="Upload Completed")
+                Notification(title='Completed upload',message=os.path.basename(file_path),channel_name="Upload Completed").send()
             except Exception as e:
                 print(e,"Failed sending Notification")
             Clock.schedule_once(lambda dt: self.startSetPathInfo_Thread())
@@ -122,24 +234,58 @@ class DisplayFolderScreen(MDScreen):
             Clock.schedule_once(lambda dt:Snackbar(h1="Failed to Upload File check Laner on PC"))
             print(e,"Failed Upload")
             
-    def startUpload_Thread(self,file_path):
+    def startUpload_Thread(self,file_path,file_data):
         def queryUploadAsync():
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
-            loop.run_until_complete(self.uploadFile(file_path))
+            loop.run_until_complete(self.uploadFile(file_path,file_data=file_data))
             loop.close()
         threading.Thread(target=queryUploadAsync).start()
     def choose_file(self):
         print('printing tstex')
-        def test1(file_path):
-            print(file_path,'choosen path')
-            if file_path:
-                self.startUpload_Thread(file_path if isinstance(file_path,str) else file_path[0])
+
+        def test1(received_code, result_code, intent):
+            print(received_code, result_code, intent)
+            if result_code == -1:
+                uri = intent.getData()
+                print('enrypted path',uri.getPath())
+                try:
+                    print('deepseek dezz ',uri.toString())
+                    print('deepseek file name',get_file_name(uri))
+                    print('deepseek file path',get_file_path(uri))
+                except Exception as e:
+                    print('to file ',e)
+                
+                try:
+                    input_stream = open_input_stream(uri=uri)
+                    file_data = read_file_data(input_stream)
+                    path_= os.path.join(my_downloads_folder, "stale.txt")
+                    print(file_data,'path data')
+                    print(path_,'new path')
+                    with open(path_, 'wb') as f:
+                        f.write(file_data)
+
+                except Exception as e:
+                    print('Buffer Failed',e)
+                # self.startUpload_Thread(file_path='d/',file_data=file_data)
+            # if file_path:
+            #     self.startUpload_Thread(file_path if isinstance(file_path,str) else file_path[0])
                 # self.img.source=file_path[0]
-        filechooser.open_file(on_selection=test1)
+        # filechooser.open_file(on_selection=test1)
+        intent = Intent(Intent.ACTION_GET_CONTENT)
+        intent.setType("*/*")  # Change to "image/*" for images only
+        chooseFile = Intent.createChooser(intent, cast( 'java.lang.CharSequence', String("FileChooser") ))
+        mActivity.startActivityForResult(chooseFile, 123456)
+        android_bind(on_activity_result=test1)
+
+        # Bind the result callback
+        # try:
+        #     context =  activity.getApplicationContext()
+        #     print(f"Package Name: {context.getPackageName()}")
+        # except Exception as e:
+        #     print('Failed getting package',e)
         # filechooser.open_file(on_selection=lambda x: print(x))
-        
-                    
+    
     def startSetPathInfo_Thread(self,frm_btn_bool=False):
         threading.Thread(target=self.querySetPathInfoAsync,args=[frm_btn_bool]).start()
         
@@ -191,6 +337,12 @@ class DisplayFolderScreen(MDScreen):
             parse_for_folders='folders' if no_of_folders > 1 else 'folder'
             self.details_label.text=f'{no_of_files} {parse_for_files} and {no_of_folders} {parse_for_folders}'
             self.screen_scroll_box.data=self.current_dir_info
+            grey_i = .44
+            if not self.screen_history:
+                self.header.back_btn.color = [grey_i,grey_i,grey_i,1] # no need to change color in App toogle_theme method since this method will get called everytime user enters screen
+            else:
+                self.header.back_btn.color=self.header.saved_theme_color
+
             if frm_btn_bool and platform == 'android':
                 toast("Refresh Done")
                     
@@ -264,7 +416,7 @@ async def async_download_file(url, save_path):
             PICTURE_FORMATS = ('.png', '.jpg', '.jpeg', '.tif', '.bmp', '.gif')
             if os.path.splitext(file_name)[1] in PICTURE_FORMATS:
                 shutil.copy(save_path, os.path.join(getAppFolder(), 'assets', 'imgs', file_name))
-                send_notification("Completed download", file_name, style="large_icon", img_path=save_path,channel_name="Download Completed")
+                Notification(title="Completed download",message=file_name,style=NotificationStyles.LARGE_ICON,big_picture_path=save_path,channel_name="Download Completed").send()
             else:
                 send_notification("Completed download", file_name,channel_name="Download Completed")
         except Exception as e:
