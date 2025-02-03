@@ -17,8 +17,8 @@ class HeaderBtn(MDFabButton):
         self.shadow_color=[0,0,0,0]
         self.md_bg_color=[0,0,0,0]
         
-        self.font_size=sp(20)    
-        size__=35
+        self.font_size=sp(26)    
+        size__=45
         self.size=[sp(size__),sp(size__)]
 
 
@@ -55,14 +55,17 @@ class Header(MDBoxLayout):
         elif screen.__class__.__name__ == "DisplayFolderScreen":
             def fun():
                 print(screen.manager.Android_back_click('_',27))
+            grey_i= 0.44
             self.back_btn = HeaderBtn(icon="arrow-left", style= "standard", pos_hint={"center_y": .5},x=sp(10))
             self.back_btn.on_release=screen.lastFolderScreen
+            self.back_btn.color=[grey_i,grey_i,grey_i,1]
             self.add_widget(self.back_btn)
             self.padding=[sp(10),0,sp(10),0]
 
         self.add_widget(self.header_label)
         if self.text_halign != 'left':
             self.opts_btn = HeaderBtn(icon="dots-vertical", style= "standard", pos_hint={"center_y": .5},x=sp(10),on_release=lambda this:self.open_menu(this))
+            self.saved_theme_color = self.opts_btn.color # IMPORTANT for back btn color reset
             self.add_widget(self.opts_btn)
         def u():
             self.header_label.text='/home/fabian/Documents/my-projects-code/packages'
