@@ -16,6 +16,13 @@ if platform == 'android':
     Intent = autoclass('android.content.Intent')
     String = autoclass('java.lang.String')
     Uri = autoclass('android.net.Uri')
+    
+    # from android.os import Build
+    # if Build.VERSION.SDK_INT >= 29:
+    #     uri = MediaStoreFiles.getContentUri("external")
+    # else:
+    #     uri = autoclass('android.provider.MediaStore').Images.Media.EXTERNAL_CONTENT_URI
+    
 else:
     cast={}
     autoclass={}
@@ -28,6 +35,9 @@ else:
     DocumentsContract ={}
     BufferedInputStream ={}
     ByteArrayOutputStream ={}
+
+
+
 
 
 class AndroidFileChooser:
@@ -68,10 +78,10 @@ class AndroidFileChooser:
         """
         instance = cls._instance
         cls._instance.waiting = False
-        print(instance,'||',request_code,'||',result_code,'||', intent)
+        # print(instance,'||',request_code,'||',result_code,'||', intent)
         if result_code == -1:
             uri = intent.getData()
-            print('enrypted path',uri.getPath())
+            # print('enrypted path',uri.getPath())
             print('enrypted stuff ',uri.toString())
             try:
                 file_path = instance.__get_file_path(uri)
@@ -82,7 +92,7 @@ class AndroidFileChooser:
             instance.file_name = instance.__get_file_name(uri)
             instance.__read_file_data( instance.__open_input_stream(uri))
 
-    def __open_input_stream(self,uri):
+    def __open_input_stream(self,uri): # pylint: disable=unused-private-member
         """
         Open an InputStream from the given content URI.
         Returns a Java InputStream.
@@ -90,7 +100,7 @@ class AndroidFileChooser:
         content_resolver = mActivity.getContentResolver()
         return content_resolver.openInputStream(uri)
 
-    def __read_file_data(self, input_stream):
+    def __read_file_data(self, input_stream):  # pylint: disable=unused-private-member
         """
         Read file data asynchronously while still returning the data.
         
@@ -121,7 +131,7 @@ class AndroidFileChooser:
                 return None
         threading.Thread(target=read_data).start()
 
-    def __get_file_name(self,uri):
+    def __get_file_name(self,uri): # pylint: disable=unused-private-member
         """
         Query the ContentResolver to get the file name from the URI.
         """
@@ -135,52 +145,82 @@ class AndroidFileChooser:
                     return cursor.getString(display_name_index)
             cursor.close()
         return None
-    def __get_file_path(self,uri):
+    def __get_file_path(self, uri): # pylint: disable=unused-private-member
         """ Attempt to resolve the file path from the content URI. """
         if not uri:
             return None
-        # Check if the URI is a document URI
-        selection = "_id=?"
-        selection_args=[]
+        MediaStore = autoclass('android.provider.MediaStore')
+        
+        MediaStoreFiles = autoclass('android.provider.MediaStore$Files')
+        ContentUris = autoclass('android.content.ContentUris')
+        import os
+        # Handle "raw" file URIs (e.g., file:///sdcard/...)
+        if uri.getScheme() == "file":
+            return uri.getPath()
+
+        # Handle document URIs
         if DocumentsContract.isDocumentUri(mActivity, uri):
-            # Extract the document ID
             doc_id = DocumentsContract.getDocumentId(uri)
+            authority = uri.getAuthority()
+            print('authority ',authority)
+            if authority == "com.android.providers.media.documents":
+                # Media files
+                id_part = doc_id.split(":")[1]
+                media_type = doc_id.split(":")[0]
+                print("media_type --->",media_type)
+                uri = {
+                    "image": autoclass('android.provider.MediaStore$Images$Media').EXTERNAL_CONTENT_URI,
+                    "video": autoclass('android.provider.MediaStore$Video$Media').EXTERNAL_CONTENT_URI,
+                    "audio": autoclass('android.provider.MediaStore$Audio$Media').EXTERNAL_CONTENT_URI
+                }.get(media_type,  MediaStoreFiles.getContentUri("external"))
+                uri = ContentUris.withAppendedId(uri, int(id_part))
 
-            print('doc_id --->',doc_id)
-            # Handle different URI authorities
-            if uri.getAuthority() == "com.android.providers.media.documents":
-                # Media documents (e.g., images, videos)
-                id__ = doc_id.split(":")[1]
-                selection_args = [id__]
+            elif authority == "com.android.providers.downloads.documents":
+                # Downloads
+                uri = ContentUris.withAppendedId(
+                    Uri.parse("content://downloads/public_downloads"),
+                    int(doc_id)
+                )
 
-                if doc_id.startswith("image:"):
-                    uri = Uri.parse("content://media/external/images/media")
+            elif authority == "com.android.externalstorage.documents":
+                # External storage (SD cards, USB drives)
+                parts = doc_id.split(":")
+                print('parts --->',parts)
+                try:
+                    print('getParent ',mActivity.getExternalFilesDir().getParent())
+                    print('getParentNone ', mActivity.getExternalFilesDir(None).getParent())
+                    print('getExternalFilesDir ',mActivity.getExternalFilesDir(None))
+                except Exception as e:
+                    print('ededede',e)
+                if parts[0] == "primary":
+                    return os.path.join(
+                        mActivity.getExternalFilesDir(None).getParent(),  # /storage/emulated/0
+                        parts[1]
+                    )
 
-                elif doc_id.startswith("video:"):
-                    uri = Uri.parse("content://media/external/video/media")
-
-                elif doc_id.startswith("audio:"):
-                    uri = Uri.parse("content://media/external/audio/media")
-                    
-                # elif doc_id.startswith("document:"):
-                #     uri = Uri.parse("content://media/external/documents/media")
-                    
-                # TODO follow pattern for "document" section
-        if selection and selection_args:
-            # Query the URI to get the file path
-            content_resolver = mActivity.getContentResolver()
-            cursor = content_resolver.query(uri, None, selection, selection_args, None)
+            # Query the URI
+            print("uri ---> ",uri)
+            cursor = mActivity.getContentResolver().query(
+                uri, 
+                ['_data'],  # _data column
+                # [MediaStore.MediaColumns.DATA],  # _data column
+                None, None, None
+            )
             if cursor:
                 try:
                     if cursor.moveToFirst():
-                        # Column index for the data (file path)
-                        data_index = cursor.getColumnIndex("_data")
-                        if data_index != -1:
-                            return cursor.getString(data_index)
+                        return cursor.getString(0)
                 finally:
                     cursor.close()
 
-        # Fallback: Return None if the file path cannot be resolved
+        # Fallback: Use FileDescriptor (Android 10+ compatible)
+        try:
+            fd = mActivity.getContentResolver().openFileDescriptor(uri, "r")
+            print('using last restort ',fd)
+            return fd.getFileDescriptor().toString()  # Not a real path, but a reference
+        except Exception as e:
+            print(f"Fallback failed: {e}")
+
         return None
 
 if __name__ == '__main__':

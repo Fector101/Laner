@@ -138,7 +138,7 @@ class DisplayFolderScreen(MDScreen):
         print('choosing file...')
         def parseAnswer(file_name,file_data):
             print('received file_name ',file_name)
-            print("received file_data ",file_data)
+            print("received file_data ",file_data[:10])
                 # self.startUpload_Thread(file_path='d/',file_data=file_data)
             # if file_path:
             #     self.startUpload_Thread(file_path if isinstance(file_path,str) else file_path[0])
@@ -146,7 +146,7 @@ class DisplayFolderScreen(MDScreen):
         # filechooser.open_file(on_selection=test1)
         if platform == 'android':
             result = AndroidFileChooser(callback=parseAnswer)
-            print('result ===> ', result)
+            # print('result ===> ', result)
         # Bind the result callback
         # try:
         #     context =  activity.getApplicationContext()
