@@ -39,6 +39,7 @@ class AndroidFileChooser:
             cls._instance = super().__new__(cls)
             android_bind(on_activity_result=cls.__parse_choice)
             cls._instance.initialized_at = datetime.now()
+            
         return cls._instance
 
     def __init__(self,callback):
@@ -46,14 +47,13 @@ class AndroidFileChooser:
         self.file_name = None
         self.callback = callback
         
-        if platform == 'android' and not self.waiting:
-            self.waiting = True
+        if platform == 'android' and not self._instance.waiting:
+            self._instance.waiting = True
             intent = Intent(Intent.ACTION_GET_CONTENT)
             intent.setType("*/*")
             chooseFile = Intent.createChooser(intent, cast( 'java.lang.CharSequence', String("FileChooser") ))
             mActivity.startActivityForResult(chooseFile, 123456)
-        else:
-            self.callback(None,None)
+        
     @classmethod
     def __parse_choice(cls, request_code, result_code, intent):
         """parse users choice
@@ -61,13 +61,13 @@ class AndroidFileChooser:
         Args:
             received_code (int): _description_
             result_code (int): _description_
-            intent (Intebt): _description_
+            intent (Intent): _description_
 
         Returns:
            list: [file_name, file_data]
         """
         instance = cls._instance
-        cls.waiting = False
+        cls._instance.waiting = False
         print(instance,'||',request_code,'||',result_code,'||', intent)
         if result_code == -1:
             uri = intent.getData()
@@ -162,8 +162,8 @@ class AndroidFileChooser:
                 elif doc_id.startswith("audio:"):
                     uri = Uri.parse("content://media/external/audio/media")
                     
-                elif doc_id.startswith("document:"):
-                    uri = Uri.parse("content://media/external/documents/media")
+                # elif doc_id.startswith("document:"):
+                #     uri = Uri.parse("content://media/external/documents/media")
                     
                 # TODO follow pattern for "document" section
         if selection and selection_args:
@@ -182,3 +182,9 @@ class AndroidFileChooser:
 
         # Fallback: Return None if the file path cannot be resolved
         return None
+
+if __name__ == '__main__':
+    print(999)
+    def test(file_name,file_data):
+        print("file_name ",file_name,"file_data ",file_data)
+    AndroidFileChooser(test)
