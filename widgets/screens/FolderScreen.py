@@ -24,130 +24,23 @@ from kivy.utils import platform # OS
 
 if platform == 'android':
     from kivymd.toast import toast
+    from workers.filechooser import AndroidFileChooser
+
 my_downloads_folder=makeDownloadFolder()
 
-
-
-from jnius import autoclass,cast
-from android import activity,mActivity
-from android.activity import bind as android_bind
-Intent = autoclass('android.content.Intent')
-String = autoclass('java.lang.String')
-Uri = autoclass('android.net.Uri')
-
-# PythonActivity = autoclass('org.kivy.android.PythonActivity')
-# activity = PythonActivity.mActivity
-# def open_input_stream(uri):
-#     """
-#     Open an InputStream from the given content URI.
-#     Returns a Java InputStream.
-#     """
-#     PythonActivity = autoclass('org.kivy.android.PythonActivity')
-#     activity = PythonActivity.mActivity
-#     content_resolver = activity.getContentResolver()
-#     return content_resolver.openInputStream(uri)
-
-def open_input_stream(uri):
-    """
-    Open an InputStream from the given content URI.
-    Returns a Java InputStream.
-    """
-    content_resolver = mActivity.getContentResolver()
-    return content_resolver.openInputStream(uri)
-
-def read_file_data(input_stream):
-    """
-    Read the file data from the InputStream and return it as Python bytes.
-    """
-    BufferedInputStream = autoclass('java.io.BufferedInputStream')
-    ByteArrayOutputStream = autoclass('java.io.ByteArrayOutputStream')
-    buffered_input_stream = BufferedInputStream(input_stream)
-    byte_array_output_stream = ByteArrayOutputStream()
-
-    # Read the file data in chunks
-    buffer = bytearray(1024)
-    length = 0
-    while (length := buffered_input_stream.read(buffer)) != -1:
-        byte_array_output_stream.write(buffer, 0, length)
-
-    # Convert the ByteArrayOutputStream to a Python bytes object
-    byte_array = byte_array_output_stream.toByteArray()
-    file_data = bytes(byte_array)  # Convert to Python bytes
-    return file_data
-
-def get_file_name(uri):
-    """
-    Query the ContentResolver to get the file name from the URI.
-    """
-    content_resolver = mActivity.getContentResolver()
-    cursor = content_resolver.query(uri, None, None, None, None)
-    if cursor:
-        try:
-            if cursor.moveToFirst():
-                # Column index for the display name
-                print('cursor ',cursor)
-                display_name_index = cursor.getColumnIndex("_display_name")
-                if display_name_index != -1:
-                    return cursor.getString(display_name_index)
-        finally:
-            cursor.close()
-    return None
-def get_file_path(uri):
-    """ Attempt to resolve the file path from the content URI. """
-    if not uri:
-        return None
-    DocumentsContract = autoclass('android.provider.DocumentsContract')
-    # Check if the URI is a document URI
-    selection = "_id=?"
-    selection_args=[]
-    if DocumentsContract.isDocumentUri(mActivity, uri):
-        # Extract the document ID
-        doc_id = DocumentsContract.getDocumentId(uri)
-
-        # Handle different URI authorities
-        if uri.getAuthority() == "com.android.providers.media.documents":
-            # Media documents (e.g., images, videos)
-            print('doc_id --->',doc_id)
-            if doc_id.startswith("image:"):
-                id__ = doc_id.split(":")[1]
-                selection_args = [id__]
-                uri = Uri.parse("content://media/external/images/media")
-
-            elif doc_id.startswith("video:"):
-                id__ = doc_id.split(":")[1]
-                selection_args = [id__]
-                uri = Uri.parse("content://media/external/video/media")
-
-            elif doc_id.startswith("audio:"):
-                id__ = doc_id.split(":")[1]
-                selection_args = [id__]
-                uri = Uri.parse("content://media/external/audio/media")
-
-    if selection and selection_args:
-        # Query the URI to get the file path
-        content_resolver = mActivity.getContentResolver()
-        cursor = content_resolver.query(uri, None, selection, selection_args, None)
-        if cursor:
-            try:
-                if cursor.moveToFirst():
-                    # Column index for the data (file path)
-                    data_index = cursor.getColumnIndex("_data")
-                    if data_index != -1:
-                        return cursor.getString(data_index)
-            finally:
-                cursor.close()
-
-    # Fallback: Return None if the file path cannot be resolved
-    return None
-with open(
-    os.path.join(getAppFolder(),"widgets","screens","folderscreen.kv"), encoding="utf-8"
-) as kv_file:
+kv_file_path= [getAppFolder(),"widgets","screens","folderscreen.kv"]
+with open( os.path.join(*kv_file_path), encoding="utf-8" ) as kv_file:
     Builder.load_string(kv_file.read(), filename="folderscreen.kv")
 
-class RV(RecycleView):...
+class RV(RecycleView):
+    """Reuse widgets for Speed
+
+    Args:
+        RecycleView (RecycleView): kivy's RecycleView
+    """
 
 class DetailsLabel(Label):
-    pass
+    """style label"""
 
 class DisplayFolderScreen(MDScreen):
     current_dir = StringProperty('.')
@@ -242,42 +135,17 @@ class DisplayFolderScreen(MDScreen):
             loop.close()
         threading.Thread(target=queryUploadAsync).start()
     def choose_file(self):
-        print('printing tstex')
-
-        def test1(received_code, result_code, intent):
-            print(received_code, result_code, intent)
-            if result_code == -1:
-                uri = intent.getData()
-                print('enrypted path',uri.getPath())
-                try:
-                    print('deepseek dezz ',uri.toString())
-                    print('deepseek file name',get_file_name(uri))
-                    print('deepseek file path',get_file_path(uri))
-                except Exception as e:
-                    print('to file ',e)
-                
-                try:
-                    input_stream = open_input_stream(uri=uri)
-                    file_data = read_file_data(input_stream)
-                    path_= os.path.join(my_downloads_folder, "stale.txt")
-                    print(file_data,'path data')
-                    print(path_,'new path')
-                    with open(path_, 'wb') as f:
-                        f.write(file_data)
-
-                except Exception as e:
-                    print('Buffer Failed',e)
+        def parseAnswer(file_name,file_data):
+            print('received file_name ',file_name)
+            print("received file_data ",file_data)
                 # self.startUpload_Thread(file_path='d/',file_data=file_data)
             # if file_path:
             #     self.startUpload_Thread(file_path if isinstance(file_path,str) else file_path[0])
                 # self.img.source=file_path[0]
         # filechooser.open_file(on_selection=test1)
-        intent = Intent(Intent.ACTION_GET_CONTENT)
-        intent.setType("*/*")  # Change to "image/*" for images only
-        chooseFile = Intent.createChooser(intent, cast( 'java.lang.CharSequence', String("FileChooser") ))
-        mActivity.startActivityForResult(chooseFile, 123456)
-        android_bind(on_activity_result=test1)
-
+        if platform == 'android':
+            result = AndroidFileChooser(callback=parseAnswer)
+            print('result ===> ', result)
         # Bind the result callback
         # try:
         #     context =  activity.getApplicationContext()
