@@ -67,7 +67,7 @@ class AndroidFileChooser:
            list: [file_name, file_data]
         """
         instance = cls._instance
-        self.waiting = False
+        cls.waiting = False
         print(instance,'||',request_code,'||',result_code,'||', intent)
         if result_code == -1:
             uri = intent.getData()
@@ -89,65 +89,6 @@ class AndroidFileChooser:
         """
         content_resolver = mActivity.getContentResolver()
         return content_resolver.openInputStream(uri)
-    # def __read_file_data(self,input_stream):
-    #     """ Read the file data from the InputStream and return it as Python bytes. """
-    #     buffered_input_stream = BufferedInputStream(input_stream)
-    #     byte_array_output_stream = ByteArrayOutputStream()
-
-    #     # Read the file data in chunks
-    #     buffer = bytearray(1024)
-    #     length = 0
-    #     while (length := buffered_input_stream.read(buffer)) != -1:
-    #         byte_array_output_stream.write(buffer, 0, length)
-
-    #     # Convert the ByteArrayOutputStream to a Python bytes object
-    #     byte_array = byte_array_output_stream.toByteArray()
-    #     file_data = bytes(byte_array)  # Convert to Python bytes
-    #     return file_data
-
-    # def __read_file_data(self, input_stream, callback=None):
-    #     """
-    #     Read file data asynchronously to prevent blocking the main thread.
-        
-    #     Args:
-    #         input_stream: Java InputStream to read from
-    #         callback: Optional function to call with file data when reading is complete
-        
-    #     Returns:
-    #         If no callback is provided, returns file data
-    #         If callback is provided, runs asynchronously and calls callback with data
-    #     """
-    #     def read_data():
-    #         try:
-    #             buffered_input_stream = BufferedInputStream(input_stream)
-    #             byte_array_output_stream = ByteArrayOutputStream()
-
-    #             # Read the file data in chunks
-    #             buffer = bytearray(1024)
-    #             length = 0
-    #             while (length := buffered_input_stream.read(buffer)) != -1:
-    #                 byte_array_output_stream.write(buffer, 0, length)
-
-    #             # Convert the ByteArrayOutputStream to a Python bytes object
-    #             byte_array = byte_array_output_stream.toByteArray()
-    #             file_data = bytes(byte_array)
-                
-    #             # If callback is provided, use Clock to schedule it on the main thread
-    #             if callback:
-    #                 Clock.schedule_once(lambda dt: callback(file_data))
-                
-    #             return file_data
-    #         except Exception as e:
-    #             print(f"File reading error: {e}")
-    #             if callback:
-    #                 Clock.schedule_once(lambda dt: callback(None))
-        
-    #     # If no callback, use threading to prevent blocking
-    #     if not callback:
-    #         return threading.Thread(target=read_data).start()
-        
-    #     # If callback is provided, start a new thread
-    #     threading.Thread(target=read_data).start()
 
     def __read_file_data(self, input_stream):
         """
@@ -179,10 +120,6 @@ class AndroidFileChooser:
                 print(f"File reading error: {e}")
                 return None
         threading.Thread(target=read_data).start()
-        # Use ThreadPoolExecutor to run in background
-        # with ThreadPoolExecutor() as executor:
-        #     future = executor.submit(read_data)
-        #     return future.result()
 
     def __get_file_name(self,uri):
         """
