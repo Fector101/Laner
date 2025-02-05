@@ -1,28 +1,28 @@
 """ Android File Chooser """
 
 from datetime import datetime
+import os
+import traceback
 import threading
-# from concurrent.futures import ThreadPoolExecutor
 from kivy.utils import platform
 from kivy.clock import Clock
 
+# pylint: disable=broad-exception-caught,bare-except
+
 if platform == 'android':
-    from jnius import autoclass,cast
-    from android import activity,mActivity
+    # pylint: disable=no-name-in-module
+    from jnius import autoclass,cast,JavaException
+    from android import activity,mActivity #pylint: disable=unused-import
     from android.activity import bind as android_bind
     DocumentsContract = autoclass('android.provider.DocumentsContract')
     BufferedInputStream = autoclass('java.io.BufferedInputStream')
     ByteArrayOutputStream = autoclass('java.io.ByteArrayOutputStream')
     Intent = autoclass('android.content.Intent')
+    Long = autoclass('java.lang.Long')
     String = autoclass('java.lang.String')
     Uri = autoclass('android.net.Uri')
-    
-    # from android.os import Build
-    # if Build.VERSION.SDK_INT >= 29:
-    #     uri = MediaStoreFiles.getContentUri("external")
-    # else:
-    #     uri = autoclass('android.provider.MediaStore').Images.Media.EXTERNAL_CONTENT_URI
-    
+    ContentUris = autoclass('android.content.ContentUris')
+
 else:
     cast={}
     autoclass={}
@@ -35,12 +35,11 @@ else:
     DocumentsContract ={}
     BufferedInputStream ={}
     ByteArrayOutputStream ={}
-
-
-
+    JavaException = None #pylint: disable=invalid-name
 
 
 class AndroidFileChooser:
+    """File Chooser that returns file data and name"""
     _instance = None
     waiting = False
     def __new__(cls,callback):
@@ -54,6 +53,7 @@ class AndroidFileChooser:
 
     def __init__(self,callback):
         """Will called every time initialized"""
+        self.file_path = None
         self.file_name = None
         self.callback = callback
         
@@ -65,7 +65,7 @@ class AndroidFileChooser:
             mActivity.startActivityForResult(chooseFile, 123456)
         
     @classmethod
-    def __parse_choice(cls, request_code, result_code, intent):
+    def __parse_choice(cls, _, result_code, intent):
         """parse users choice
 
         Args:
@@ -76,18 +76,18 @@ class AndroidFileChooser:
         Returns:
            list: [file_name, file_data]
         """
+        # pylint: disable=protected-access, bare-except
         instance = cls._instance
         cls._instance.waiting = False
-        # print(instance,'||',request_code,'||',result_code,'||', intent)
         if result_code == -1:
             uri = intent.getData()
-            # print('enrypted path',uri.getPath())
-            print('enrypted stuff ',uri.toString())
+            
+            # print('enrypted stuff ',uri.toString())
             try:
-                file_path = instance.__get_file_path(uri)
-                print('file path ',file_path)
-            except Exception as e:
-                print('File path error 101',e)
+                instance.file_path = instance.__get_file_path(uri)
+            except:
+                traceback.format_exc()
+                print('File path error 101')
 
             instance.file_name = instance.__get_file_name(uri)
             instance.__read_file_data( instance.__open_input_stream(uri))
@@ -125,7 +125,7 @@ class AndroidFileChooser:
                 # Convert the ByteArrayOutputStream to a Python bytes object
                 byte_array = byte_array_output_stream.toByteArray()
                 file_data = bytes(byte_array)
-                Clock.schedule_once(lambda dt: self.callback(self.file_name,file_data))
+                Clock.schedule_once(lambda dt: self.callback(self.file_name,file_data,self.file_path))
             except Exception as e:
                 print(f"File reading error: {e}")
                 return None
@@ -145,15 +145,123 @@ class AndroidFileChooser:
                     return cursor.getString(display_name_index)
             cursor.close()
         return None
+    @staticmethod
+    def _handle_downloads_documents(uri):
+        '''
+        Selection from the system filechooser when using ``Downloads``
+        option from menu. Might not work all the time due to:
+
+        1) invalid URI:
+
+        jnius.jnius.JavaException:
+            JVM exception occurred: Unknown URI:
+            content://downloads/public_downloads/1034
+
+        2) missing URI / android permissions
+
+        jnius.jnius.JavaException:
+            JVM exception occurred:
+            Permission Denial: reading
+            com.android.providers.downloads.DownloadProvider uri
+            content://downloads/all_downloads/1034 from pid=2532, uid=10455
+            requires android.permission.ACCESS_ALL_DOWNLOADS,
+            or grantUriPermission()
+
+        Workaround:
+            Selecting path from ``Phone`` -> ``Download`` -> ``<file>``
+            (or ``Internal storage``) manually.
+
+        .. versionadded:: 1.4.0
+        '''
+        # pylint: disable=protected-access
+        from plyer.platforms.android.filechooser import AndroidFileChooser as plyerChooser
+        # known locations, differ between machines
+        downloads = [
+            'content://downloads/public_downloads',
+            'content://downloads/my_downloads',
+
+            # all_downloads requires separate permission
+            # android.permission.ACCESS_ALL_DOWNLOADS
+            'content://downloads/all_downloads'
+        ]
+        try:    
+            file_id = DocumentsContract.getDocumentId(uri)
+            try_uris = [ ]
+            for down in downloads:
+                print('file_id ',file_id)
+                # try:
+                #     int_stuff=Long.valueOf(file_id.split(':')[-1])
+                #     print('first int_stuff',int_stuff)
+                # except Exception as e:
+                #     print('file id stuff',e)
+                int_stuff=int(file_id.split(':')[-1])
+                uri_stuff = Uri.parse(down)
+                print('int_stuff ',int_stuff,'uri_stuff ',uri_stuff)
+                try_uris.append(ContentUris.withAppendedId(uri_stuff, int_stuff ))
+        except:
+            traceback.print_exc()
+            return
+        # try all known Download folder uris
+        # and handle JavaExceptions due to different locations
+        # for content:// downloads or missing permission
+        path = None
+        for down in try_uris:
+            try:
+                
+                # path = plyerChooser._parse_content(
+                #     uri=down, projection=['_data'],
+                #     selection=None,
+                #     selection_args=None,
+                #     sort_order=None
+                # )
+                cursor = mActivity.getContentResolver().query(
+                    uri, 
+                    ['_data'],  # _data column
+                    # [MediaStore.MediaColumns.DATA],  # _data column
+                    None, None, None
+                )
+                if cursor and cursor.moveToFirst():
+                    path = cursor.getString(0)
+
+            except JavaException:
+                traceback.print_exc()
+            finally:
+                if cursor:
+                    cursor.close()
+            print('This is path ',path)
+            # we got a path, ignore the rest
+            if path:
+                break
+
+        # alternative approach to Downloads by joining
+        # all data items from Activity result
+        if not path:
+            for down in try_uris:
+                try:
+                    path = plyerChooser._parse_content(
+                        uri=down, projection=None,
+                        selection=None,
+                        selection_args=None,
+                        sort_order=None,
+                        index_all=True
+                    )
+
+                except JavaException:
+                    traceback.print_exc()
+
+                # we got a path, ignore the rest
+                if path:
+                    break
+        return path
     def __get_file_path(self, uri): # pylint: disable=unused-private-member
         """ Attempt to resolve the file path from the content URI. """
         if not uri:
             return None
-        MediaStore = autoclass('android.provider.MediaStore')
+        # MediaStore = autoclass('android.provider.MediaStore')
+        Environment = autoclass('android.os.Environment')
         
         MediaStoreFiles = autoclass('android.provider.MediaStore$Files')
-        ContentUris = autoclass('android.content.ContentUris')
-        import os
+        
         # Handle "raw" file URIs (e.g., file:///sdcard/...)
         if uri.getScheme() == "file":
             return uri.getPath()
@@ -173,33 +281,27 @@ class AndroidFileChooser:
                     "video": autoclass('android.provider.MediaStore$Video$Media').EXTERNAL_CONTENT_URI,
                     "audio": autoclass('android.provider.MediaStore$Audio$Media').EXTERNAL_CONTENT_URI
                 }.get(media_type,  MediaStoreFiles.getContentUri("external"))
+                print('working doc_id ---> ',doc_id,'working id_part --> ',  int(id_part))
                 uri = ContentUris.withAppendedId(uri, int(id_part))
 
             elif authority == "com.android.providers.downloads.documents":
                 # Downloads
-                uri = ContentUris.withAppendedId(
-                    Uri.parse("content://downloads/public_downloads"),
-                    int(doc_id)
-                )
+                return self._handle_downloads_documents(uri)
+                # uri = ContentUris.withAppendedId(
+                #     Uri.parse("content://downloads/public_downloads"),
+                #     int(doc_id)
+                # )
 
             elif authority == "com.android.externalstorage.documents":
                 # External storage (SD cards, USB drives)
                 parts = doc_id.split(":")
-                print('parts --->',parts)
-                try:
-                    print('getParent ',mActivity.getExternalFilesDir().getParent())
-                    print('getParentNone ', mActivity.getExternalFilesDir(None).getParent())
-                    print('getExternalFilesDir ',mActivity.getExternalFilesDir(None))
-                except Exception as e:
-                    print('ededede',e)
                 if parts[0] == "primary":
                     return os.path.join(
-                        mActivity.getExternalFilesDir(None).getParent(),  # /storage/emulated/0
+                        Environment.getExternalStorageDirectory().getAbsolutePath(),
                         parts[1]
                     )
 
             # Query the URI
-            print("uri ---> ",uri)
             cursor = mActivity.getContentResolver().query(
                 uri, 
                 ['_data'],  # _data column

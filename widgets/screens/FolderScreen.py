@@ -136,9 +136,10 @@ class DisplayFolderScreen(MDScreen):
         threading.Thread(target=queryUploadAsync).start()
     def choose_file(self):
         print('choosing file...')
-        def parseAnswer(file_name,file_data):
+        def parseAnswer(file_name,file_data,file_path):
             print('received file_name ',file_name)
             print("received file_data ",file_data[:10])
+            print('received file_path ',file_path)
                 # self.startUpload_Thread(file_path='d/',file_data=file_data)
             # if file_path:
             #     self.startUpload_Thread(file_path if isinstance(file_path,str) else file_path[0])
