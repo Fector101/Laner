@@ -71,7 +71,7 @@ class Header(MDBoxLayout):
             self.header_label.text='/home/fabian/Documents/my-projects-code/packages'
         # Clock.schedule_once(lambda x:u(),2)
         self.dropDown = None
-    def changeTitle(self,text):
+    def changeTitle(self,text:str):
         self.header_label.text='~ '+ text if text == 'Home' else text
     def open_menu(self, item):
         icons=['refresh',
