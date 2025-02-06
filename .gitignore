@@ -11,6 +11,7 @@ thumbnails
 laner-linux
 /*.json
 auto_stuff.sh
+plyer
 _main.py
 
 # Remove this when you want to upload

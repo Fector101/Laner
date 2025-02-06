@@ -13,7 +13,7 @@ if platform == 'android':
     # pylint: disable=no-name-in-module
     from jnius import autoclass,cast,JavaException
     from android import activity,mActivity #pylint: disable=unused-import
-    from android.activity import bind as android_bind
+    from android.activity import bind as android_bind#,unbind as android_unbind
     DocumentsContract = autoclass('android.provider.DocumentsContract')
     BufferedInputStream = autoclass('java.io.BufferedInputStream')
     ByteArrayOutputStream = autoclass('java.io.ByteArrayOutputStream')
@@ -62,10 +62,10 @@ class AndroidFileChooser:
             intent = Intent(Intent.ACTION_GET_CONTENT)
             intent.setType("*/*")
             chooseFile = Intent.createChooser(intent, cast( 'java.lang.CharSequence', String("FileChooser") ))
-            mActivity.startActivityForResult(chooseFile, 123456)
+            mActivity.startActivityForResult(chooseFile, 35711)
         
     @classmethod
-    def __parse_choice(cls, _, result_code, intent):
+    def __parse_choice(cls, request_code, result_code, intent):
         """parse users choice
 
         Args:
@@ -76,7 +76,10 @@ class AndroidFileChooser:
         Returns:
            list: [file_name, file_data]
         """
+        if request_code != 35711:
+            return
         # pylint: disable=protected-access, bare-except
+        # android_unbind(on_activity_result=cls.__parse_choice)
         instance = cls._instance
         cls._instance.waiting = False
         if result_code == -1:
@@ -86,7 +89,7 @@ class AndroidFileChooser:
             try:
                 instance.file_path = instance.__get_file_path(uri)
             except:
-                traceback.format_exc()
+                traceback.print_exc()
                 print('File path error 101')
 
             instance.file_name = instance.__get_file_name(uri)
@@ -224,7 +227,8 @@ class AndroidFileChooser:
                     path = cursor.getString(0)
 
             except JavaException:
-                traceback.print_exc()
+                print(down)
+                # traceback.print_exc()
             finally:
                 if cursor:
                     cursor.close()
@@ -286,11 +290,11 @@ class AndroidFileChooser:
 
             elif authority == "com.android.providers.downloads.documents":
                 # Downloads
-                return self._handle_downloads_documents(uri)
-                # uri = ContentUris.withAppendedId(
-                #     Uri.parse("content://downloads/public_downloads"),
-                #     int(doc_id)
-                # )
+                # return self._handle_downloads_documents(uri)
+                uri = ContentUris.withAppendedId(
+                    Uri.parse("content://downloads/public_downloads"),
+                    int(doc_id)
+                )
 
             elif authority == "com.android.externalstorage.documents":
                 # External storage (SD cards, USB drives)

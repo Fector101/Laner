@@ -44,6 +44,7 @@ class DetailsLabel(Label):
 
 class DisplayFolderScreen(MDScreen):
     current_dir = StringProperty('.')
+    i=0
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.pos_hint={'top': 1}
@@ -140,13 +141,24 @@ class DisplayFolderScreen(MDScreen):
             print('received file_name ',file_name)
             print("received file_data ",file_data[:10])
             print('received file_path ',file_path)
+            self.header.changeTitle(str(file_path))
+            
                 # self.startUpload_Thread(file_path='d/',file_data=file_data)
             # if file_path:
             #     self.startUpload_Thread(file_path if isinstance(file_path,str) else file_path[0])
                 # self.img.source=file_path[0]
         # filechooser.open_file(on_selection=test1)
-        if platform == 'android':
-            result = AndroidFileChooser(callback=parseAnswer)
+        def test1(file_path):
+            self.header.changeTitle(str(file_path))
+            print(file_path,'plyer choosen path')
+        print('i --->',self.i)
+        if self.i%2 == 0:
+            print('using plyer')
+            filechooser.open_file(on_selection=test1)
+        elif platform == 'android':
+            print('using me')
+            AndroidFileChooser(callback=parseAnswer)
+        self.i +=1
             # print('result ===> ', result)
         # Bind the result callback
         # try:
