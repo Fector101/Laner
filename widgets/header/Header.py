@@ -36,6 +36,7 @@ class Header(MDBoxLayout):
     theme_text_color=StringProperty()
     def __init__(self,screen, **kwargs):
         super().__init__(**kwargs)
+        self.dropDown = None
         self.screen=screen
         self.md_bg_color =[.15,.15,.15,1] if self.theme_cls.theme_style == "Dark" else  [0.92, 0.92, 0.92, 1]
         self.size_hint=[1,None]
@@ -57,7 +58,7 @@ class Header(MDBoxLayout):
                 print(screen.manager.Android_back_click('_',27))
             grey_i= 0.44
             self.back_btn = HeaderBtn(icon="arrow-left", style= "standard", pos_hint={"center_y": .5},x=sp(10))
-            self.back_btn.on_release=screen.lastFolderScreen
+            self.back_btn.on_release=screen.last_folder_screen
             self.back_btn.color=[grey_i,grey_i,grey_i,1]
             self.add_widget(self.back_btn)
             self.padding=[sp(10),0,sp(10),0]
@@ -67,10 +68,6 @@ class Header(MDBoxLayout):
             self.opts_btn = HeaderBtn(icon="dots-vertical", style= "standard", pos_hint={"center_y": .5},x=sp(10),on_release=lambda this:self.open_menu(this))
             self.saved_theme_color = self.opts_btn.color # IMPORTANT for back btn color reset
             self.add_widget(self.opts_btn)
-        def u():
-            self.header_label.text='/home/fabian/Documents/my-projects-code/packages'
-        # Clock.schedule_once(lambda x:u(),2)
-        self.dropDown = None
     def changeTitle(self,text:str):
         self.header_label.text='~ '+ text if text == 'Home' else text
     def open_menu(self, item):

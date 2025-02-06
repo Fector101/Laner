@@ -4,18 +4,11 @@ import asyncio
 import os
 import threading
 import shutil
-from pathlib import Path
 
 import requests
 from kivy.clock import Clock
-from kivy.properties import (
-    ListProperty,
-    StringProperty,
-    BooleanProperty,
-    ColorProperty,
-    ObjectProperty,
-    NumericProperty,
-)
+# pylint: disable=no-name-in-module
+from kivy.properties import StringProperty
 from kivy.uix.label import Label
 from kivy.uix.recycleview import RecycleView
 from kivy.lang import Builder
@@ -27,16 +20,15 @@ from kivymd.uix.relativelayout import MDRelativeLayout
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.button import MDFabButton
 
+from android_notify import Notification, NotificationStyles
+from plyer import filechooser # pylint: disable=import-error
+
 from widgets.header import Header
 from widgets.popup import PopupDialog, Snackbar
 from workers.helper import getHiddenFilesDisplay_State, makeDownloadFolder, getAppFolder
-from android_notify import send_notification, Notification, NotificationStyles
-from plyer import filechooser
 
-# Import Android-specific filechooser/toast if running on Android.
 if platform == "android":
-    from kivymd.toast import toast
-    from workers.filechooser import AndroidFileChooser  # noqa: F401
+    from kivymd.toast import toast # pylint: disable=ungrouped-imports
 
 # Setup paths and load KV file.
 my_downloads_folder = makeDownloadFolder()
@@ -47,12 +39,10 @@ with open(kv_file_path, encoding="utf-8") as kv_file:
 
 class RV(RecycleView):
     """Custom RecycleView to display folder contents."""
-    pass
 
 
 class DetailsLabel(Label):
     """Label with custom style for displaying folder details."""
-    pass
 
 
 class DisplayFolderScreen(MDScreen):
@@ -66,7 +56,7 @@ class DisplayFolderScreen(MDScreen):
         self.current_dir_info: list[dict]=[]
         self.could_not_open_path_msg = "Couldn't Open Folder Check Laner on PC"
         # self.md_bg_color=[1,1,0,1]
-        
+
         # Set position.
         self.pos_hint={'top': 1}
         self.layout=MDBoxLayout(orientation='vertical')
@@ -85,7 +75,7 @@ class DisplayFolderScreen(MDScreen):
         self.screen_scroll_box = RV()
         self.screen_scroll_box.data=self.current_dir_info
         self.layout.add_widget(self.screen_scroll_box)
-        
+
         # Setup upload button.
         self.upload_btn=MDFabButton(
                 icon="upload",
@@ -93,8 +83,7 @@ class DisplayFolderScreen(MDScreen):
                 pos_hint={"center_x": .82, "center_y": .25},
                 on_release=lambda x: self.choose_file()
         )
-        self.add_widget(self.upload_btn)
-        
+
         # Setup details box at bottom.
         self.details_box=MDRelativeLayout(
             height='35sp',
@@ -105,10 +94,11 @@ class DisplayFolderScreen(MDScreen):
         self.details_label=DetailsLabel(text='0 files and 0 folders')
         self.details_box.add_widget(self.details_label)
         self.layout.add_widget(self.details_box)
-        
-        # Buffer for bottom navigation bar.
-        self.layout.add_widget(MDBoxLayout(height='70sp',size_hint=[1,None]))  # Buffer cause of bottom nav bar (will change to padding later)
+
+        # Buffer for bottom navigation bar. (will change to padding later)
+        self.layout.add_widget(MDBoxLayout(height='70sp',size_hint=[1,None]))
         self.add_widget(self.layout)
+        self.add_widget(self.upload_btn)
 
 
     def on_enter(self, *args):
@@ -159,7 +149,7 @@ class DisplayFolderScreen(MDScreen):
             loop.close()
         threading.Thread(target=query_upload, daemon=True).start()
 
-    def choose_file(self) -> None:
+    def choose_file(self):
         """Open a file chooser dialog to select a file for upload."""
         print("Choosing file...")
 
@@ -168,7 +158,7 @@ class DisplayFolderScreen(MDScreen):
             if file_paths:
                 selected=file_paths if isinstance(file_paths,str) else file_paths[0]
                 self.start_upload_thread(selected)
-
+        print(filechooser)
         filechooser.open_file(on_selection=parse_choice)
 
     def start_set_path_info_thread(self,from_btn: bool = False) -> None:
@@ -233,7 +223,7 @@ class DisplayFolderScreen(MDScreen):
                 self.header.back_btn.color=self.header.saved_theme_color
 
             if from_btn and platform == 'android':
-                toast("Refresh Done")
+                toast("Refresh Done") # pylint: disable=possibly-used-before-assignment
                     
         except Exception as e:
             Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
