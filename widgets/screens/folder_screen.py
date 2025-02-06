@@ -158,7 +158,6 @@ class DisplayFolderScreen(MDScreen):
             if file_paths:
                 selected=file_paths if isinstance(file_paths,str) else file_paths[0]
                 self.start_upload_thread(selected)
-        print(filechooser)
         filechooser.open_file(on_selection=parse_choice)
 
     def start_set_path_info_thread(self,from_btn: bool = False) -> None:

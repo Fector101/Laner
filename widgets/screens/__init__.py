@@ -1,1 +1,1 @@
-from .FolderScreen import DisplayFolderScreen
+from .folder_screen import DisplayFolderScreen
