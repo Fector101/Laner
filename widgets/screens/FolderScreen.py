@@ -1,3 +1,4 @@
+"""Folder Screen Wigdet"""
 from kivymd.app import MDApp
 from kivy.properties import ( ListProperty, StringProperty, BooleanProperty,ColorProperty,ObjectProperty,NumericProperty)
 from kivymd.uix.boxlayout import MDBoxLayout
@@ -128,7 +129,7 @@ class DisplayFolderScreen(MDScreen):
             Clock.schedule_once(lambda dt:Snackbar(h1="Failed to Upload File check Laner on PC"))
             print(e,"Failed Upload")
             
-    def startUpload_Thread(self,file_path,file_data):
+    def startUpload_Thread(self,file_path,file_data=None):
         def queryUploadAsync():
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
@@ -137,36 +138,13 @@ class DisplayFolderScreen(MDScreen):
         threading.Thread(target=queryUploadAsync).start()
     def choose_file(self):
         print('choosing file...')
-        def parseAnswer(file_name,file_data,file_path):
-            print('received file_name ',file_name)
-            print("received file_data ",file_data[:10])
-            print('received file_path ',file_path)
-            self.header.changeTitle(str(file_path))
-            
-                # self.startUpload_Thread(file_path='d/',file_data=file_data)
-            # if file_path:
-            #     self.startUpload_Thread(file_path if isinstance(file_path,str) else file_path[0])
-                # self.img.source=file_path[0]
-        # filechooser.open_file(on_selection=test1)
-        def test1(file_path):
-            self.header.changeTitle(str(file_path))
+        def parseChoice(file_path:list):
             print(file_path,'plyer choosen path')
-        print('i --->',self.i)
-        if self.i%2 == 0:
-            print('using plyer')
-            filechooser.open_file(on_selection=test1)
-        elif platform == 'android':
-            print('using me')
-            AndroidFileChooser(callback=parseAnswer)
-        self.i +=1
-            # print('result ===> ', result)
-        # Bind the result callback
-        # try:
-        #     context =  activity.getApplicationContext()
-        #     print(f"Package Name: {context.getPackageName()}")
-        # except Exception as e:
-        #     print('Failed getting package',e)
-        # filechooser.open_file(on_selection=lambda x: print(x))
+            if file_path:
+                self.startUpload_Thread(file_path if isinstance(file_path,str) else file_path[0])
+                # self.img.source=file_path[0]
+        y=filechooser.open_file(on_selection=parseChoice)
+        print('using plyer',y)
     
     def startSetPathInfo_Thread(self,frm_btn_bool=False):
         threading.Thread(target=self.querySetPathInfoAsync,args=[frm_btn_bool]).start()
