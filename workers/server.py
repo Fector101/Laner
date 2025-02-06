@@ -23,8 +23,6 @@ PICTURE_FORMATS = ('.png', '.jpg', '.jpeg', '.tif', '.bmp', '.gif')
 SPECIAL_FOLDERS = ['home', 'pictures', 'templates', 'videos', 'documents', 'music', 'favorites', 'share', 'downloads']
 
 SERVER_IP = None
-REQUEST_COUNT = 1
-GENERATED_THUMBNAILS = []
 
 
 # Utility Functions
@@ -49,9 +47,10 @@ class ThreadingHTTPServer(ThreadingMixIn, HTTPServer):
 # Custom HTTP Handler
 class CustomHandler(SimpleHTTPRequestHandler):
     video_paths = []
+    request_count = 0
+    
     def do_POST(self):
         """Handle POST requests for file uploads."""
-        global REQUEST_COUNT
         print("Doing Post")
         if self.path == "/api/upload":
             try:
@@ -116,8 +115,6 @@ class CustomHandler(SimpleHTTPRequestHandler):
 
     def do_GET(self):
         """Handle GET requests for various API endpoints."""
-        global REQUEST_COUNT, GENERATED_THUMBNAILS
-
         try:
             if self.path == "/api/getpathinfo":
                 request_path = self._get_request_body('path')
@@ -177,7 +174,7 @@ class CustomHandler(SimpleHTTPRequestHandler):
             writeErrorLog('Request Handling Error', traceback.format_exc())
             self._send_json_response({'error': str(e)}, status=400)
 
-        REQUEST_COUNT += 1
+        self.request_count += 1
     def parseMyPath(self):
         """ Takes unreal_path from app and format to real path eg Home --> ~ Home :) TODO Remove this"""
         app_requested_path=self._get_request_body('path')
