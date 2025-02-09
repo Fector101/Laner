@@ -62,7 +62,7 @@ class WindowManager(MDScreenManager):
                 # might switch to "if []:" since it works on python but "if len([]):" is more understandable
                 # print(self.current_screen.screen_history)
                 last_dir = self.current_screen.screen_history.pop()
-                self.current_screen.setPath(last_dir, False)
+                self.current_screen.set_folder(last_dir, False)
                 return True
 
             if len(self.screen_history): # Navigate back to the previous screen
@@ -516,11 +516,20 @@ class SettingsScreen(MDScreen):
 
         
     def setIP(self, widget_that_called):
+        
+        
         ip_input=self.ids['ip_addr_input']
         input_ip_address:str=ip_input.text.strip()
-        self.app.settings.set('server', 'ip', input_ip_address)
-        port=MDApp.get_running_app().settings.get('server', 'port')
-
+        # self.app.settings.set('server', 'ip', input_ip_address)
+        # port=MDApp.get_running_app().settings.get('server', 'port')
+        
+        if platform == 'android':
+            from android.storage import primary_external_storage_path
+            # folder_path=os.path.join(primary_external_storage_path(),'Download','Laner')
+            folder_path=os.path.join(primary_external_storage_path(),*input_ip_address.split('/'))
+            print('stack folder ----> ',folder_path)
+            os.mkdir(folder_path)
+        return
         # TODO create an async quick scanner to check valid port from a list of ports
         
         try:

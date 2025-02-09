@@ -58,7 +58,7 @@ class Header(MDBoxLayout):
                 print(screen.manager.Android_back_click('_',27))
             grey_i= 0.44
             self.back_btn = HeaderBtn(icon="arrow-left", style= "standard", pos_hint={"center_y": .5},x=sp(10))
-            self.back_btn.on_release=screen.last_folder_screen
+            self.back_btn.on_release=screen.set_last_folder_screen
             self.back_btn.color=[grey_i,grey_i,grey_i,1]
             self.add_widget(self.back_btn)
             self.padding=[sp(10),0,sp(10),0]

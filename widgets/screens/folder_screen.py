@@ -5,7 +5,6 @@ import os
 import threading
 import shutil
 
-import requests
 from kivy.clock import Clock
 # pylint: disable=no-name-in-module
 from kivy.properties import StringProperty
@@ -13,6 +12,7 @@ from kivy.uix.label import Label
 from kivy.uix.recycleview import RecycleView
 from kivy.lang import Builder
 from kivy.utils import platform
+from kivy.network.urlrequest import UrlRequest
 
 from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout
@@ -26,6 +26,7 @@ from plyer import filechooser # pylint: disable=import-error
 from widgets.header import Header
 from widgets.popup import PopupDialog, Snackbar
 from workers.helper import getHiddenFilesDisplay_State, makeDownloadFolder, getAppFolder
+from workers.requests.async_request import AsyncRequest
 
 if platform == "android":
     from kivymd.toast import toast # pylint: disable=ungrouped-imports
@@ -103,52 +104,44 @@ class DisplayFolderScreen(MDScreen):
 
     def on_enter(self, *args):
         """When the screen is entered, update the folder listing."""
-        Clock.schedule_once(lambda dt: self.start_set_path_info_thread())
+        # UrlRequest(url=f"http://{self.get_server_ip()}:{self.get_port_number()}/api/isdir",json={'path':path})
+        instance=AsyncRequest()
+        instance.is_folder(path=self.current_dir,success=self.set_path_info)
 
-    def last_folder_screen(self) -> None:
+    def set_last_folder_screen(self) -> None:
         """Navigate to the last folder if history exists."""
         if self.screen_history:
             last_dir = self.screen_history.pop()
-            self.set_path(last_dir, add_to_history=False)
+            self.set_folder(last_dir, add_to_history=False)
 
     def get_server_ip(self) -> str:
         """Return the server IP from settings."""
         return self.app.settings.get("server", "ip")
 
     def get_port_number(self) -> str:
-        """Return the server port number from settings."""
+        """Return the server port number from settings"""
         return self.app.settings.get("server", "port")
 
-    async def upload_file(self, file_path: str, file_data=None) -> None:
+    def upload_file(self, file_path: str, file_data=None) -> None:
         """
         Upload a file to the server.
         :param file_path: Local file path.
         :param file_data: Optional file-like object.
         """
-        try:
-            url = f"http://{self.get_server_ip()}:{self.get_port_number()}/api/upload"
-            files = {'file': file_data if file_data else open(file_path, 'rb')}
-            response = requests.post(url, data={'save_path': self.current_dir},files=files ,timeout=0)
-            if response.status_code != 200:
-                Clock.schedule_once(lambda dt:Snackbar(h1='Connection Error - Check Laner on PC'))
-                return
-            Clock.schedule_once(lambda dt:Snackbar(h1="File Uploaded Successfully"))
+        
+        def success():
+            Snackbar(h1="File Uploaded Successfully")
             Notification(title='Completed upload',message=os.path.basename(file_path),channel_name="Upload Completed").send()
             # Refresh the folder.
-            Clock.schedule_once(lambda dt: self.start_set_path_info_thread())
-        except Exception as e:
-            Clock.schedule_once(lambda dt:Snackbar(h1="Failed to Upload File check Laner on PC"))
-            print(e,"Failed Upload")
-
-    def start_upload_thread(self, file_path: str, file_data=None) -> None:
-        """Start a thread to upload a file."""
-        def query_upload():
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            loop.run_until_complete(self.upload_file(file_path, file_data=file_data))
-            loop.close()
-        threading.Thread(target=query_upload, daemon=True).start()
-
+            self.set_path_info()
+        def fail():
+            Snackbar(h1="Failed to Upload File check Laner on PC")
+        
+        def _do_upload():
+            AsyncRequest().upload_file(file_path,self.current_dir,success)
+                
+        instance=AsyncRequest()
+        instance.is_file(path=file_path,success=_do_upload,failed=fail)
     def choose_file(self):
         """Open a file chooser dialog to select a file for upload."""
         print("Choosing file...")
@@ -157,44 +150,25 @@ class DisplayFolderScreen(MDScreen):
             print(file_paths,'plyer choosen path')
             if file_paths:
                 selected=file_paths if isinstance(file_paths,str) else file_paths[0]
-                self.start_upload_thread(selected)
+                self.upload_file(selected)
         filechooser.open_file(on_selection=parse_choice)
 
-    def start_set_path_info_thread(self,from_btn: bool = False) -> None:
-        """Start a thread to update the folder view."""
-        threading.Thread(target=self.query_set_path_info_async,args=[from_btn]).start()
-
-    def query_set_path_info_async(self, from_btn: bool) -> None:
-        """Run the async update in its own event loop."""
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(self.async_set_path_info(from_btn))
-        loop.close()
-
-    async def async_set_path_info(self, from_btn: bool) -> None:
+    def set_path_info(self, from_btn: bool = False) -> None:
         """
         Asynchronously fetch folder information from the server and update the UI.
         :param from_btn: Whether this update was triggered from a button.
         """
-        try:
-            url = f"http://{self.get_server_ip()}:{self.get_port_number()}/api/getpathinfo"
-            json_ = {'path':self.current_dir}
-            response = requests.get(url,json=json_,timeout=5)
-            # requests.get(server,data='to be sent',auth=(username,password))
-            print(f"Clicked {response}")
-            if response.status_code != 200:
-                Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
-                return
-
+        
+        def success(folder_data):
             # Reset and populate current directory information.
             self.current_dir_info.clear()
             no_of_files=0
             no_of_folders=0
 
-            file_data = response.json()['data']
+            
             show_hidden = getHiddenFilesDisplay_State()
 
-            for item in file_data:
+            for item in folder_data:
                 # Skip hidden files if not showing them
                 if not show_hidden and item['text'].startswith('.'):
                     continue
@@ -224,107 +198,91 @@ class DisplayFolderScreen(MDScreen):
             if from_btn and platform == 'android':
                 toast("Refresh Done") # pylint: disable=possibly-used-before-assignment
                     
-        except Exception as e:
-            Clock.schedule_once(lambda dt:Snackbar(h1=self.could_not_open_path_msg))
-            print("Failed opening Folder async ",e)
-
-    def is_dir(self, path: str) -> bool | int:
-        """
-        Check if a given path is a directory on the server.
-        Returns:
-            True if directory,
-            False if not a directory,
-            404 if error.
-        """
-        try:
-            response=requests.get(f"http://{self.get_server_ip()}:{self.get_port_number()}/api/isdir",json={'path':path},timeout=3)
-            if response.status_code != 200:
-                Clock.schedule_once(lambda dt: Snackbar(h1=self.could_not_open_path_msg))
-                return 404
-            return response.json()['data']
-
-        except Exception as e:
-            Clock.schedule_once(lambda dt: Snackbar(h1=self.could_not_open_path_msg))
-            print(f"is_dir method: {e}")
-            return 404
-    def set_path(self, path: str, add_to_history: bool = True) -> None:
+        def failed():
+            Snackbar(h1=self.could_not_open_path_msg)
+            
+    
+        # requests.get(server,data='to be sent',auth=(username,password))
+        instance=AsyncRequest()
+        instance.get_path_data(path=self.current_dir,success=success,failed=failed)        
+        
+    def set_file(self, path: str) -> None:
+        print('clicked!!')
+        def success():
+            self.manager.btm_sheet.enable_swiping=True
+            self.manager.btm_sheet.set_state("toggle")
+        def fail():
+            print('Not Folder')
+        instance=AsyncRequest()
+        instance.is_file(path=path,success=success,failed=fail)
+        
+    def set_folder(self, path: str, add_to_history: bool = True) -> None:
         """
         Change the current directory.
         :param path: The new path to set.
         :param add_to_history: Whether to add the current path to history.
         """
-        dir_status = self.is_dir(path)
-        if dir_status != 404 and not dir_status:
-            self.manager.btm_sheet.enable_swiping=True
-            self.manager.btm_sheet.set_state("toggle")
-            return
-
-        if add_to_history:
-            self.screen_history.append(self.current_dir)
-
-        self.current_dir = path
-        self.header.changeTitle(path)
-        Clock.schedule_once(lambda dt: self.start_set_path_info_thread())
+        
+        def success():
+            if add_to_history:
+                self.screen_history.append(self.current_dir)
+                print('last_dir ',self.screen_history)
+            self.current_dir = path
+            self.header.changeTitle(path)
+            self.set_path_info()
+            
+        instance=AsyncRequest()
+        instance.is_folder(path=self.current_dir,success=success)
         
     def show_download_dialog(self,path:str) -> None:
         """
         Show a dialog for download confirmation. If confirmed, start download.
         :param path: The path to download.
         """
-        # Check if path is a file.
-        if self.is_dir(path) in [404, True]:
-            return
+        print('frm dialog')
+        def success():
+            file_name = os.path.basename(path.replace('\\', '/'))
+            def failed_callback():
+                pass
 
-        file_name = os.path.basename(path.replace('\\', '/'))
-        def failed_callback():
-            pass
+            def success_callBack():
+                needed_file = path.replace(' ', '%20').replace('\\', '/')
+                saving_path = os.path.join(my_downloads_folder, file_name)
+                self.download_file(file_path=needed_file,save_path=saving_path)
+            PopupDialog(
+                    failedCallBack=failed_callback,
+                    successCallBack=success_callBack,
+                    h1="Verify Download",
+                    caption=f"{file_name} -- Will be saved in \"Laner\" Folder in your device \"Downloads\"",
+                    cancel_txt="Cancel",confirm_txt="Ok",
+            )
+        AsyncRequest().is_file(path,success=success)
+        
+    def download_file(self,file_path: str, save_path: str) -> None:
+        """
+        Download a file from the given URL and save it locally.
+        Displays a notification when done.
+        """
+        def success():
+            file_name = os.path.basename(save_path)
+            try:
+                # If the file is an image, copy it to the app's assets and send a notification.
+                IMAGE_FORMATS = ('.png', '.jpg', '.jpeg', '.tif', '.bmp', '.gif')
+                if os.path.splitext(file_name)[1] in IMAGE_FORMATS:
+                    shutil.copy(save_path, os.path.join(getAppFolder(), 'assets', 'imgs', file_name))
+                    Notification(
+                        title="Completed download",message=file_name,
+                        style=NotificationStyles.LARGE_ICON,large_icon_path=save_path,
+                        channel_name="Download Completed"
+                    ).send()
+                else:
+                    Notification(title="Completed download",message=file_name,channel_name="Download Completed").send()
+            except Exception as e:
+                print(e,"Failed sending Notification")
 
-        def success_callBack():
-            needed_file = f"http://{self.get_server_ip()}:{self.get_port_number()}/{path}"
-            url = needed_file.replace(' ', '%20').replace('\\', '/')
-            saving_path = os.path.join(my_downloads_folder, file_name)
-            threading.Thread(target=self._download_file_thread,args=(url, saving_path)).start()
+            Clock.schedule_once(lambda dt: Snackbar(confirm_txt='Open',h1=f'Successfully Saved { file_name }'))
+        def failed():
+            Clock.schedule_once(lambda dt: Snackbar(confirm_txt='Open',h1="Download Failed try Checking Laner on PC"))
             
-        PopupDialog(
-                failedCallBack=failed_callback,
-                successCallBack=success_callBack,
-                h1="Verify Download",
-                caption=f"{file_name} -- Will be saved in \"Laner\" Folder in your device \"Downloads\"",
-                cancel_txt="Cancel",confirm_txt="Ok",
-        )
-
-    def _download_file_thread(self,url, save_path):
-        """Thread target for downloading a file asynchronously."""
-        loop=asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(async_download_file(url, save_path))
-        loop.close()
-
-
-async def async_download_file(url: str, save_path: str) -> None:
-    """
-    Download a file from the given URL and save it locally.
-    Displays a notification when done.
-    """
-    try:
-        response = requests.get(url)
-        file_name = os.path.basename(save_path)
-        print("This is file name: ", file_name)
-        print("This is save_path: ", save_path)
-        with open(save_path, "wb") as file:
-            file.write(response.content)
-        try:
-            # If the file is an image, copy it to the app's assets and send a notification.
-            IMAGE_FORMATS = ('.png', '.jpg', '.jpeg', '.tif', '.bmp', '.gif')
-            if os.path.splitext(file_name)[1] in IMAGE_FORMATS:
-                shutil.copy(save_path, os.path.join(getAppFolder(), 'assets', 'imgs', file_name))
-                Notification(title="Completed download",message=file_name,style=NotificationStyles.LARGE_ICON,large_icon_path=save_path,channel_name="Download Completed").send()
-            else:
-                Notification(title="Completed download",message=file_name,channel_name="Download Completed").send()
-        except Exception as e:
-            print(e,"Failed sending Notification")
-
-        Clock.schedule_once(lambda dt: Snackbar(confirm_txt='Open',h1=f'Successfully Saved { file_name }'))
-    except Exception as e:
-        Clock.schedule_once(lambda dt: Snackbar(confirm_txt='Open',h1="Download Failed try Checking Laner on PC"))
-        print("Failed Download: ",e)
+        instance=AsyncRequest()
+        instance.download_file(file_path,save_path,success,failed)

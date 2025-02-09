@@ -3,7 +3,7 @@
     radius: dp(5)
     size_hint:(1,1)
     # theme_bg_color: "Custom"
-    on_release: app.my_screen_manager.current_screen.setPath(self.path)
+    on_release: app.my_screen_manager.current_screen.set_folder(self.path) if self.is_dir else app.my_screen_manager.current_screen.set_file(self.path)
     
     AsyncImage:
         id: test_stuff
@@ -24,7 +24,7 @@
         height: '35sp'
         # md_bg_color: [.7,.6,.9,1]
         pos_hint: {"top": .979, "right": .97}
-        on_release: app.my_screen_manager.current_screen.showDownloadDialog(root.path)
+        on_release: app.my_screen_manager.current_screen.show_download_dialog(root.path) if not self.parent.is_dir else None
         
         MDButtonIcon:
             icon: "download"
