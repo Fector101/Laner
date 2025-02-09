@@ -43,7 +43,10 @@ class ThreadingHTTPServer(ThreadingMixIn, HTTPServer):
     """Threaded HTTP Server for handling multiple requests simultaneously."""
     pass
 
-
+def do_lag():
+    print('Doing Lag.......')
+    import time
+    time.sleep(90*60)
 # Custom HTTP Handler
 class CustomHandler(SimpleHTTPRequestHandler):
     video_paths = []
@@ -57,7 +60,6 @@ class CustomHandler(SimpleHTTPRequestHandler):
                 # Get content length and read raw data
                 content_length = int(self.headers.get('Content-Length', 0))
                 data = self.rfile.read(content_length)
-                
                 # Extract boundary from Content-Type
                 content_type = self.headers.get('Content-Type')
                 if not content_type or 'boundary=' not in content_type:

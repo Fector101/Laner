@@ -11,6 +11,7 @@ from workers.server import FileSharingServer
 from workers.helper import getUserPCName, getAbsPath
 from workers.sword import NetworkManager
 
+DEV=0
 
 class SettingsScreen(QWidget):
     def __init__(self, parent):
@@ -164,7 +165,17 @@ class FileShareApp(QMainWindow):
 
         # System Tray
         self.create_system_tray()
-
+        if DEV:
+            self.start_server()
+    def restart_server(self):
+        QApplication.quit()
+        import subprocess,sys
+        py=sys.executable
+        print('py --> ',py)
+        script=sys.argv[0]
+        print('script --> ',script)
+        os.execv(py, [py, script])
+        
     def create_system_tray(self):
         self.tray = QSystemTrayIcon(self)
 
@@ -172,6 +183,10 @@ class FileShareApp(QMainWindow):
 
         # Create tray menu
         tray_menu = QMenu()
+        if DEV:
+            self.dev_btn = QAction("Restart Server", self)
+            self.dev_btn.triggered.connect(self.restart_server)
+            tray_menu.addAction(self.dev_btn)
 
         self.start_stop_action = QAction("Quick Connect", self)
         self.start_stop_action.triggered.connect(self.start_server)
