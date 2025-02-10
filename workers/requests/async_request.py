@@ -124,17 +124,18 @@ class AsyncRequest:
                 
         threading.Thread(target=__upload).start()
     def auto_connect(self,success,failed=None):
-        pervious_connections=Settings().get('recent_connections')
+        pervious_connections=Settings().get_recent_connections()
         port=Settings().get("server", "port")
         
         def __auto_connect():
-            for pc_name, ip_address in pervious_connections.items():
+            for ip_address in pervious_connections:
                 try:
+                    print('trying... ',ip_address,port)
                     response=requests.get(f"http://{ip_address}:{port}/ping",json={'passcode':'08112321825'},timeout=.4)
                     if response.status_code == 200:
                         pc_name = response.json()['data']
                         Settings().set('server', 'ip', ip_address)
-                        Settings().add_recent_connection(pc_name, ip_address)
+                        Settings().add_recent_connection(ip_address)
                         self.on_ui_thread(success,args=[pc_name,ip_address])
                         break
                 except Exception as e:

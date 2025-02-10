@@ -40,7 +40,9 @@ class Settings:
             'show_hidden_files': False,
             'theme': 'Dark'
         },
-        'recent_connections': {}
+        'recent_connections': {
+            'ips':[]
+        }
     }
 
     def __new__(cls):
@@ -109,7 +111,8 @@ class Settings:
             value (Any): The new value to set
 
         Example:
-            >>> settings.set('server', 'ip', '192.168.1.1')
+            settings.set('server', 'ip', '192.168.1.1')\n
+            .
         """
         if category in self._store:
             current = self._store.get(category)
@@ -118,21 +121,41 @@ class Settings:
         else:
             self._store.put(category, **{key: value})
 
-    def add_recent_connection(self, pc_name: str, ip: str) -> None:
+    def get_recent_connections(self) -> List:
+        """Returns List of old connections ips
+
+        Returns:
+            List: ips list
+        """
+        if "recent_connections" in self._store:
+            recent_connections = self._store.get("recent_connections")
+            if 'ips' in recent_connections:
+                return recent_connections['ips']
+        
+        
+    def add_recent_connection(self, ip: str) -> None:
         """Add a new connection to the recent connections list.
 
         Args:
-            pc_name (str): Name of the computer to connect to
             ip (str): IP address of the computer
 
         Example:
             >>> settings = Settings()
-            >>> settings.add_recent_connection('WorkPC', '192.168.1.100')
-            >>> settings.get('recent_connections', [])
-                #{'fabian-X550LA': '192.168.148.4', 'Test': '111', 'Last': 'zzzz'}
+            >>> settings.add_recent_connection('192.168.1.100')
+            >>> settings.get_recent_connections()
+                #['192.168.148.4', '11111','1111','213']
         """
-        recents = self.get('recent_connections')
-        self.set('recent_connections', key=pc_name, value= ip)
+        # recents = self.get('recent_connections')
+        # new_name = f"{pc_name}{len(recents)}"
+        # for each in recents:
+        #     print(each,' each')
+        # print('recent_connection ', new_name,ip)
+        
+        if "recent_connections" in self._store:
+            current = self._store.get("recent_connections")
+            current['ips'] = [*current['ips'],ip]
+            self._store.put("recent_connections", **current)
+            
             
 # # Usage example:
 # settings = Settings()
