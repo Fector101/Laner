@@ -243,11 +243,24 @@ class MyCard(RecycleDataViewBehavior,RectangularRippleBehavior,ButtonBehavior,MD
     def on_thumbnail_url(self, instance, value):
         """Called whenever thumbnail_url changes."""
         self.thumbnail_update_interval = Clock.schedule_interval(lambda dt: self.update_image(), 2)
+        
+    def on_parent(self, widget,parent):
+        # Cleanup intervals when user leaves screen before thumbnail is created
+        try:
+            if not parent and self.thumbnail_update_interval:
+                print('canceling ',self.thumbnail_update_interval,'parent ',parent)
+                self.thumbnail_update_interval.cancel()
+        except Exception as e:
+            print('interval cancel error ',e)
+        
                 
     def update_image(self):
-        print('entered 33')
         def without_url_format(url:str):
             return os.path.join(*url.split('/')[4:])
+        
+        print('cheacking self.thumbnail_url for ---> ',self.thumbnail_url)
+        # if self.thumbnail_url:
+            # print(self.validated_paths,'||', without_url_format(self.thumbnail_url))
         if self.thumbnail_url and (self.thumbnail_url in self.validated_paths or self.isFile(without_url_format(self.thumbnail_url))):
             if self.thumbnail_url not in self.validated_paths:
                 self.validated_paths.append(self.thumbnail_url)

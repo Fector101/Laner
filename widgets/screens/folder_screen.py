@@ -134,14 +134,11 @@ class DisplayFolderScreen(MDScreen):
             Notification(title='Completed upload',message=os.path.basename(file_path),channel_name="Upload Completed").send()
             # Refresh the folder.
             self.set_path_info()
+            
         def fail():
             Snackbar(h1="Failed to Upload File check Laner on PC")
         
-        def _do_upload():
-            AsyncRequest().upload_file(file_path,self.current_dir,success)
-                
-        instance=AsyncRequest()
-        instance.is_file(path=file_path,success=_do_upload,failed=fail)
+        AsyncRequest().upload_file(file_path,self.current_dir,success)
     def choose_file(self):
         """Open a file chooser dialog to select a file for upload."""
         print("Choosing file...")
