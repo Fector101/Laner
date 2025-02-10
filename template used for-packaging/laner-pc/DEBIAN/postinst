@@ -1,33 +1,21 @@
 #!/bin/bash
 
 echo "post install script running.."
-# echo "$(logname)"
-# chown "$(logname):$(logname)" "$HOME/.config/autostart"
-# echo "$(logname) $(username)"
-# echo "~username"
-# USER_HOME = $(eval echo ~username)
-# echo "$(USER_HOME)"
-# getent passwd $SUDO_USER
-# | cut -d: -f6
-# Check if the user's autostart directory exists
-# if [ ! -d "$HOME/.config/autostart" ]; then
-#     mkdir -p "$HOME/.config/autostart"
-# fi
-
-# Copy the .desktop file to the autostart directory
-# if [ -f "/usr/share/applications/laner-pc.desktop" ]; then    
-#     cp /usr/share/applications/laner-pc.desktop "$HOME/.config/autostart/"
-#     chmod +x "$HOME/.config/autostart/laner-pc.desktop"
-# else
-#     echo "Desktop file not found, skipping autostart setup"
-# fi
 
 # Copy the .desktop file to the autostart directory
 if [ -f "/usr/share/applications/laner-pc.desktop" ]; then    
+    # Coping the .desktop file to the autostart directory
     cp /usr/share/applications/laner-pc.desktop "/etc/xdg/autostart/"
     
-    # Make the .desktop file executable
-    chmod +x "/etc/xdg/autostart/laner-pc.desktop"
+    # Edit the .desktop file to hide the app window
+    sed -i 's|^Exec=.*|Exec=/usr/local/bin/laner-pc --autostart|' /etc/xdg/autostart/laner-pc.desktop
+
+    # Set the correct permissions (for the .desktop file)
+    chmod 644 /etc/xdg/autostart/laner-pc.desktop
+
+    # Update desktop database
+    update-desktop-database
+
     echo "Autostart setup completed for all users."
 
 else
