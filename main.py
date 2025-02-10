@@ -516,20 +516,10 @@ class SettingsScreen(MDScreen):
 
         
     def setIP(self, widget_that_called):
-        
-        
         ip_input=self.ids['ip_addr_input']
         input_ip_address:str=ip_input.text.strip()
-        # self.app.settings.set('server', 'ip', input_ip_address)
-        # port=MDApp.get_running_app().settings.get('server', 'port')
-        
-        if platform == 'android':
-            from android.storage import primary_external_storage_path
-            # folder_path=os.path.join(primary_external_storage_path(),'Download','Laner')
-            folder_path=os.path.join(primary_external_storage_path(),*input_ip_address.split('/'))
-            print('stack folder ----> ',folder_path)
-            os.mkdir(folder_path)
-        return
+        self.app.settings.set('server', 'ip', input_ip_address)
+        port=MDApp.get_running_app().settings.get('server', 'port')
         # TODO create an async quick scanner to check valid port from a list of ports
         
         try:
