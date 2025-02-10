@@ -395,7 +395,7 @@ class SettingsScreen(MDScreen):
         self.layout.add_widget(scroll)
         self.layout.add_widget(MDBoxLayout(height='70sp',size_hint=[1,None]))  # Buffer cause of bottom nav bar (will change to padding later)
         self.add_widget(self.layout)
-        Clock.schedule_once(lambda dt: self.startAutoConnectThread(), 1)
+        self.autoConnect()
 
     def add_category(self, title, items):
         def addID(item: dict, widget: object = None) -> None:
@@ -482,15 +482,7 @@ class SettingsScreen(MDScreen):
     def on_checkbox_active(self,checkbox_instance, value):
         setHiddenFilesDisplay(value)
 
-    def startAutoConnectThread(self):
-        def queryAutoConnectAsync():
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            loop.run_until_complete(self.autoConnect())
-            loop.close()
-        threading.Thread(target=queryAutoConnectAsync).start()
-
-    async def autoConnect(self):
+    def autoConnect(self):
         ip_input=self.ids['ip_addr_input']
         connect_btn=self.ids['connect_btn']
         
@@ -513,7 +505,7 @@ class SettingsScreen(MDScreen):
             response=requests.get(f"http://{input_ip_address}:{port}/ping",json={'passcode':'08112321825'},timeout=.2)
             if response.status_code == 200:
                 self.pc_name = response.json()['data']
-                self.app.settings.add_recent_connection(self.pc_name, input_ip_address)
+                self.app.settings.add_recent_connection(input_ip_address)
 
                 connect_btn=self.ids['connect_btn']
 
