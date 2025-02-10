@@ -4,7 +4,11 @@
 
 ### To Package
 
-`dpkg-deb --build laner-pc`
+Run `pyinstaller main.spec` in Project Main Folder
+
+Copy `../dist/laner-pc` to `./template used for-packaging/laner-pc/usr/local/bin`, replace `excutable.txt`
+
+Then in `template used for-packaging` folder Run `dpkg-deb --build laner-pc`
 
 ### To install
 
