@@ -1,6 +1,6 @@
 import threading,requests,os,shutil
 from kivy.clock import Clock
-from workers.helper import getAppFolder
+from workers.helper import getAppFolder,get_full_class_name
 from workers.sword import Settings
 from widgets.popup import Snackbar
 #  getHiddenFilesDisplay_State, makeDownloadFolder, 
@@ -26,8 +26,7 @@ class AsyncRequest:
             except requests.exceptions.ReadTimeout:
                 Clock.schedule_once(lambda dt:Snackbar(h1="Couldn't Open Folder - TimeoutError"))
             except Exception as e:
-                if failed:
-                    self.on_ui_thread(failed)
+                self.do_failed(failed)
                 print("Failed opening Folder async ",e)
                 traceback.print_exc()
                 
@@ -42,7 +41,10 @@ class AsyncRequest:
         except Exception as e:
             print('Failed to excute function on ui Thread: ',e)
             traceback.print_exc()
-            
+    
+    def do_failed(self,failed):
+        if failed:
+            self.on_ui_thread(failed)
         
     def is_folder(self, path,success,failed=None):
         url = f"http://{self.get_server_ip()}:{self.get_port_number()}/api/isdir"
@@ -121,6 +123,26 @@ class AsyncRequest:
                 traceback.print_exc()
                 
         threading.Thread(target=__upload).start()
+    def auto_connect(self,success,failed=None):
+        pervious_connections=Settings().get('recent_connections')
+        port=Settings().get("server", "port")
+        
+        def __auto_connect():
+            for pc_name, ip_address in pervious_connections.items():
+                try:
+                    response=requests.get(f"http://{ip_address}:{port}/ping",json={'passcode':'08112321825'},timeout=.4)
+                    if response.status_code == 200:
+                        pc_name = response.json()['data']
+                        Settings().set('server', 'ip', ip_address)
+                        Settings().add_recent_connection(pc_name, ip_address)
+                        self.on_ui_thread(success,args=[pc_name,ip_address])
+                        break
+                except Exception as e:
+                    self.do_failed(failed)
+                    print("Dev Auto Connect Error: ", get_full_class_name(e))
+                    
+        threading.Thread(target=__auto_connect).start()
+
 # instance = AsyncRequest()
 # instance.is_folder('path',function)
 # instance.download_file('save_path')

@@ -50,6 +50,7 @@ from workers.helper import (
     )
 
 from workers.sword import NetworkManager, Settings
+from workers.requests.async_request import AsyncRequest
 
 
 

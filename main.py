@@ -492,29 +492,15 @@ class SettingsScreen(MDScreen):
 
     async def autoConnect(self):
         ip_input=self.ids['ip_addr_input']
-        pervious_connections=self.app.settings.get('recent_connections')
-        port=MDApp.get_running_app().settings.get('server', 'port')
+        connect_btn=self.ids['connect_btn']
         
-        for pc_name, ip_address in pervious_connections.items():
-            try:
-                response=requests.get(f"http://{ip_address}:{port}/ping",json={'passcode':'08112321825'},timeout=.2)
-                if response.status_code == 200:
-                    self.pc_name = response.json()['data']
-                    self.app.settings.set('server', 'ip', ip_address)
-                    self.app.settings.add_recent_connection(self.pc_name, ip_address)
-                    def kivyThreadBussiness():
-                        connect_btn=self.ids['connect_btn']
-                        ip_input.text="Connected to: "+self.pc_name
-                        ip_input.disabled=True
-                        connect_btn.text= 'Disconnect'
-                        self.change_button_callback(connect_btn,self.setIP, self.disconnect,ip_address)
-                        Snackbar(h1="Auto Connect Successfull")
-                    Clock.schedule_once(lambda dt: kivyThreadBussiness())
-                    break
-            except Exception as e:
-                print("Dev Auto Connect Error: ", get_full_class_name(e))
-
-        
+        def success(pc_name,ip_address):
+            self.pc_name = ip_input.text="Connected to: "+pc_name
+            ip_input.disabled=True
+            connect_btn.text= 'Disconnect'
+            self.change_button_callback(connect_btn,self.setIP, self.disconnect,ip_address)
+            Snackbar(h1="Auto Connect Successfull")
+        AsyncRequest().auto_connect(success)
     def setIP(self, widget_that_called):
         ip_input=self.ids['ip_addr_input']
         input_ip_address:str=ip_input.text.strip()
