@@ -75,7 +75,7 @@ class Header(MDBoxLayout):
         # 'file','folder'
         ]
         titles=['Refresh','New file','New folder']
-        functions = [self.refreshBtnClicked,self.screen.startSetPathInfo_Thread,self.screen.startSetPathInfo_Thread]
+        functions = [self.refreshBtnClicked,None,None]
         menu_items = [
             {
                 "text": titles[i],
@@ -88,6 +88,6 @@ class Header(MDBoxLayout):
         self.dropDown=MDDropdownMenu(caller=item, items=menu_items)
         self.dropDown.open()
     def refreshBtnClicked(self):
-        self.screen.startSetPathInfo_Thread(frm_btn_bool='frm_btn')
+        self.screen.set_path_info(frm_btn_bool='frm_btn')
         self.dropDown.dismiss()
         
