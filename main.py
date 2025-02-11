@@ -547,9 +547,7 @@ class SettingsScreen(MDScreen):
         
     def change_button_callback(self, button, old_callback,new_callback,*args):
         button.unbind(on_release=old_callback)
-        # button.bind(on_release=new_callback)
         button.bind(on_release=new_callback)
-        print('Changed callback')
     def disconnect(self,instance):
         ip_input=self.ids['ip_addr_input']
         connect_btn=self.ids['connect_btn']
