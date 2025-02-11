@@ -102,7 +102,7 @@ def startService():
         context =  mActivity.getApplicationContext()
         SERVICE_NAME = str(context.getPackageName()) + '.Service' + 'Sendnoti'
         service = autoclass(SERVICE_NAME)
-        service.start(mActivity,'')
+        service.start(mActivity,'small_icon','title','content','FECTOR101')
         print('returned service')
     except Exception as e:
         print(f'Foreground service failed {e}')

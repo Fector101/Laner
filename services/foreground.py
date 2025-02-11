@@ -1,19 +1,22 @@
 from jnius import autoclass
+import time
 print("Entered Sendnoti Service is running... python")
+from os import environ
 
+print('python Reviced Args in Service ---> ', environ.get('PYTHON_SERVICE_ARGUMENT',''))
 # Android classes
 Context = autoclass('android.content.Context')
 NotificationManager = autoclass('android.app.NotificationManager')
 NotificationChannel = autoclass('android.app.NotificationChannel')
 NotificationBuilder = autoclass('android.app.Notification$Builder')
 AndroidString = autoclass('java.lang.String')
-
 # Constants
 channel_id = "download_channel"
 channel_name = "Download Notifications"
 
 # Initialize NotificationManager
 service = autoclass('org.kivy.android.PythonService').mService
+service.setAutoRestartService(True)
 context = service.getApplication().getApplicationContext()
 notification_manager = context.getSystemService(Context.NOTIFICATION_SERVICE)
 
@@ -40,15 +43,20 @@ notification_manager.notify(notification_id, builder.build())
 
 
 # # Simulate Download Progress
-import time
-for progress in range(0, 101, 10):  # Increment progress in steps of 10%
-    time.sleep(20)  # Simulate time taken for download
+secs=1
+i=0
+for progress in range(0, 101, 10):
+    i+=secs
     builder.setProgress(100, progress, False)
+    builder.setContentText(AndroidString(f"Waiting... {i} min"))
+    notification_manager.notify(notification_id, builder.build())
+    time.sleep(secs*60)
     builder.setContentText(AndroidString(f"{progress}% downloaded"))
     notification_manager.notify(notification_id, builder.build())
+    # print('done waiting... python')
 
 # Finish Notification
-builder.setContentText(AndroidString("Download complete!"))
+builder.setContentText(AndroidString(f"Download complete! {i}"))
 builder.setProgress(0, 0, False)  # Remove the progress bar
 notification_manager.notify(notification_id, builder.build())
 

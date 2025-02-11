@@ -99,8 +99,7 @@ class AsyncRequest:
             except Exception as e:
                 print("Failed Download Error type: ",e)
                 traceback.print_exc()
-                if failed:
-                    self.on_ui_thread(failed)
+                self.on_ui_thread(failed)
         threading.Thread(target=_download).start()
     # def log_failed_msg(self,fail_func):
     #     if fail_func:
@@ -118,8 +117,7 @@ class AsyncRequest:
                     self.on_ui_thread(failed)
                 # Refresh the folder.
             except Exception as e:
-                if failed:
-                    self.on_ui_thread(failed)
+                self.on_ui_thread(failed)
                 print("Failed Upload ",e)
                 traceback.print_exc()
                 
