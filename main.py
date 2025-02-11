@@ -267,6 +267,7 @@ class MyCard(RecycleDataViewBehavior,RectangularRippleBehavior,ButtonBehavior,MD
             
             self.icon = self.thumbnail_url
             self.thumbnail_update_interval.cancel()
+            self.thumbnail_update_interval=None
         elif not self.thumbnail_url:
             self.thumbnail_update_interval.cancel()
             
