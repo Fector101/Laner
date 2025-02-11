@@ -9,8 +9,6 @@ from kivy.core.window import Window
 from kivy.properties import (ObjectProperty, BooleanProperty, ListProperty, StringProperty)
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.lang import Builder
-from kivy.uix.recycleview.views import RecycleDataViewBehavior
-from kivy.uix.recyclegridlayout import RecycleGridLayout
 from kivy.uix.image import AsyncImage,Image
 from kivy.uix.spinner import Spinner
 from kivy.utils import platform # OS

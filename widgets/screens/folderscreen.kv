@@ -1,3 +1,56 @@
+<MyCard>:
+    radius: dp(5)
+    size_hint:(1,1)
+    # theme_bg_color: "Custom"
+    on_release: app.my_screen_manager.current_screen.set_folder(self.path) if self.is_dir else app.my_screen_manager.current_screen.set_file(self.path)
+    
+    SafeAsyncImage:
+        id: test_stuff
+        source: root.icon
+        size_hint: [.8,.6] if root.icon=='assets/icons/file.png' else [.9,.7]
+        fit_mode: 'contain'
+        mipmap: True
+        pos_hint: {"top":1}
+        radius: (dp(5),dp(5),0,0)
+    MDButton:
+        # theme_bg_color:  "Custom"
+        theme_height:  "Custom"
+        theme_width:  "Custom"
+        opacity: 0 if root.is_dir else 1
+        radius: '15sp'
+        size_hint:  [None, None]
+        width:  '35sp'
+        height: '35sp'
+        # md_bg_color: [.7,.6,.9,1]
+        pos_hint: {"top": .979, "right": .97}
+        on_release: app.my_screen_manager.current_screen.show_download_dialog(root.path) if not self.parent.is_dir else None
+        
+        MDButtonIcon:
+            icon: "download"
+            pos_hint: {'x':.23,'y':.2}
+            # theme_icon_color: "Custom"
+            # icon_color: [1,1,1,1]
+        
+    MDLabel:
+        text: root.myFormat(root.text)
+        theme_font_size:'Custom'
+        font_size: '11sp'
+        size_hint: [None, None]
+        size: (root.width, 40)
+        text_size: (root.width, None)
+
+<RV>:
+    viewclass: 'MyCard'
+    My_RecycleGridLayout:
+        id: scroll_content
+        default_size: 1, '140sp' # children widgets default size
+        default_size_hint: 1, None
+        cols:4
+        spacing:18
+        padding:"10dp"
+        size_hint: (1, None)
+        height: self.minimum_height + 140
+
 
 <DetailsLabel>:
     size_hint_x: None

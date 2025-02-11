@@ -7,12 +7,17 @@ import shutil
 
 from kivy.clock import Clock
 # pylint: disable=no-name-in-module
-from kivy.properties import StringProperty
+from kivy.properties import StringProperty,BooleanProperty
 from kivy.uix.label import Label
 from kivy.uix.recycleview import RecycleView
 from kivy.lang import Builder
 from kivy.utils import platform
-from kivy.network.urlrequest import UrlRequest
+from kivy.uix.recycleview.views import RecycleDataViewBehavior
+from kivymd.uix.behaviors import RectangularRippleBehavior
+from kivy.uix.behaviors import ButtonBehavior
+from kivy.core.window import Window
+from kivy.uix.recyclegridlayout import RecycleGridLayout
+from kivy.uix.image import AsyncImage
 
 from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout
@@ -44,6 +49,97 @@ class RV(RecycleView):
 
 class DetailsLabel(Label):
     """Label with custom style for displaying folder details."""
+
+class SafeAsyncImage(AsyncImage):    
+    def on_error(self,*args):
+        print(f"Failed to load image 101: {self.source}")
+        self.source='assets/icons/image.png'
+
+            
+class MyCard(RecycleDataViewBehavior,RectangularRippleBehavior,ButtonBehavior,MDRelativeLayout):
+    path=StringProperty()
+    icon=StringProperty()
+    text=StringProperty()
+    thumbnail_url=StringProperty()
+    is_dir=BooleanProperty()
+    validated_paths=[] # Suppose to save across instances
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.ripple_effect=False
+        self.thumbnail_update_interval=None
+
+    def isFile(self,path:str):
+        sever_ip=MDApp.get_running_app().settings.get('server', 'ip')
+        port=MDApp.get_running_app().settings.get('server', 'port')
+        # print('What file ',path)
+        try:
+            import requests
+            response=requests.get(f"http://{sever_ip}:{port}/api/isfile",json={'path':path},timeout=2)
+            print(response.json())
+            if response.status_code != 200:
+                # Clock.schedule_once(lambda dt:Snackbar(h1="Dev pinging for thumb valid"))
+                return False
+            # print(response.json()['data'])
+            return response.json()['data']
+
+        except Exception as e:
+            Clock.schedule_once(lambda dt:Snackbar(h1="Dev pinging for thumb valid"))
+            print(f"isDir method: {e}")
+            return False
+
+    def on_thumbnail_url(self, instance, value):
+        """Called whenever thumbnail_url changes."""
+        self.thumbnail_update_interval = Clock.schedule_interval(lambda dt: self.update_image(), 2)
+        
+    def on_parent(self, widget,parent):
+        # Cleanup intervals when user leaves screen before thumbnail is created
+        try:
+            if not parent and self.thumbnail_update_interval:
+                print('canceling ',self.thumbnail_update_interval,'parent ',parent)
+                self.thumbnail_update_interval.cancel()
+        except Exception as e:
+            print('interval cancel error ',e)
+        
+    
+    def update_image(self):
+        def without_url_format(url:str):
+            return os.path.join(*url.split('/')[4:])
+        
+        print('cheacking self.thumbnail_url for ---> ',self.thumbnail_url)
+        # if self.thumbnail_url:
+            # print(self.validated_paths,'||', without_url_format(self.thumbnail_url))
+        if self.thumbnail_url and (self.thumbnail_url in self.validated_paths or self.isFile(without_url_format(self.thumbnail_url))):
+            if self.thumbnail_url not in self.validated_paths:
+                self.validated_paths.append(self.thumbnail_url)
+            
+            self.icon = self.thumbnail_url
+            self.thumbnail_update_interval.cancel()
+            self.thumbnail_update_interval=None
+        elif not self.thumbnail_url:
+            self.thumbnail_update_interval.cancel()
+            
+            
+    def myFormat(self, text:str):
+        if len(text) > 20:
+            return text[0:18] + '...'
+        return text
+
+
+
+class My_RecycleGridLayout(RecycleGridLayout):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.adjust_columns()
+
+    def adjust_columns(self):
+        if Window.width > 500:
+            self.cols = 4
+        else:
+            value = max(2, int(Window.width / 100))
+            self.cols = 2 if value < 2 else value
+
+    def on_size(self, *args):
+        self.adjust_columns()
 
 
 class DisplayFolderScreen(MDScreen):
