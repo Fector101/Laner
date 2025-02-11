@@ -153,7 +153,7 @@ class Settings:
         
         if "recent_connections" in self._store:
             current = self._store.get("recent_connections")
-            current['ips'] = [*current['ips'],ip]
+            current['ips'] = list(set([*current['ips'],ip]))
             self._store.put("recent_connections", **current)
             
             

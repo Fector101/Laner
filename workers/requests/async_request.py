@@ -40,7 +40,6 @@ class AsyncRequest:
                 Clock.schedule_once(lambda dt:fun())
         except Exception as e:
             print('Failed to excute function on ui Thread: ',e)
-            traceback.print_exc()
     
     def do_failed(self,failed):
         if failed:
@@ -135,7 +134,6 @@ class AsyncRequest:
                     if response.status_code == 200:
                         pc_name = response.json()['data']
                         Settings().set('server', 'ip', ip_address)
-                        Settings().add_recent_connection(ip_address)
                         self.on_ui_thread(success,args=[pc_name,ip_address])
                         break
                 except Exception as e:
