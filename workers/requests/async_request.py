@@ -33,6 +33,8 @@ class AsyncRequest:
         thread = threading.Thread(target=__make_request)
         thread.start()
     def on_ui_thread(self,fun,args=[]):
+        if not fun:
+            return
         try:
             if args:
                 Clock.schedule_once(lambda dt:fun(*args))
