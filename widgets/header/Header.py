@@ -88,6 +88,6 @@ class Header(MDBoxLayout):
         self.dropDown=MDDropdownMenu(caller=item, items=menu_items)
         self.dropDown.open()
     def refreshBtnClicked(self):
-        self.screen.set_path_info(frm_btn_bool='frm_btn')
+        self.screen.set_path_info(from_btn='frm_btn')
         self.dropDown.dismiss()
         

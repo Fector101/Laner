@@ -105,8 +105,10 @@ class DisplayFolderScreen(MDScreen):
     def on_enter(self, *args):
         """When the screen is entered, update the folder listing."""
         # UrlRequest(url=f"http://{self.get_server_ip()}:{self.get_port_number()}/api/isdir",json={'path':path})
+        def failed():
+            Snackbar(h1=self.could_not_open_path_msg)
         instance=AsyncRequest()
-        instance.is_folder(path=self.current_dir,success=self.set_path_info)
+        instance.is_folder(path=self.current_dir,success=self.set_path_info,failed=failed)
 
     def set_last_folder_screen(self) -> None:
         """Navigate to the last folder if history exists."""
@@ -228,8 +230,11 @@ class DisplayFolderScreen(MDScreen):
             self.header.changeTitle(path)
             self.set_path_info()
             
+        def failed():
+            Snackbar(h1=self.could_not_open_path_msg)
+            
         instance=AsyncRequest()
-        instance.is_folder(path=self.current_dir,success=success)
+        instance.is_folder(path=self.current_dir,success=success,failed=failed)
         
     def show_download_dialog(self,path:str) -> None:
         """
@@ -237,20 +242,21 @@ class DisplayFolderScreen(MDScreen):
         :param path: The path to download.
         """
         print('frm dialog')
+        needed_file = path.replace(' ', '%20').replace('\\', '/')
+        file_name = os.path.basename(path.replace('\\', '/'))
+        saving_path = os.path.join(my_downloads_folder, file_name)
         def success():
-            file_name = os.path.basename(path.replace('\\', '/'))
             def failed_callback():
                 pass
 
             def success_callBack():
-                needed_file = path.replace(' ', '%20').replace('\\', '/')
-                saving_path = os.path.join(my_downloads_folder, file_name)
                 self.download_file(file_path=needed_file,save_path=saving_path)
             PopupDialog(
                     failedCallBack=failed_callback,
                     successCallBack=success_callBack,
-                    h1="Verify Download",
-                    caption=f"{file_name} -- Will be saved in \"Laner\" Folder in your device \"Downloads\"",
+                    h1="Laner",
+                    # h1="Verify Download",
+                    caption=f'Do you want to Download {file_name}, It Will be saved in "{'/'.join(saving_path.split('/')[-2:])}"',
                     cancel_txt="Cancel",confirm_txt="Ok",
             )
         AsyncRequest().is_file(path,success=success)
@@ -277,9 +283,9 @@ class DisplayFolderScreen(MDScreen):
             except Exception as e:
                 print(e,"Failed sending Notification")
 
-            Clock.schedule_once(lambda dt: Snackbar(confirm_txt='Open',h1=f'Successfully Saved { file_name }'))
+            Snackbar(confirm_txt='Open',h1=f'Successfully Saved { file_name }')
         def failed():
-            Clock.schedule_once(lambda dt: Snackbar(confirm_txt='Open',h1="Download Failed try Checking Laner on PC"))
+            Snackbar(confirm_txt='Open',h1="Download Failed try Checking Laner on PC")
             
         instance=AsyncRequest()
         instance.download_file(file_path,save_path,success,failed)
