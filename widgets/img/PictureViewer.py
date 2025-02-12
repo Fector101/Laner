@@ -32,3 +32,5 @@ class PictureViewer(MDFloatLayout):
     def close(self,widget=None):
         self.parent.remove_widget(self)
         self.close_btn_callback()
+    def on_touch_down(self,touch):
+        return True
