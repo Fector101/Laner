@@ -17,7 +17,6 @@ from kivymd.uix.behaviors import RectangularRippleBehavior
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.core.window import Window
 from kivy.uix.recyclegridlayout import RecycleGridLayout
-from kivy.uix.image import AsyncImage
 
 from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout
@@ -30,8 +29,11 @@ from plyer import filechooser # pylint: disable=import-error
 
 from widgets.header import Header
 from widgets.popup import PopupDialog, Snackbar
-from workers.helper import getHiddenFilesDisplay_State, makeDownloadFolder, getAppFolder
+from workers.helper import getHiddenFilesDisplay_State, makeDownloadFolder, getAppFolder,getFormat
 from workers.requests.async_request import AsyncRequest
+from widgets.img.SafeAsyncImage import SafeAsyncImage
+from workers.utils.constants import IMAGE_FORMATS
+
 
 if platform == "android":
     from kivymd.toast import toast # pylint: disable=ungrouped-imports
@@ -49,12 +51,8 @@ class RV(RecycleView):
 
 class DetailsLabel(Label):
     """Label with custom style for displaying folder details."""
-
-class SafeAsyncImage(AsyncImage):    
-    def on_error(self,*args):
-        print(f"Failed to load image 101: {self.source}")
-        self.source='assets/icons/image.png'
-
+class SafeAsyncImage_(SafeAsyncImage):
+    pass
             
 class MyCard(RecycleDataViewBehavior,RectangularRippleBehavior,ButtonBehavior,MDRelativeLayout):
     path=StringProperty()
@@ -303,9 +301,18 @@ class DisplayFolderScreen(MDScreen):
         
     def set_file(self, path: str) -> None:
         print('clicked!!')
-        def success():
-            self.manager.btm_sheet.enable_swiping=True
-            self.manager.btm_sheet.set_state("toggle")
+        def success(url):
+            img_urls=[]
+            if getFormat(url) not in IMAGE_FORMATS:
+                return
+            for each in self.current_dir_info:
+                each_img_path = each['icon']
+                if getFormat(each_img_path) in IMAGE_FORMATS:
+                    img_urls.append(each_img_path)
+            # print(img_paths)
+            self.app.toogle_image_viewer(img_urls)
+            # self.manager.btm_sheet.enable_swiping=True
+            # self.manager.btm_sheet.set_state("toggle")
         def fail():
             print('Not Folder')
         instance=AsyncRequest()
@@ -341,7 +348,7 @@ class DisplayFolderScreen(MDScreen):
         needed_file = path.replace(' ', '%20').replace('\\', '/')
         file_name = os.path.basename(path.replace('\\', '/'))
         saving_path = os.path.join(my_downloads_folder, file_name)
-        def success():
+        def success(url):
             def failed_callback():
                 pass
 
@@ -367,8 +374,8 @@ class DisplayFolderScreen(MDScreen):
             file_name = os.path.basename(save_path)
             try:
                 # If the file is an image, copy it to the app's assets and send a notification.
-                IMAGE_FORMATS = ('.png', '.jpg', '.jpeg', '.tif', '.bmp', '.gif')
-                if os.path.splitext(file_name)[1] in IMAGE_FORMATS:
+                
+                if getFormat(file_name) in IMAGE_FORMATS:
                     shutil.copy(save_path, os.path.join(getAppFolder(), 'assets', 'imgs', file_name))
                     Notification(
                         title="Completed download",message=file_name,

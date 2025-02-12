@@ -43,16 +43,16 @@ notification_manager.notify(notification_id, builder.build())
 
 
 # # Simulate Download Progress
-secs=1
+secs=6
 i=0
 for progress in range(0, 101, 10):
-    i+=secs
     builder.setProgress(100, progress, False)
-    builder.setContentText(AndroidString(f"Waiting... {i} min"))
+    builder.setContentText(AndroidString(f"Waitied for ... {i} min"))
     notification_manager.notify(notification_id, builder.build())
+    i+=secs
     time.sleep(secs*60)
-    builder.setContentText(AndroidString(f"{progress}% downloaded"))
-    notification_manager.notify(notification_id, builder.build())
+    # builder.setContentText(AndroidString(f"{progress}% downloaded"))
+    # notification_manager.notify(notification_id, builder.build())
     # print('done waiting... python')
 
 # Finish Notification

@@ -1,5 +1,4 @@
 from imports import *
-
 #Making/Getting Downloads Folder
 if platform == 'android':
     my_downloads_folder=makeDownloadFolder()
@@ -169,7 +168,10 @@ class BottomNavigationBar(MDNavigationDrawer):
     def setScreen(self,btn:TabButton,screen_name):
         self.screen_manager.change_screen(screen_name)
         # btn.designWidgets(self.screen_manager.current)
-
+    def close(self,widget=None):
+        self.set_state('close')
+    def open(self,widget=None):
+        self.set_state('open')
 
 class MySwitch(MDBoxLayout):
     text=StringProperty()
@@ -529,15 +531,17 @@ class Laner(MDApp):
                 if isinstance(screen, DisplayFolderScreen):
                     screen.details_box.md_bg_color =light_grey_for_light_theme
                     screen.details_label.color = [0.41, 0.42, 0.4, 1]
-                    
-                    
+    def toogle_image_viewer(self,urls:list):
+        layout=PictureViewer(urls,self.bottom_navigation_bar.open)
+        self.my_screen_manager.current_screen.add_widget(layout)
+        self.bottom_navigation_bar.close()
     def build(self):
         self.title = 'Laner'
         Window.bind(size=self.on_resize)
         # self.__root_screen = ScreenManager()
         self.root_screen = BoxLayout(size_hint=[1,1])#,md_bg_color=[1,0,0,1])
         # self.root_screen = MDScreen()
-        nav_layout = MDNavigationLayout()
+        self.nav_layout = MDNavigationLayout()
         
         self.btm_sheet = MyBtmSheet()
         self.my_screen_manager = WindowManager(self.btm_sheet)
@@ -550,11 +554,12 @@ class Laner(MDApp):
         #     y= Window.height - viewport_size[1] - getStatusBarHeight()
         #     print("Working Y-axis",y)
         #     self.root_screen.y=y
-        nav_layout.add_widget(self.my_screen_manager)
-        nav_layout.add_widget(self.bottom_navigation_bar)
-        nav_layout.add_widget(self.btm_sheet)
+        self.nav_layout.add_widget(self.my_screen_manager)
+        self.nav_layout.add_widget(self.bottom_navigation_bar)
+        self.nav_layout.add_widget(self.btm_sheet)
         
-        self.root_screen.add_widget(nav_layout)
+        self.root_screen.add_widget(self.nav_layout)
+        # self.toogle_image_viewer('http://192.168.88.4:8000//home/fabian/Pictures/inspo.png')
         return self.root_screen
     def on_resize(self, *args):
         btm_nav_btns=self.bottom_navigation_bar.children if isinstance(self.bottom_navigation_bar.children[0],TabButton) else []
