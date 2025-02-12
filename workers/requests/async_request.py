@@ -67,11 +67,12 @@ class AsyncRequest:
         
     def is_file(self, path,success,failed=None):
         url = f"http://{self.get_server_ip()}:{self.get_port_number()}/api/isfile"
+        file_url = f"http://{self.get_server_ip()}:{self.get_port_number()}/{path.replace(' ', '%20').replace('\\', '/')}"
         def __make_request():
             try:
                 response = requests.get(url,json={'path':path},timeout=3)
                 if response.status_code == 200 and response.json()['data']:
-                    self.on_ui_thread(success)
+                    self.on_ui_thread(success,args=[file_url])
                 elif failed:
                     self.on_ui_thread(failed)
             except Exception as e:
