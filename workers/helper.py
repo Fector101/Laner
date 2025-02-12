@@ -4,7 +4,8 @@ from kivy.clock import Clock
 
 THEME_COLOR_TUPLE=(.6, .9, .8, 1)
 
-        
+def getFormat(file_path):
+    return os.path.splitext(file_path)[1]
 def getAppFolder():
 	"""
 	Returns the correct application folder path, whether running on native Windows,
