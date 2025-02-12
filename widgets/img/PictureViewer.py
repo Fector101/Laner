@@ -15,12 +15,10 @@ with open(kv_file_path, encoding="utf-8") as kv_file:
     Builder.load_string(kv_file.read(), filename="PictureViewer.kv")
     
 class MySwiper(MDSwiperItem):
-    
     def __init__(self, source, **kwargs):
         super().__init__(**kwargs)
         self.add_widget(SafeAsyncImage(source=source))
-    def on_touch_down(self,touch):
-        return True    
+        
 class PictureViewer(MDFloatLayout):
     def __init__(self, sources,close_btn_callback, **kwargs):
         super().__init__(**kwargs)
@@ -34,4 +32,3 @@ class PictureViewer(MDFloatLayout):
     def close(self,widget=None):
         self.parent.remove_widget(self)
         self.close_btn_callback()
-    

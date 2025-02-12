@@ -194,7 +194,13 @@ class DisplayFolderScreen(MDScreen):
         self.layout.add_widget(MDBoxLayout(height='70sp',size_hint=[1,None]))
         self.add_widget(self.layout)
         self.add_widget(self.upload_btn)
+    def disable_click(self):
+        self.layout.disabled=True
+        self.upload_btn.disabled=True
 
+    def enable_click(self):
+        self.layout.disabled=False
+        self.upload_btn.disabled=False
 
     def on_enter(self, *args):
         """When the screen is entered, update the folder listing."""

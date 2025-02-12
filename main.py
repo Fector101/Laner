@@ -532,7 +532,11 @@ class Laner(MDApp):
                     screen.details_box.md_bg_color =light_grey_for_light_theme
                     screen.details_label.color = [0.41, 0.42, 0.4, 1]
     def toogle_image_viewer(self,urls:list):
-        layout=PictureViewer(urls,self.bottom_navigation_bar.open)
+        def on_close_pic_viewer():
+            self.bottom_navigation_bar.open()
+            self.my_screen_manager.current_screen.enable_click()
+        layout=PictureViewer(urls,on_close_pic_viewer)
+        self.my_screen_manager.current_screen.disable_click()
         self.my_screen_manager.current_screen.add_widget(layout)
         self.bottom_navigation_bar.close()
     def build(self):
