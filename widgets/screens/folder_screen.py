@@ -311,9 +311,8 @@ class DisplayFolderScreen(MDScreen):
             if getFormat(url) not in IMAGE_FORMATS:
                 return
             for each in self.current_dir_info:
-                each_img_path = each['icon']
-                if getFormat(each_img_path) in IMAGE_FORMATS:
-                    img_urls.append(each_img_path)
+                if getFormat(each['path']) in IMAGE_FORMATS:
+                    img_urls.append(each['icon'])
             # print(img_paths)
             self.app.toogle_image_viewer(img_urls,start_from=url)
             # self.manager.btm_sheet.enable_swiping=True
