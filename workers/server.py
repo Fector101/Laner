@@ -81,7 +81,7 @@ class CustomHandler(SimpleHTTPRequestHandler):
                             .decode()
                             .strip()
                         )
-                        print("My folder path variable ----- ", folder_path)
+                        print("Folder to save upload ----- ", folder_path)
                         os.makedirs(folder_path, exist_ok=True)
                     
                     if b'filename=' in part:
@@ -92,7 +92,7 @@ class CustomHandler(SimpleHTTPRequestHandler):
                             .split(b'"')[0]
                             .decode()
                         )
-                        print("Found file name: ----- ", filename)
+                        print("Uploaded File name: ----- ", filename)
                         
                         save_path = os.path.join(folder_path, filename)
                         
