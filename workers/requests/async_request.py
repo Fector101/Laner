@@ -67,7 +67,8 @@ class AsyncRequest:
         
     def is_file(self, path,success,failed=None):
         url = f"http://{self.get_server_ip()}:{self.get_port_number()}/api/isfile"
-        file_url = f"http://{self.get_server_ip()}:{self.get_port_number()}/{path.replace(' ', '%20').replace('\\', '/')}"
+        file_path_url_safe=path.replace(' ', '%20').replace('\\', '/')
+        file_url = f"http://{self.get_server_ip()}:{self.get_port_number()}/{file_path_url_safe}"
         def __make_request():
             try:
                 response = requests.get(url,json={'path':path},timeout=3)
