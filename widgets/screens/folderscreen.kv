@@ -4,12 +4,11 @@
     # theme_bg_color: "Custom"
     on_release: app.my_screen_manager.current_screen.set_folder(self.path) if self.is_dir else app.my_screen_manager.current_screen.set_file(self.path)
     
-    SafeAsyncImage:
+    SafeAsyncImage_:
         id: test_stuff
         source: root.icon
         size_hint: [.8,.6] if root.icon=='assets/icons/file.png' else [.9,.7]
         fit_mode: 'contain'
-        mipmap: True
         pos_hint: {"top":1}
         radius: (dp(5),dp(5),0,0)
     MDButton:
