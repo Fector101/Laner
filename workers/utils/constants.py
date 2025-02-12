@@ -1,0 +1,1 @@
+IMAGE_FORMATS = ('.png', '.jpg', '.jpeg', '.tif', '.bmp', '.gif')
