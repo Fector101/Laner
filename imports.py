@@ -32,12 +32,6 @@ from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDNavigationLayout)
 from kivymd.uix.divider import MDDivider
 
 import os, sys, json, requests, asyncio, threading
-from plyer import filechooser
-
-from widgets.popup import Snackbar
-from widgets.templates import CustomDropDown, MDTextButton,MyBtmSheet
-from widgets.screens import DisplayFolderScreen
-from widgets.header import Header
 
 from workers.helper import (
     THEME_COLOR_TUPLE, get_full_class_name,
@@ -50,6 +44,12 @@ from workers.helper import (
 from workers.sword import NetworkManager, Settings
 from workers.requests.async_request import AsyncRequest
 
+
+from widgets.popup import Snackbar
+from widgets.templates import CustomDropDown, MDTextButton,MyBtmSheet
+from widgets.screens import DisplayFolderScreen
+from widgets.header import Header
+from widgets.img.PictureViewer import PictureViewer
 
 
 if platform == 'android':
