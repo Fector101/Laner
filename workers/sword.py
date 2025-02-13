@@ -285,19 +285,20 @@ class NetworkManager:
         """Get current server IP address (public method)"""
         return self.get_server_ip()
 
-    def find_server(self,port):
+    def find_server(self,port,timeout):
+        # TODO continue broadcast till you find right PORT
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.bind(('', port))  # Listen on all available interfaces
-
+        sock.settimeout(timeout)
         # print(f"Listening for server IP on port {port}...")
-
-        while True:
+        try:
             data, addr = sock.recvfrom(1024)
             if data.startswith(b"SERVER_IP:"):
                 server_ip = data.decode().split(":")[1]
                 print("Detected Server IP:", server_ip)
                 return server_ip  # Use this IP to connect to the server
-
+        except socket.timeout:
+                print("Timeout: No broadcast received")
 
 settings = Settings()
 network = NetworkManager()
