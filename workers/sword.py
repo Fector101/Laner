@@ -289,7 +289,7 @@ class NetworkManager:
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.bind(('', port))  # Listen on all available interfaces
 
-        print(f"Listening for server IP on port {port}...")
+        # print(f"Listening for server IP on port {port}...")
 
         while True:
             data, addr = sock.recvfrom(1024)
