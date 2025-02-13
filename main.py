@@ -279,6 +279,7 @@ class FileShareApp(QMainWindow):
         self.tray.setIcon(QIcon(self.icon))
         
         self.server.stop()
+        NetworkManager().keep_broadcasting = True
 
     def hide_ip(self):
         if not self.running:

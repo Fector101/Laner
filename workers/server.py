@@ -224,6 +224,7 @@ class FileSharingServer:
     def __init__(self, ip, port=8000, directory="/"):
         self.ip = ip
         self.port = port
+        self._server = None
         self.directory = directory
         makeFolder(os.path.join(getAppFolder(), 'thumbnails'))
 
@@ -232,13 +233,35 @@ class FileSharingServer:
         SERVER_IP = self.ip
         os.chdir(self.directory)
 
-        self.server = ThreadingHTTPServer((self.ip, self.port), CustomHandler)
-        threading.Thread(target=self.server.serve_forever, daemon=True).start()
-        print(f"Server started at http://{SERVER_IP}:{self.port}")
+        # self.server = ThreadingHTTPServer((self.ip, self.port), CustomHandler)
+        # threading.Thread(target=self.server.serve_forever, daemon=True).start()
+        # print(f"Server started at http://{SERVER_IP}:{self.port}")
 
+        self._server =None
+        
+        ports =  [
+                    8000, 8080, 9090, 10000, 11000, 12000, 13000, 14000, 
+                    15000, 16000, 17000, 18000, 19000,
+                    20000, 22000, 23000, 24000, 26000,
+                    27000, 28000, 29000, 30000
+                ]
+        # TODO ping Server from PC and Check for Unquie Generated Code from maybe Singleton
+        for port in ports:
+            try:
+                # self.server = ThreadingHTTPServer(("", port), CustomHandler)
+                self._server = ThreadingHTTPServer((self.ip, port), CustomHandler)
+                self.port=port
+                threading.Thread(target=self._server.serve_forever, daemon=True).start()
+                print(f"Server started at http://{SERVER_IP}:{self.port}")
+                break  # Exit the loop if the server starts successfully
+            except OSError:
+                print(f"Port {port} is unavailable, trying the next one...")
+            except Exception as e:
+                print(f"Error: {e}")
+                
     def stop(self):
-        self.server.shutdown()
-        self.server.server_close()
+        self._server.shutdown()
+        self._server.server_close()
         print("Server stopped.")
 
 # if __name__ == "__main__":
