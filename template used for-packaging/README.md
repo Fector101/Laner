@@ -10,6 +10,10 @@ Copy `../dist/laner-pc` to `./template used for-packaging/laner-pc/usr/local/bin
 
 Then in `template used for-packaging` folder Run `dpkg-deb --build laner-pc`
 
+### Speed Ticket
+
+`pyinstaller main.spec && cp dist/laner-pc  "template used for-packaging/laner-pc/usr/local/bin" && cd "template used for-packaging" && dpkg-deb --build laner-pc`
+
 ### To install
 
 `sudo dpkg -i laner-pc.deb`
