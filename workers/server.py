@@ -13,6 +13,7 @@ from workers.helper import (
     makeFolder, removeFirstDot, sortedDir, urlSafePath, getUserPCName
 )
 from workers.thumbmailGen import generateThumbnails
+from workers.sword import NetworkManager
 
 # File Type Definitions
 MY_OWNED_ICONS = ['.py', '.js', '.css', '.html', '.json', '.deb', '.md', '.sql', '.java']
@@ -167,6 +168,7 @@ class CustomHandler(SimpleHTTPRequestHandler):
                 self._send_json_response({'data': is_file})
                 
             elif self.path == "/ping":
+                NetworkManager().keep_broadcasting=False
                 self._send_json_response({'data': getUserPCName()})
             else:
                 super().do_GET()

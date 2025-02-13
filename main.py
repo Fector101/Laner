@@ -236,15 +236,20 @@ class FileShareApp(QMainWindow):
 
     def run_server(self, port):
         # Initialize the server
+        
         try:
-            self.server = FileSharingServer(port=8000,ip=self.ip, directory= '/')
+            self.server = FileSharingServer(port=port,ip=self.ip, directory= '/')
             # Start the server
             self.server.start()
             self.port=self.server.port # if args port unavailable Class will return a new port
             # self.settings_screen.port_label.setValue(self.port)
             self.settings_screen.port_label.setText(str(self.port))
             
-            
+            try:
+                # Using port from started S
+                NetworkManager().broadcast_ip(self.port)
+            except Exception as e:
+                print('BroadCast Failed: ',e)    
             print("Press Ctrl+C to stop the server.")
         # except KeyboardInterrupt:
             # Stop the server on Ctrl+C

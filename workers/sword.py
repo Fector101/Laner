@@ -5,6 +5,9 @@ import re
 import shutil
 import netifaces
 from dataclasses import dataclass
+import socket
+import time
+
 
 @dataclass
 class NetworkConfig:
@@ -14,6 +17,13 @@ class NetworkConfig:
 
 class NetworkManager:
     """Manage network settings and IP detection"""
+    _instance = None
+    keep_broadcasting = True
+    
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(NetworkManager, cls).__new__(cls)
+        return cls._instance
     
     def __init__(self):
         self.config = NetworkConfig()
@@ -130,8 +140,20 @@ class NetworkManager:
     def getSERVER_IP(self) -> str:
         """Get current server IP address (public method)"""
         return self.get_server_ip()
+    
+    def broadcast_ip(self,port):
+        server_ip = self._get_system_ip()
+        message = f"SERVER_IP:{server_ip}"
+        
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
+        print(f"Broadcasting server IP: {server_ip} on port {port}")
 
+        while self.keep_broadcasting:
+            sock.sendto(message.encode(), ('<broadcast>', port))
+            time.sleep(1)  # Broadcast every second
+        print('Ended BroadCast !!!')
 
 # Create singleton instance
 # # Usage example:
