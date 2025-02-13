@@ -6,12 +6,31 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtGui import QFont, QIcon
 from PyQt5 import QtGui
-from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtCore import Qt, QSize,QThread,pyqtSignal
 from workers.server import FileSharingServer
 from workers.helper import getUserPCName, getAbsPath
 from workers.sword import NetworkManager
 
 DEV=0
+class WorkerThread(QThread):
+    update_signal = pyqtSignal(object)  # Define signal
+    def __init__(self,ip,parent=None):
+        super().__init__(parent)
+        self.ip =ip
+    def run(self):
+        try:
+            server = FileSharingServer(port=8000,ip=self.ip, directory= '/')
+            server.start()
+            self.update_signal.emit(server)
+
+            try:
+                # Using port from started Server
+                NetworkManager().broadcast_ip(server.port)
+            except Exception as e:
+                print('BroadCast Failed: ',e)
+                
+        except Exception as e:
+            print("See uncaught Errors on App main Thread: ",e)
 
 class SettingsScreen(QWidget):
     def __init__(self, parent):
@@ -107,6 +126,7 @@ class MainScreen(QWidget):
 
         # Start Button
         self.start_button = QPushButton("Start Server")
+        # TODO bind to end when server start works
         self.start_button.clicked.connect(self.parent.start_server)
         self.start_button.setFixedSize(120, 40)
         self.start_button.setStyleSheet("background-color: white; color: rgb(0, 179, 153);")
@@ -140,16 +160,19 @@ class MainScreen(QWidget):
 class FileShareApp(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Laner")
+        self.running = False
+        self.hidden_ip = False
+        self.server = None
+        self.ip = None
+        self.port = None
         self.icon=getAbsPath("assets", "imgs", "img.ico" if os.name == 'nt' else "icon.png")
+        self.init_ui()
+
+    def init_ui(self):
+        self.setWindowTitle("Laner")
         self.tray_live_icon=getAbsPath("assets", "imgs", "live.ico" if os.name == 'nt' else "live.png")
         self.setWindowIcon(QtGui.QIcon(self.icon))
         self.setGeometry(100, 100, 500, 500)
-        self.server_thread = None
-        self.running = False
-        self.hidden_ip = False
-        self.ip = None
-        self.port = None
 
         # Stacked Widget
         self.stacked_widget = QStackedWidget()
@@ -217,46 +240,32 @@ class FileShareApp(QMainWindow):
 
             return
         else:
-            self.main_screen.hint_message.setText("Hidden Code" if self.hidden_ip else self.ip)
+            # self.main_screen.hint_message.setText("Hidden Code" if self.hidden_ip else self.ip)
             self.main_screen.hint_message.setStyleSheet("color: gray;")
 
         # Start the server in a separate thread
-        port = 8000
-        self.server_thread = threading.Thread(target=self.run_server, args=(port,))
-        self.server_thread.daemon = True
-        self.server_thread.start()
+        
+        self.run_server(self.success)
+    def success(self,server):
         self.running = True
+        self.server=server
+        self.port=server.port
+        
+        self.main_screen.hint_message.setText("Hidden Code" if self.hidden_ip else str(self.port)) # displaying port instead of id
         self.main_screen.hint_message.setFont(QFont("Arial", 34))
-
         self.main_screen.hide_ip_button.setVisible(True)
         self.main_screen.start_button.setText("End Server")
         self.main_screen.status_label.setText("Server Running. Don't share the code.\nWrite the exact code in the Link Tab on Your Phone.")
+        
+        self.settings_screen.port_label.setText(str(self.port))
+        
         self.start_stop_action.setText("Disconnect")
         self.tray.setIcon(QIcon(self.tray_live_icon))
-
-    def run_server(self, port):
-        # Initialize the server
         
-        try:
-            self.server = FileSharingServer(port=port,ip=self.ip, directory= '/')
-            # Start the server
-            self.server.start()
-            self.port=self.server.port # if args port unavailable Class will return a new port
-            # self.settings_screen.port_label.setValue(self.port)
-            self.settings_screen.port_label.setText(str(self.port))
-            
-            try:
-                # Using port from started S
-                NetworkManager().broadcast_ip(self.port)
-            except Exception as e:
-                print('BroadCast Failed: ',e)    
-            print("Press Ctrl+C to stop the server.")
-        # except KeyboardInterrupt:
-            # Stop the server on Ctrl+C
-            # print("\nStopping the server...")
-            # self.server.stop()
-        except Exception as e:
-            print("See uncaught Errors on App main Thread: ",e)
+    def run_server(self,success=None):
+        self.worker = WorkerThread(self.ip)
+        self.worker.update_signal.connect(success)
+        self.worker.start()
 
     def on_stop(self):
         self.main_screen.hint_message.setText("Goodbye!")
@@ -266,11 +275,7 @@ class FileShareApp(QMainWindow):
         self.main_screen.start_button.setText("Start Server")
         self.main_screen.status_label.setText("Server Ended!")
         self.main_screen.hide_ip_button.setVisible(False)
-
-        # Stop the server
-        if self.server_thread:
-            self.server_thread.join()
-            self.server.stop()
+        self.server.stop()
 
     def hide_ip(self):
         if not self.running:
@@ -280,7 +285,7 @@ class FileShareApp(QMainWindow):
             self.main_screen.hint_message.setText("Hidden Code")
             self.main_screen.hide_ip_button.setText("Show Code")
         else:
-            self.main_screen.hint_message.setText(self.ip)
+            self.main_screen.hint_message.setText(str(self.port))
             self.main_screen.hide_ip_button.setText("Hide Code")
 
         self.hidden_ip = not self.hidden_ip
