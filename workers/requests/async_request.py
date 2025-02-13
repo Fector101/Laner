@@ -1,6 +1,6 @@
 import threading,requests,os,shutil
 from kivy.clock import Clock
-from workers.helper import getAppFolder,get_full_class_name
+from workers.helper import getAppFolder,get_full_class_name,urlSafePath
 from workers.sword import Settings,NetworkManager
 from widgets.popup import Snackbar
 #  getHiddenFilesDisplay_State, makeDownloadFolder, 
@@ -67,8 +67,7 @@ class AsyncRequest:
         
     def is_file(self, path,success,failed=None):
         url = f"http://{self.get_server_ip()}:{self.get_port_number()}/api/isfile"
-        file_path_url_safe=path.replace(' ', '%20').replace('\\', '/')
-        file_url = f"http://{self.get_server_ip()}:{self.get_port_number()}/{file_path_url_safe}"
+        file_url = f"http://{self.get_server_ip()}:{self.get_port_number()}/{urlSafePath(path)}"
         def __make_request():
             try:
                 response = requests.get(url,json={'path':path},timeout=3)

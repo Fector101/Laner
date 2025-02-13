@@ -1,4 +1,5 @@
 import os,sys,platform
+import urllib.parse
 from kivymd.material_resources import DEVICE_TYPE # if mobile or PC
 from kivy.clock import Clock
 
@@ -219,4 +220,11 @@ def requestMultiplePermissions():
 		request_all_permission()
 	except Exception as e:
 		print(f"Failed to request permissions: {e}") 
-    
+
+def urlSafePath(path:str):
+	path_without_drive=os.path.splitdrive(path)[1]
+	# Normalizing Windows Path Forward Slashes for Url '\\' ---> '/'
+	normalized_path= path_without_drive.replace('\\','/')
+	# For URL encoding
+	url_safe_path=urllib.parse.quote(normalized_path)
+	return url_safe_path

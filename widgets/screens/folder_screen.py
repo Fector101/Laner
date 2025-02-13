@@ -306,15 +306,14 @@ class DisplayFolderScreen(MDScreen):
         instance.get_path_data(path=self.current_dir,success=success,failed=failed)        
         
     def set_file(self, path: str) -> None:
-        def success(url):
+        def success(file_url):
             img_urls=[]
-            if getFormat(url) not in IMAGE_FORMATS:
+            if getFormat(path) not in IMAGE_FORMATS:
                 return
             for each in self.current_dir_info:
                 if getFormat(each['path']) in IMAGE_FORMATS:
                     img_urls.append(each['icon'])
-            # print(img_paths)
-            self.app.toogle_image_viewer(img_urls,start_from=url)
+            self.app.toogle_image_viewer(img_urls,start_from=file_url)
             # self.manager.btm_sheet.enable_swiping=True
             # self.manager.btm_sheet.set_state("toggle")
         def fail():
