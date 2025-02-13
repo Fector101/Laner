@@ -300,9 +300,9 @@ class NetworkManager:
         except socket.timeout:
                 print("Timeout: No broadcast received")
 
-settings = Settings()
-network = NetworkManager()
-settings.set('server', 'ip', network.get_server_ip())
+# settings = Settings()
+# network = NetworkManager()
+# settings.set('server', 'ip', network.get_server_ip())
 # Create singleton instance
 # # Usage example:
 # network = NetworkManager()

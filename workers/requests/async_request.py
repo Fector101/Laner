@@ -150,15 +150,17 @@ class AsyncRequest:
             ip_address = NetworkManager().find_server(port,timeout=timeout)
             print(f"Connecting to server at {ip_address}")
             try:
-                response=requests.get(f"http://{ip_address}:{port}/ping",json={'passcode':'08112321825'},timeout=timeout)
-                if response.status_code == 200:
-                    pc_name = response.json()['data']
-                    Settings().set('server', 'ip', ip_address)
-                    Settings().set('server', 'port', port)
-                    self.on_ui_thread(success,args=[pc_name,ip_address])
-                    print("Broadcast Worked found Port 🥳🥳🥳")
-                else:
-                    try_old_ports()
+                if ip_address:    
+                    response=requests.get(f"http://{ip_address}:{port}/ping",json={'passcode':'08112321825'},timeout=timeout)
+                    if response.status_code == 200:
+                        pc_name = response.json()['data']
+                        Settings().set('server', 'ip', ip_address)
+                        Settings().set('server', 'port', port)# TODO use a loop to check list of `ports` and set `port` in settings file with right `port`
+                        Settings().add_recent_connection(ip_address) # TODO create another key `ports` in `recent_connections` settings.json
+                        self.on_ui_thread(success,args=[pc_name,ip_address])
+                        print("Broadcast Worked found Port 🥳🥳🥳")
+                    else:
+                        try_old_ports()
             except Exception as e:
                 print("Finding Server - Auto Connect Error: ", get_full_class_name(e))
                 try_old_ports()
