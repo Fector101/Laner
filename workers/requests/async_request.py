@@ -159,8 +159,8 @@ class AsyncRequest:
                         Settings().add_recent_connection(ip_address) # TODO create another key `ports` in `recent_connections` settings.json
                         self.on_ui_thread(success,args=[pc_name,ip_address])
                         print("Broadcast Worked found Port 🥳🥳🥳")
-                    else:
-                        try_old_ports()
+                else:
+                    try_old_ports()
             except Exception as e:
                 print("Finding Server - Auto Connect Error: ", get_full_class_name(e))
                 try_old_ports()
