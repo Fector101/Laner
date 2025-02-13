@@ -61,20 +61,20 @@ class SettingsScreen(QWidget):
         form_layout.setContentsMargins(20, 10, 20, 10)
 
         # Create and style port title label
-        port_title = QLabel("Port:")
-        port_title.setFont(QFont("Arial", 18))
-        port_title.setStyleSheet("color: gray;")
-        port_title.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        ip_title = QLabel("Server ip:")
+        ip_title.setFont(QFont("Arial", 18))
+        ip_title.setStyleSheet("color: gray;")
+        ip_title.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
 
         # Create and style port value label
         # self.port_label = QSpinBox()
         # self.port_label.setRange(0,30000)
         # self.port_label.setValue(8000)
-        self.port_label = QLabel(self.parent.port if self.parent.port else "Server not running")
+        self.ip_label = QLabel(self.parent.port if self.parent.port else "Server not running")
 
-        self.port_label.setFont(QFont("Arial", 18))
-        self.port_label.setStyleSheet("color: gray;")
-        self.port_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        self.ip_label.setFont(QFont("Arial", 18))
+        self.ip_label.setStyleSheet("color: gray;")
+        self.ip_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
         
         # Create and style User name
         
@@ -90,7 +90,7 @@ class SettingsScreen(QWidget):
 
         # Add both to form layout
         form_layout.addRow(user_title,self.username_label)
-        form_layout.addRow(port_title, self.port_label)
+        form_layout.addRow(ip_title, self.ip_label)
 
         layout.addLayout(form_layout)
 
@@ -239,25 +239,23 @@ class FileShareApp(QMainWindow):
             self.main_screen.hint_message.setFont(QFont("Arial", 20))
 
             return
-        else:
             # self.main_screen.hint_message.setText("Hidden Code" if self.hidden_ip else self.ip)
-            self.main_screen.hint_message.setStyleSheet("color: gray;")
-
         # Start the server in a separate thread
-        
         self.run_server(self.success)
+        
     def success(self,server):
         self.running = True
         self.server=server
         self.port=server.port
         
+        self.main_screen.hint_message.setStyleSheet("color: gray;")
         self.main_screen.hint_message.setText("Hidden Code" if self.hidden_ip else str(self.port)) # displaying port instead of id
         self.main_screen.hint_message.setFont(QFont("Arial", 34))
         self.main_screen.hide_ip_button.setVisible(True)
         self.main_screen.start_button.setText("End Server")
         self.main_screen.status_label.setText("Server Running. Don't share the code.\nWrite the exact code in the Link Tab on Your Phone.")
         
-        self.settings_screen.port_label.setText(str(self.port))
+        self.settings_screen.ip_label.setText(str(self.ip))
         
         self.start_stop_action.setText("Disconnect")
         self.tray.setIcon(QIcon(self.tray_live_icon))
@@ -268,13 +266,18 @@ class FileShareApp(QMainWindow):
         self.worker.start()
 
     def on_stop(self):
-        self.main_screen.hint_message.setText("Goodbye!")
-        self.tray.setIcon(QIcon(self.icon))
-        self.start_stop_action.setText("Quick Connect")
         self.running = False
+        
+        self.main_screen.hint_message.setText("Goodbye!")
+        self.main_screen.hide_ip_button.setVisible(False)
         self.main_screen.start_button.setText("Start Server")
         self.main_screen.status_label.setText("Server Ended!")
-        self.main_screen.hide_ip_button.setVisible(False)
+        
+        self.settings_screen.ip_label.setText(str(self.ip))
+        
+        self.start_stop_action.setText("Quick Connect")
+        self.tray.setIcon(QIcon(self.icon))
+        
         self.server.stop()
 
     def hide_ip(self):
