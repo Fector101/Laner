@@ -22,6 +22,22 @@ VIDEO_FORMATS = ('.mkv', '.mp4', '.avi', '.mov')
 AUDIO_FORMATS = ('.mp3', '.wav', '.aac', '.ogg', '.m4a', '.flac', '.wma', '.aiff', '.opus')
 PICTURE_FORMATS = ('.png', '.jpg', '.jpeg', '.tif', '.bmp', '.gif')
 SPECIAL_FOLDERS = ['home', 'pictures', 'templates', 'videos', 'documents', 'music', 'favorites', 'share', 'downloads']
+SUBTITLE_EXTENSIONS = (
+    # Plain Text Subtitle Formats
+    ".srt", ".sub", ".sbv", ".smi", ".rt", ".ttml", ".xml", ".vtt", ".lrc", ".stl",
+
+    # Image-Based Subtitle Formats
+    ".sub", ".idx", ".sup", ".pgs",
+
+    # Proprietary / Professional Formats
+    ".stl", ".cap", ".890", ".pac", ".dci", ".xml", ".fab",
+
+    # Subtitles for Closed Captions
+    ".scc", ".mcc", ".dfxp", ".imsc",
+
+    # Other Subtitle Formats
+    ".jss", ".ssa", ".ass", ".usf", ".aqt", ".pjs", ".bas"
+)
 
 SERVER_IP = None
 
@@ -212,6 +228,8 @@ class CustomHandler(SimpleHTTPRequestHandler):
             formatted_path_4_url=urlSafePath(removeFirstDot(thumbnail_path))
             print(f"http://{SERVER_IP}:8000/{formatted_path_4_url}")
             return "assets/icons/video.png", f"http://{SERVER_IP}:8000/{formatted_path_4_url}"
+        elif format_ in SUBTITLE_EXTENSIONS:
+            return "assets/icons/subtitle.png", ''
         elif format_ in AUDIO_FORMATS:
             return "assets/icons/audio.png", ''
         elif format_ in PICTURE_FORMATS:
