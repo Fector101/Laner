@@ -1,19 +1,27 @@
+import sys
+import os
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn
-import os
-import sys
 import json
 import threading
 import traceback
 from os.path import join as _joinPath
 
 # Worker imports
-from workers.helper import (
+try:
+    from workers.helper import (
+        gen_unique_filname, getAppFolder, getFileExtension, getHomePath, getdesktopFolder,
+        makeFolder, removeFirstDot, sortedDir, urlSafePath, getUserPCName
+    )
+    from workers.thumbmailGen import generateThumbnails
+    from workers.sword import NetworkManager
+except ImportError:
+    from helper import (
     gen_unique_filname, getAppFolder, getFileExtension, getHomePath, getdesktopFolder,
-    makeFolder, removeFirstDot, sortedDir, urlSafePath, getUserPCName
-)
-from workers.thumbmailGen import generateThumbnails
-from workers.sword import NetworkManager
+        makeFolder, removeFirstDot, sortedDir, urlSafePath, getUserPCName
+    )
+    from thumbmailGen import generateThumbnails
+    from sword import NetworkManager
 
 # File Type Definitions
 MY_OWNED_ICONS = ['.py', '.js', '.css', '.html', '.json', '.deb', '.md', '.sql', '.java']
@@ -74,38 +82,48 @@ class CustomHandler(SimpleHTTPRequestHandler):
         print("Doing Post")
         if self.path == "/api/upload":
             try:
-                # Get content length and read raw data
                 content_length = int(self.headers.get('Content-Length', 0))
-                data = self.rfile.read(content_length)
+
                 # Extract boundary from Content-Type
                 content_type = self.headers.get('Content-Type')
                 if not content_type or 'boundary=' not in content_type:
                     raise ValueError("Content-Type header is missing or invalid.")
+                    # self._send_json_response({'error': "No file content found in the uploaded data."}, status=400)
+                
                 
                 boundary = content_type.split('=')[1].encode()
-                parts = data.split(b'--' + boundary)
-                
                 folder_path = getdesktopFolder()
                 found_folder=False
                 save_path = None
                 
-                for part in parts:
+                buffer_size = 4096  # 4 KB chunks
+                data = b""
+                
+                while len(data) < content_length:
                     # print("This is a part: ",part)
-                    if b'name="save_path"' in part and not found_folder:
+                    chunk = self.rfile.read(min(buffer_size, content_length - len(data)))
+                    if not chunk:
+                        break
+                    data += chunk
+                    
+                    if not found_folder and b'name="save_path"' in data:
                         found_folder=True
                         folder_path = (
-                            part.split(b'\r\n')[3]  # More precise splitting
+                            data.split(b'\r\n')[3]  # More precise splitting
                             .decode()
                             .strip()
                         )
                         print("Folder to save upload ----- ", folder_path)
                         os.makedirs(folder_path, exist_ok=True)
                     
-                    if b'filename=' in part:
+                    if not save_path and b'filename=' in data:
                         # Extract filename
-                        headers, file_content = part.split(b'\r\n\r\n', 1)
+                        print(data,' the data')
+                        print('-----------------')
+                        headers, file_content = data.split(b'\r\n\r\n', 1)
+                        print(headers,'+++++++++++++++++++',file_content.split(b'filename="')[1].split(b'"')[1], '--------------------',file_content)
                         filename = (
-                            headers.split(b'filename="')[1]
+                            file_content.split(b'filename="')[1]
                             .split(b'"')[0]
                             .decode()
                         )
@@ -115,7 +133,9 @@ class CustomHandler(SimpleHTTPRequestHandler):
                         
                         # Remove any trailing boundary markers
                         file_content = file_content.rstrip(b'\r\n--')
-                        
+                        print(file_content)
+                        print('|||||||||||||||||||||||||||||')
+                        print(chunk)
                         # Write file safely
                         with open(save_path, 'wb') as f:
                             f.write(file_content)
@@ -248,7 +268,8 @@ class FileSharingServer:
 
     def start(self):
         global SERVER_IP
-        SERVER_IP = self.ip
+        SERVER_IP = self.ip or SERVER_IP
+        print(SERVER_IP)
         os.chdir(self.directory)
 
         # self.server = ThreadingHTTPServer((self.ip, self.port), CustomHandler)
@@ -282,25 +303,25 @@ class FileSharingServer:
         self._server.server_close()
         print("Server stopped.")
 
-# if __name__ == "__main__":
-#     # Specify the port and directory
-#     port = 8000
-#     directory = "/"
+if __name__ == "__main__":
+    # Specify the port and directory
+    port = 8000
+    directory = "/"
 
-#     # Initialize the server
-#     server = FileSharingServer(port, directory)
+    # Initialize the server
+    server = FileSharingServer(port=port,directory=directory,ip=NetworkManager().get_server_ip())
 
-#     try:
-#         # Start the server
-#         server.start()
+    try:
+        # Start the server
+        server.start()
 
-#         # Keep the program running until interrupted
-#         print("Press Ctrl+C to stop the server.")
-#         while True:
-#             pass
-#     except KeyboardInterrupt:
-#         # Stop the server on Ctrl+C
-#         print("\nStopping the server...")
-#         server.stop()
+        # Keep the program running until interrupted
+        print("Press Ctrl+C to stop the server.")
+        while True:
+            pass
+    except KeyboardInterrupt:
+        # Stop the server on Ctrl+C
+        print("\nStopping the server...")
+        server.stop()
 # filename="helper.py"\r\n\r\n
 # filename="server.py"\r\n\r\n
