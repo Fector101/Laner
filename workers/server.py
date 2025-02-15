@@ -6,6 +6,7 @@ import json
 import threading
 import traceback
 from os.path import join as _joinPath
+import tempfile
 
 # Worker imports
 try:
@@ -77,80 +78,160 @@ class CustomHandler(SimpleHTTPRequestHandler):
     video_paths = []
     request_count = 0
     
-    def do_POST(self):
-        """Handle POST requests for file uploads."""
-        print("Doing Post")
-        if self.path == "/api/upload":
-            try:
-                content_length = int(self.headers.get('Content-Length', 0))
 
-                # Extract boundary from Content-Type
-                content_type = self.headers.get('Content-Type')
-                if not content_type or 'boundary=' not in content_type:
-                    raise ValueError("Content-Type header is missing or invalid.")
-                    # self._send_json_response({'error': "No file content found in the uploaded data."}, status=400)
+    def do_POST(self):
+        content_length = int(self.headers.get('Content-Length', 0))  # Get total size of the file
+        content_type = self.headers.get('Content-Type', '')
+        print('Origninal content lenght ',content_length)
+        if not content_type.startswith('multipart/form-data'):
+            self.send_response(400)
+            self.end_headers()
+            self.wfile.write(b"Invalid content type")
+            return
+
+        print("What's content_type ",content_type)
+        boundary = content_type.split("boundary=")[-1].strip()
+        print("What's boundary ",boundary)
+        if not boundary:
+            self.send_response(400)
+            self.end_headers()
+            self.wfile.write(b"Missing boundary")
+            return
+
+        filename = None
+        temp_file = tempfile.NamedTemporaryFile(delete=False)  # Create a temporary file to store the upload
+        temp_filename = temp_file.name
+        print('trying....',temp_filename)
+        
+        try:
+            self.rfile.read(2)  # Skip the initial `--` before boundary
+            while True:
+                line = self.rfile.readline().strip()
+                print('begginng ',line,'encoded boundary ',b'--' +boundary.encode())
+                if not line or line.startswith(b"--" + boundary.encode()):  # End of part
+                    print('bad break')
+                    break
+
                 
-                
-                boundary = content_type.split('=')[1].encode()
-                folder_path = getdesktopFolder()
-                found_folder=False
-                save_path = None
-                
-                buffer_size = 4096  # 4 KB chunks
-                data = b""
-                
-                while len(data) < content_length:
-                    # print("This is a part: ",part)
-                    chunk = self.rfile.read(min(buffer_size, content_length - len(data)))
+                # Skip headers
+                while True:
+                    line = self.rfile.readline()
+                    print('line1 ',line)
+                    # print('dd',line.strip(b'\r\n'),line.strip(b'\r\n') == '--'+ boundary+  "--")
+                    
+                # print('while me')
+                # print('content_length ',content_length)
+
+                    if line.lower().startswith(b"content-disposition:"):
+                        parts = line.decode().split(";")
+                        print('parts ',parts)
+                        for part in parts:
+                            if "filename=" in part:
+                                filename = part.split("=")[1].strip().strip('"')
+                                print('filename ',filename)
+                    if line.strip(b'\r\n') == b'':  # End of headers
+                        print('while what')
+                        break
+                    
+                print('Big problem0')
+                # Stream file data
+                bytes_read = 0
+                while bytes_read < content_length:
+                    print('bytes_read',bytes_read)
+                    print('content_length ',content_length,'value ',min(8192, content_length - bytes_read))
+                    print('self.rfile ',self.rfile.read(186))
+                    
+                    chunk = self.rfile.read(content_length)
+                    print('chunk ',chunk)
                     if not chunk:
                         break
-                    data += chunk
-                    
-                    if not found_folder and b'name="save_path"' in data:
-                        found_folder=True
-                        folder_path = (
-                            data.split(b'\r\n')[3]  # More precise splitting
-                            .decode()
-                            .strip()
-                        )
-                        print("Folder to save upload ----- ", folder_path)
-                        os.makedirs(folder_path, exist_ok=True)
-                    
-                    if not save_path and b'filename=' in data:
-                        # Extract filename
-                        print(data,' the data')
-                        print('-----------------')
-                        headers, file_content = data.split(b'\r\n\r\n', 1)
-                        print(headers,'+++++++++++++++++++',file_content.split(b'filename="')[1].split(b'"')[1], '--------------------',file_content)
-                        filename = (
-                            file_content.split(b'filename="')[1]
-                            .split(b'"')[0]
-                            .decode()
-                        )
-                        print("Uploaded File name: ----- ", filename)
-                        
-                        save_path = os.path.join(folder_path, filename)
-                        
-                        # Remove any trailing boundary markers
-                        file_content = file_content.rstrip(b'\r\n--')
-                        print(file_content)
-                        print('|||||||||||||||||||||||||||||')
-                        print(chunk)
-                        # Write file safely
-                        with open(save_path, 'wb') as f:
-                            f.write(file_content)
+                    temp_file.write(chunk)
+                    bytes_read += len(chunk)
+                print('Big problem1')
+
+            temp_file.close()
+
+            # Rename temp file to the original filename (if found)
+            if filename:
+                final_path = os.path.join(os.getcwd(), filename)
+                os.rename(temp_filename, final_path)
+                self.send_response(200)
+                self.end_headers()
+                self.wfile.write(f"File '{filename}' uploaded successfully!".encode())
+            else:
+                os.unlink(temp_filename)  # Delete temp file if filename is missing
+                self.send_response(400)
+                self.end_headers()
+                self.wfile.write(b"Filename not found")
+
+        except Exception as e:
+            traceback.print_exc()
+            os.unlink(temp_filename)  # Clean up
+            self.send_response(500)
+            self.end_headers()
+            self.wfile.write(f"Error: {str(e)}".encode())
+
+    # def do_POST(self):
+    #     if self.path == "/api/upload":
+    #         try:
+    #             # Get content length and read raw data
+    #             content_length = int(self.headers.get('Content-Length', 0))
+    #             print('content_length ',content_length)
+    #             data = self.rfile.read(content_length)
+    #             # Extract boundary from Content-Type
+    #             content_type = self.headers.get('Content-Type')
+    #             if not content_type or 'boundary=' not in content_type:
+    #                 raise ValueError("Content-Type header is missing or invalid.")
                 
-                if save_path:
-                    print("File Upload Successful:", save_path)
-                    self._send_json_response({'message': 'File uploaded successfully'})
-                else:
-                    self._send_json_response({'error': "No file content found in the uploaded data."}, status=400)
-                    # raise ValueError("No file content found in the uploaded data.")
+    #             boundary = content_type.split('=')[1].encode()
+    #             parts = data.split(b'--' + boundary)
+                
+    #             folder_path = getdesktopFolder()
+    #             found_folder=False
+    #             save_path = None
+                
+    #             for part in parts:
+    #                 # print("This is a part: ",part)
+    #                 if b'name="save_path"' in part and not found_folder:
+    #                     found_folder=True
+    #                     folder_path = (
+    #                         part.split(b'\r\n')[3]  # More precise splitting
+    #                         .decode()
+    #                         .strip()
+    #                     )
+    #                     print("Folder to save upload ----- ", folder_path)
+    #                     os.makedirs(folder_path, exist_ok=True)
+                    
+    #                 if b'filename=' in part:
+    #                     # Extract filename
+    #                     headers, file_content = part.split(b'\r\n\r\n', 1)
+    #                     filename = (
+    #                         headers.split(b'filename="')[1]
+    #                         .split(b'"')[0]
+    #                         .decode()
+    #                     )
+    #                     print("Uploaded File name: ----- ", filename)
+                        
+    #                     save_path = os.path.join(folder_path, filename)
+                        
+    #                     # Remove any trailing boundary markers
+    #                     file_content = file_content.rstrip(b'\r\n--')
+                        
+    #                     # Write file safely
+    #                     with open(save_path, 'wb') as f:
+    #                         f.write(file_content)
+                
+    #             if save_path:
+    #                 print("File Upload Successful:", save_path)
+    #                 self._send_json_response({'message': 'File uploaded successfully'})
+    #             else:
+    #                 self._send_json_response({'error': "No file content found in the uploaded data."}, status=400)
+    #                 # raise ValueError("No file content found in the uploaded data.")
             
-            except Exception as e:
-                print("File Upload Error:", e)
-                writeErrorLog('File Upload Error', traceback.format_exc())
-                self._send_json_response({'error': str(e)}, status=400)
+    #         except Exception as e:
+    #             print("File Upload Error:", e)
+    #             writeErrorLog('File Upload Error', traceback.format_exc())
+    #             self._send_json_response({'error': str(e)}, status=400)
 
     def do_GET(self):
         """Handle GET requests for various API endpoints."""
