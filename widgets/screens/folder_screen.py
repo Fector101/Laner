@@ -95,6 +95,7 @@ class MyCard(RecycleDataViewBehavior,RectangularRippleBehavior,ButtonBehavior,MD
             if not parent and self.thumbnail_update_interval:
                 print('canceling ',self.thumbnail_update_interval,'parent ',parent)
                 self.thumbnail_update_interval.cancel()
+                self.thumbnail_update_interval=None
         except Exception as e:
             print('interval cancel error ',e)
         
@@ -224,23 +225,6 @@ class DisplayFolderScreen(MDScreen):
         """Return the server port number from settings"""
         return self.app.settings.get("server", "port")
 
-    def upload_file(self, file_path: str, file_data=None) -> None:
-        """
-        Upload a file to the server.
-        :param file_path: Local file path.
-        :param file_data: Optional file-like object.
-        """
-        
-        def success():
-            Snackbar(h1="File Uploaded Successfully")
-            Notification(title='Completed upload',message=os.path.basename(file_path),channel_name="Upload Completed").send()
-            # Refresh the folder.
-            self.set_path_info()
-            
-        def fail():
-            Snackbar(h1="Failed to Upload File check Laner on PC")
-        
-        AsyncRequest().upload_file(file_path,self.current_dir,success)
     def choose_file(self):
         """Open a file chooser dialog to select a file for upload."""
         print("Choosing file...")
@@ -370,29 +354,28 @@ class DisplayFolderScreen(MDScreen):
         
     def download_file(self,file_path: str, save_path: str) -> None:
         """
-        Download a file from the given URL and save it locally.
+        Download a file from the given file_path and save it locally.
         Displays a notification when done.
         """
-        def success():
-            file_name = os.path.basename(save_path)
-            try:
-                # If the file is an image, copy it to the app's assets and send a notification.
-                
-                if getFormat(file_name) in IMAGE_FORMATS:
-                    shutil.copy(save_path, os.path.join(getAppFolder(), 'assets', 'imgs', file_name))
-                    Notification(
-                        title="Completed download",message=file_name,
-                        style=NotificationStyles.LARGE_ICON,large_icon_path=save_path,
-                        channel_name="Download Completed"
-                    ).send()
-                else:
-                    Notification(title="Completed download",message=file_name,channel_name="Download Completed").send()
-            except Exception as e:
-                print(e,"Failed sending Notification")
-
-            Snackbar(confirm_txt='Open',h1=f'Successfully Saved { file_name }')
+        def success(file_name):
+            Snackbar(confirm_txt='Open',h1='Download Successfull')
         def failed():
             Snackbar(confirm_txt='Open',h1="Download Failed try Checking Laner on PC")
             
         instance=AsyncRequest()
         instance.download_file(file_path,save_path,success,failed)
+    def upload_file(self, file_path: str, file_data=None) -> None:
+        """
+        Upload a file to the server.
+        :param file_path: Local file path.
+        :param file_data: Optional file-like object.
+        """
+        
+        def success():
+            Snackbar(h1="File Uploaded Successfully")
+            # Refresh the folder.
+            self.set_path_info()
+        def fail():
+            Snackbar(h1="Failed to Upload File check Laner on PC")
+        
+        AsyncRequest().upload_file(file_path,self.current_dir,success,fail)
