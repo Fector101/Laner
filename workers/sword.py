@@ -152,7 +152,7 @@ class NetworkManager:
 
         while self.keep_broadcasting:
             sock.sendto(message.encode(), ('<broadcast>', port))
-            time.sleep(1)  # Broadcast every second
+            time.sleep(.5)  # Broadcast every second
         print('Ended BroadCast !!!')
 
 # Create singleton instance

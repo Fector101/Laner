@@ -2,7 +2,10 @@ import cv2,os,shutil
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
-from workers.helper import gen_unique_filname, getAppFolder
+try:
+    from workers.helper import gen_unique_filname, getAppFolder
+except ImportError:
+    from helper import gen_unique_filname, getAppFolder
 
 
 def add_black_and_white_boxes(image):
