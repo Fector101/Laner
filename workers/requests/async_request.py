@@ -75,7 +75,7 @@ class AsyncRequest:
         file_url = f"http://{self.get_server_ip()}:{self.get_port_number()}/{urlSafePath(path)}"
         def __make_request():
             try:
-                response = requests.get(url,json={'path':path},timeout=3)
+                response = requests.get(url,json={'path':path},timeout=2)
                 if response.status_code == 200 and response.json()['data']:
                     self.on_ui_thread(success,args=[file_url])
                 elif failed:
@@ -228,6 +228,8 @@ class AsyncRequest:
         threading.Thread(target=__upload).start()
         
     def auto_connect(self,success,failed=None):
+        timeout=0.5
+        
         def try_old_ports():
             print("Trying old ports and ip's...")
             pervious_connections=Settings().get_recent_connections()
@@ -235,7 +237,7 @@ class AsyncRequest:
             for ip_address in pervious_connections:
                 try:
                     print('trying... ',ip_address,port)
-                    response=requests.get(f"http://{ip_address}:{port}/ping",json={'passcode':'08112321825'},timeout=.4)
+                    response=requests.get(f"http://{ip_address}:{port}/ping",json={'passcode':'08112321825'},timeout=timeout)
                     if response.status_code == 200:
                         pc_name = response.json()['data']
                         Settings().set('server', 'ip', ip_address)
@@ -249,7 +251,6 @@ class AsyncRequest:
         def __auto_connect():
             print('theading...')
             port = 8000
-            timeout=0.5
             ip_address = NetworkManager().find_server(port,timeout=timeout)
             print(f"Connecting to server at {ip_address}")
             try:
