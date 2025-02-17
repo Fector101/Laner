@@ -1,4 +1,9 @@
-import threading,requests,os,shutil
+import os
+import shutil
+import requests
+import threading
+import traceback
+
 from kivy.clock import Clock
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 from android_notify import Notification, NotificationStyles
@@ -7,11 +12,18 @@ from workers.helper import getAppFolder,get_full_class_name,urlSafePath,getForma
 from workers.sword import Settings,NetworkManager
 from widgets.popup import Snackbar
 from workers.utils.constants import IMAGE_FORMATS
-#  getHiddenFilesDisplay_State, makeDownloadFolder, 
-import traceback
 
+class ProgressData:
+    # Monitor LookAlike
+    def __init__(self,bytes_read,len_):
+        self.bytes_read=bytes_read
+        self.len=len_
 class AsyncRequest:
-    download_notification:Notification= None
+    
+    def __init__(self):
+        self.download_notification= None
+        self.upload_notification= None
+        self.percent=0 # Don't share Instances
     # requests.get(server,data='to be sent',auth=(username,password))
     def get_server_ip(self) -> str:
         """Return the server IP from settings."""
@@ -101,56 +113,55 @@ class AsyncRequest:
                 self.download_notification.addNotificationStyle(NotificationStyles.LARGE_ICON,already_sent=True)
         except Exception as e:
             print(e,"Failed sending Notification")
+    def send_initial_download_notification(self,file_name):
+        self.download_notification = Notification(
+                title="Downloaded (0%)",
+                message=file_name,
+                style=NotificationStyles.PROGRESS,
+                progress_max_value=100,progress_current_value=0,
+                channel_name='Downloads'
+                    # TODO use notification groups
+                )
+        self.download_notification.send()
+    def update_progress(self,monitor,notification:Notification,type_):
+        new_percent = int((monitor.bytes_read / monitor.len) * 100)
+        if new_percent == 100:
+            print('removing progress bar')
+            notification.updateTitle(f'Completed {type}')
+            notification.removeProgressBar()
+        elif new_percent != self.percent:
+            # print(f"{type_}ing ({new_percent}%)")
+            self.percent=new_percent
+            notification.updateTitle(f"{type_}ing ({self.percent}%)")
+            notification.updateProgressBar(self.percent)
         
     def download_file(self, file_path,save_path,success,failed=None):
+        file_name = os.path.basename(save_path)
         def _download():
             try:
                 url = f"http://{self.get_server_ip()}:{self.get_port_number()}/{file_path}"
-                file_name = os.path.basename(save_path)
-                print("This is file name: ", file_name)
-                percent = 0
-                def update_progress(bytes_read, total):
-                    nonlocal percent
-                    new_percent = int((bytes_read / total) * 100)
-                    if new_percent == 100:
-                        self.download_notification.updateTitle('Completed Download')
-                        self.download_notification.removeProgressBar()
-                    elif new_percent != percent:
-                        percent=new_percent
-                        self.download_notification.updateTitle(f"Downloading ({percent}%)")
-                        self.download_notification.updateProgressBar(percent)
-                    print(f"Downloading ({new_percent}%)")
-                    
-                self.download_notification = Notification(
-                    title="Downloaded (0%)",
-                    message=file_name,
-                    style=NotificationStyles.PROGRESS,
-                    progress_max_value=100,progress_current_value=0,
-                    channel_name='Downloads'
-                        # TODO use notification groups
-                    )
-                self.download_notification.send()
                 response = requests.get(url, stream=True,timeout=(2,None))
-                print('got file !!!')
+                print('got file -- Doing progress bar')
                 if response.status_code == 200:
                     # Get the total file size from the response headers (if available)
                     total_size = int(response.headers.get('Content-Length', 0))
                     downloaded = 0
                     chunk_size = 8192  # Adjust chunk size as needed
-                    
+                    self.send_initial_download_notification(file_name)
                     with open(save_path, 'wb') as f:
                         for chunk in response.iter_content(chunk_size=chunk_size):
                             if chunk:  # Filter out keep-alive chunks
                                 f.write(chunk)
                                 downloaded += len(chunk)
-                                update_progress(downloaded,total_size)
+                                progress_data = ProgressData(bytes_read=downloaded,len_=total_size)
+                                self.update_progress(progress_data,self.download_notification,type_='Download')
                             else:
                                 # If no content length header, just print downloaded bytes.
                                 print(f"Downloaded: {downloaded} bytes")
                                 
                     
-                    self.on_ui_thread(success,[file_name])
                     self.successfull_download_notification(save_path)
+                    self.on_ui_thread(success,[file_name])
                 else:
                     self.on_ui_thread(failed)
                     
@@ -162,32 +173,20 @@ class AsyncRequest:
                 self.on_ui_thread(failed)
         threading.Thread(target=_download).start()
     
-    def upload_file(self, file_path, save_path,success,failed=None,file_data=None):
-        notify = None
-        file_basename = os.path.basename(file_path)
         
-        percent=0
+    def upload_file(self, file_path, save_path,success,failed=None,file_data=None):
+        file_basename = os.path.basename(file_path)        
         def update_progress(monitor):
-            nonlocal percent
-            new_percent = int((monitor.bytes_read / monitor.len) * 100)
-            if new_percent == 100:
-                notify.updateTitle(new_title='Completed upload')
-                notify.removeProgressBar()
-            elif new_percent != percent:
-                percent=new_percent
-                notify.updateTitle(f"Uploading ({percent}%)")
-                notify.updateProgressBar(percent)
-            print(f"Uploading ({percent}%)")
-                
+            self.update_progress(monitor,notification=self.upload_notification,type_='Upload')                
             
-        notify = Notification(
+        self.upload_notification = Notification(
             title="Uploading (0%)",
             message=file_basename,
             style=NotificationStyles.PROGRESS,
             progress_max_value=100,progress_current_value=0,
             channel_name="Uploads"
             )
-        notify.send()
+        self.upload_notification.send()
         
         
         def __upload():
@@ -219,8 +218,8 @@ class AsyncRequest:
                     self.on_ui_thread(failed)
 
             except Exception as e:
-                notify.updateTitle('Upload Error!')
-                notify.removeProgressBar()
+                self.upload_notification.updateTitle('Upload Error!')
+                self.upload_notification.removeProgressBar()
                 self.on_ui_thread(failed)
                 print("Failed Upload ",e)
                 traceback.print_exc()
@@ -270,8 +269,3 @@ class AsyncRequest:
                 try_old_ports()
                     
         threading.Thread(target=__auto_connect).start()
-
-# instance = AsyncRequest()
-# instance.is_folder('path',function)
-# instance.download_file('save_path')
-# instance.upload_file('file_path',file_data='ewewe')
