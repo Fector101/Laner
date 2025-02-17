@@ -127,7 +127,7 @@ class AsyncRequest:
         new_percent = int((monitor.bytes_read / monitor.len) * 100)
         if new_percent == 100:
             print('removing progress bar')
-            notification.updateTitle(f'Completed {type}')
+            notification.updateTitle(f'Completed {type_}')
             notification.removeProgressBar()
         elif new_percent != self.percent:
             # print(f"{type_}ing ({new_percent}%)")
