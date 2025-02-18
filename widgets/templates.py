@@ -21,10 +21,13 @@ class TypeMapElement(MDBoxLayout):
     icon = StringProperty()
     title = StringProperty()
     func = ObjectProperty()
-
+    def on_touch_up(self,touch):
+        self.parent.parent.hide() # Closes MDBOttomSheet
+        return super().on_touch_up(touch)
+        
 class MyBtmSheet(MDBottomSheet):
     sheet_type="standard"
-    items={}
+    items=[]
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # super(MyBtmSheet,self).__init__(**kwargs)
@@ -47,7 +50,7 @@ class MyBtmSheet(MDBottomSheet):
             MDBottomSheetDragHandleButton(
                                icon= "close",
                                ripple_effect= False,
-                               on_release= lambda x: self.set_state("toggle")
+                               on_release= lambda x: self.set_state("close")
                                )
         )
 
@@ -61,32 +64,25 @@ class MyBtmSheet(MDBottomSheet):
         self.bind(on_open=lambda x : asynckivy.start(self.generate_content()))
         
     async def generate_content(self):
+        self.content.clear_widgets()
         
-        icons = self.items
-            
         # {
         #     "Preview": "eye",
         #     "Download": "download",
         #     "Open with": "apps",
         #     "Share": "share",
         # }
-        map_sources = {
-        "street": "https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}",
-        "sputnik": "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-        "hybrid": "https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
-        }
         # await asynckivy.sleep(0)
         # print("test----|",self,'|||',self.content)
         print(self.children)
         if self.children:
-            for i, title in enumerate(icons.keys()):
+            for each_item in self.items:
                 await asynckivy.sleep(0)
                 self.content.add_widget(
                     TypeMapElement(
-                        title=title.capitalize(),
-                        icon=icons[title],
-                        selected=not i,
-                        func=lambda x :print(x)
+                        title=each_item['title'].capitalize(),
+                        icon=each_item['icon'],
+                        func=each_item['function']
                     )
                 )
     def on_touch_move(self, touch):
@@ -109,12 +105,14 @@ class MyBtmSheet(MDBottomSheet):
     def on_close(self, *args):
         self.enable_swiping=0
         return super().on_close(*args)
-    def show(self,file_name,items:dict):
-        self.items=items
+    def show(self,file_name,items_object:dict):
+        self.items=items_object
         self.sheet_title.text=file_name
         self.enable_swiping=True
         self.set_state("toggle")
-
+    def hide(self):
+        self.set_state('close')
+        
 class MDTextButton(MDButton):
     text = StringProperty('Fizz')
     # text_widget = ObjectProperty() # for on_text if statement to work
