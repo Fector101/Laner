@@ -8,7 +8,7 @@ from kivymd.uix.bottomsheet.bottomsheet import MDBottomSheet,MDBottomSheetDragHa
 from kivymd.uix.button import MDButton, MDButtonText,MDButtonIcon,MDIconButton
 from kivymd.uix.boxlayout import MDBoxLayout
 
-from widgets.popup import PopupDialog,Snackbar
+from widgets.popup import Snackbar
 from workers.helper import getAppFolder
 
 with open(os.path.join(getAppFolder(),"widgets","templates.kv"), encoding="utf-8") as kv_file:
@@ -32,15 +32,14 @@ class MyBtmSheet(MDBottomSheet):
         super().__init__(**kwargs)
         # super(MyBtmSheet,self).__init__(**kwargs)
         self.size_hint_y=None
-        self.height=sp(300)
+        self.height=sp(350)
         self.drag_sheet= MDBottomSheetDragHandle(
-                            
-                            
-                            # drag_handle_color= "grey"
-                            )
+                                                    # drag_handle_color= "grey" 
+                                                 )
         self.sheet_title = MDBottomSheetDragHandleTitle(
                 text= "Passed_in_Selected_File/Folder_Name",
                 pos_hint= {"center_y": .5},
+                adaptive_height=True,
                 shorten_from='right',
                 shorten=True,
                 
@@ -98,7 +97,7 @@ class MyBtmSheet(MDBottomSheet):
                 0,
             )
             return True
-        return super().on_touch_move(touch)
+        # return super().on_touch_move(touch)
     def on_close(self, *args):
         self.enable_swiping=0
         return super().on_close(*args)
