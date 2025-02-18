@@ -344,9 +344,8 @@ class DisplayFolderScreen(MDScreen):
             PopupDialog(
                     failedCallBack=failed_callback,
                     successCallBack=success_callBack,
-                    h1="Laner",
-                    # h1="Verify Download",
-                    caption=f'Do you want to Download "{file_name}", It Will be saved in "{txt}"',
+                    caption=f'Do you want to Download "{file_name}"',
+                    sub_caption=f'It Will be saved in "{txt}"',
                     cancel_txt="Cancel",confirm_txt="Ok",
             )
         AsyncRequest().is_file(path,success=success)

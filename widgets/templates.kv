@@ -6,7 +6,7 @@
     orientation: "horizontal"
     adaptive_height: True
     spacing: 0
-
+    # md_bg_color:[1,0,0,.3]
     MDListItem:
         theme_bg_color:"Custom"
         md_bg_color: container.md_bg_color
@@ -18,32 +18,6 @@
             theme_bg_color: "Custom"
         MDListItemHeadlineText:
             text: root.title
-
-        # pos_hint: {"center_x": .5}
-        # theme_icon_color: "Custom"
-        # icon_color: "white" if root.selected else "black"
-
-    # MDLabel:
-    #     text: root.title
-    #     pos_hint: {"center_x": .5}
-    #     halign: "center"
-    #     adaptive_height: True
-
-    # MDIconButton:
-    #     id: icon
-    #     icon: root.icon
-    #     theme_bg_color: "Custom"
-    #     md_bg_color: "#EDF1F9" if not root.selected else app.theme_cls.primaryColor
-    #     pos_hint: {"center_x": .5}
-    #     theme_icon_color: "Custom"
-    #     icon_color: "white" if root.selected else "black"
-    #     on_release: root.set_active_element(root, root.title.lower())
-
-    # MDLabel:
-    #     text: root.title
-    #     pos_hint: {"center_x": .5}
-    #     halign: "center"
-    #     adaptive_height: True
 
 
 <CustomDropDown>:

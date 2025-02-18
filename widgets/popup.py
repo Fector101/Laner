@@ -1,14 +1,14 @@
 from kivy.uix.widget import Widget
 from kivymd.uix.button import MDButton, MDButtonText
 from kivymd.uix.snackbar import MDSnackbar,MDSnackbarSupportingText,MDSnackbarButtonContainer,MDSnackbarActionButton,MDSnackbarActionButtonText,MDSnackbarCloseButton
-from kivymd.uix.dialog import MDDialog, MDDialogHeadlineText, MDDialogButtonContainer, MDDialogSupportingText
-from kivy.properties import ( StringProperty, ObjectProperty)
+from kivymd.uix.dialog import MDDialog, MDDialogHeadlineText, MDDialogButtonContainer, MDDialogSupportingText,MDDialogContentContainer
+from kivy.properties import StringProperty, ObjectProperty
 from kivymd.uix.widget import MDWidget
-from kivy.metrics import dp,sp
+from kivy.metrics import sp
 
 class PopupDialog(MDWidget):
-    h1=StringProperty()
     caption=StringProperty()
+    sub_caption=StringProperty()
     cancel_txt=StringProperty()
     confirm_txt=StringProperty()
     failedCallBack=ObjectProperty()
@@ -18,14 +18,23 @@ class PopupDialog(MDWidget):
         self.md_bg_color=self.theme_cls.backgroundColor
         self.dialog = MDDialog(
             MDDialogHeadlineText(
-                text=self.h1,
+                text="Laner",
                 markup=True,
                 halign="left",
             ),
+            
+            MDDialogContentContainer(
             MDDialogSupportingText(
                 text=self.caption,
-                halign="left",
+                # halign="left",
             ),
+            MDDialogSupportingText(
+                text=self.sub_caption,
+                # halign="left",
+            ),
+            orientation='vertical',
+            ),
+            
             MDDialogButtonContainer(
                 Widget(),
                 self._button(txt=self.cancel_txt,on_release=lambda x:self.cancel()),
@@ -33,7 +42,6 @@ class PopupDialog(MDWidget):
                 spacing="8dp",
             ),
         )
-        # self.dialog.adaptive_size=True
         self.dialog.open()
         self.dialog.update_width()
     def _button(self,txt,on_release):
