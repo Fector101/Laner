@@ -30,16 +30,6 @@ class PopupDialog(MDWidget):
                 Widget(),
                 self._button(txt=self.cancel_txt,on_release=lambda x:self.cancel()),
                 self._button(txt=self.confirm_txt,on_release=lambda x:self.ok()),
-                # MDButtonconfirm_txt                #     MDButtonText(text=self.cancel_txt),
-                #     style="text",
-                #     on_release=lambda x: self.cancel(),
-                # ),
-                # MDButton(
-                #     MDButtonText(text=self.confirm_txt),
-                #     style="text",
-                #     on_release=lambda x: self.ok(),
-                # ),
-                
                 spacing="8dp",
             ),
         )

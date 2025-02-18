@@ -12,6 +12,7 @@ from workers.helper import getAppFolder,get_full_class_name,urlSafePath,getForma
 from workers.sword import Settings,NetworkManager
 from widgets.popup import Snackbar
 from workers.utils.constants import IMAGE_FORMATS
+# Notification.logs = True
 
 class ProgressData:
     # Monitor LookAlike
@@ -102,9 +103,6 @@ class AsyncRequest:
         thread.start()
     def successfull_download_notification(self,save_path):
         file_name = os.path.basename(save_path)
-        
-        self.download_notification.updateTitle("Completed download")
-        self.download_notification.updateMessage(file_name)
         try:
             # If the file is an image, copy it to the app's assets and send a notification.
             if getFormat(file_name) in IMAGE_FORMATS:
@@ -112,7 +110,7 @@ class AsyncRequest:
                 self.download_notification.large_icon_path=save_path
                 self.download_notification.addNotificationStyle(NotificationStyles.LARGE_ICON,already_sent=True)
         except Exception as e:
-            print(e,"Failed sending Notification")
+            print(e,"Adding Img to Notification")
     def send_initial_download_notification(self,file_name):
         self.download_notification = Notification(
                 title="Downloaded (0%)",
@@ -126,7 +124,6 @@ class AsyncRequest:
     def update_progress(self,monitor,notification:Notification,type_):
         new_percent = int((monitor.bytes_read / monitor.len) * 100)
         if new_percent == 100:
-            print('removing progress bar')
             notification.updateTitle(f'Completed {type_}')
             notification.removeProgressBar()
         elif new_percent != self.percent:

@@ -233,7 +233,7 @@ class DisplayFolderScreen(MDScreen):
             print(file_paths,'plyer choosen path')
             if file_paths:
                 selected=file_paths if isinstance(file_paths,str) else file_paths[0]
-                self.upload_file(selected)
+                FileOperations(selected).upload_file(selected,self.current_dir,self.set_path_info)
         filechooser.open_file(on_selection=parse_choice)
 
     def set_path_info(self, from_btn: bool = False) -> None:
@@ -291,15 +291,15 @@ class DisplayFolderScreen(MDScreen):
         
     def set_file(self, path: str) -> None:
         def success(file_url):
-            img_urls=[]
-            if getFormat(path) not in IMAGE_FORMATS:
-                return
-            for each in self.current_dir_info:
-                if getFormat(each['path']) in IMAGE_FORMATS:
-                    img_urls.append(each['icon'])
-            self.app.toogle_image_viewer(img_urls,start_from=file_url)
-            # self.manager.btm_sheet.enable_swiping=True
-            # self.manager.btm_sheet.set_state("toggle")
+            
+            file_name = os.path.basename(path.replace('\\', '/'))
+            file_operations = FileOperations(path)
+            self.manager.btm_sheet.show(file_name,items_object=[
+            {'title':"Preview",'icon': "eye",'function': lambda x: file_operations.open_image_viewer(current_dir_info=self.current_dir_info,selected_file_url=file_url)},
+            {'title':"Download",'icon': "download",'function': lambda _: self.show_download_dialog(path)},
+            {'title':"Open with",'icon': "apps",'function': file_operations.query_open_with},
+            {'title':"Share",'icon': "share",'function': file_operations.share_file}
+        ])
         def fail():
             print('Not Folder')
         instance=AsyncRequest()
@@ -332,7 +332,6 @@ class DisplayFolderScreen(MDScreen):
         :param path: The path to download.
         """
         print('frm dialog')
-        needed_file = path.replace(' ', '%20').replace('\\', '/')
         file_name = os.path.basename(path.replace('\\', '/'))
         saving_path = os.path.join(my_downloads_folder, file_name)
         def success(url):
@@ -340,31 +339,41 @@ class DisplayFolderScreen(MDScreen):
                 pass
 
             def success_callBack():
-                self.download_file(file_path=needed_file,save_path=saving_path)
-            txt='/'.join(saving_path.split('/')[-2:])
+                FileOperations(path).download_file(save_path=saving_path)
+            txt='/'.join(my_downloads_folder.split('/')[-2:])
             PopupDialog(
                     failedCallBack=failed_callback,
                     successCallBack=success_callBack,
                     h1="Laner",
                     # h1="Verify Download",
-                    caption=f'Do you want to Download {file_name}, It Will be saved in "{txt}"',
+                    caption=f'Do you want to Download "{file_name}", It Will be saved in "{txt}"',
                     cancel_txt="Cancel",confirm_txt="Ok",
             )
         AsyncRequest().is_file(path,success=success)
-        
-    def download_file(self,file_path: str, save_path: str) -> None:
+
+
+class FileOperations:
+
+    def __init__(self, file_path):
+        self.path = file_path
+        self.app = MDApp.get_running_app()
+
+    def download_file(self,save_path: str) -> None:
         """
         Download a file from the given file_path and save it locally.
         Displays a notification when done.
         """
+        needed_file = self.path.replace(' ', '%20').replace('\\', '/')
+        
         def success(file_name):
             Snackbar(confirm_txt='Open',h1='Download Successfull')
         def failed():
             Snackbar(confirm_txt='Open',h1="Download Failed try Checking Laner on PC")
             
         instance=AsyncRequest()
-        instance.download_file(file_path,save_path,success,failed)
-    def upload_file(self, file_path: str, file_data=None) -> None:
+        instance.download_file(needed_file,save_path,success,failed)
+
+    def upload_file(self, file_path:str,current_dir:str,callback,file_data=None) -> None:
         """
         Upload a file to the server.
         :param file_path: Local file path.
@@ -374,8 +383,23 @@ class DisplayFolderScreen(MDScreen):
         def success():
             Snackbar(h1="File Uploaded Successfully")
             # Refresh the folder.
-            self.set_path_info()
+            callback()
         def fail():
             Snackbar(h1="Failed to Upload File check Laner on PC")
         
-        AsyncRequest().upload_file(file_path,self.current_dir,success,fail)
+        AsyncRequest().upload_file(file_path,current_dir,success,fail)
+
+    def open_image_viewer(self,current_dir_info,selected_file_url):
+        img_urls=[]
+        if getFormat(self.path) not in IMAGE_FORMATS:
+            return
+        for each in current_dir_info:
+            if getFormat(each['path']) in IMAGE_FORMATS:
+                img_urls.append(each['icon'])
+        self.app.toogle_image_viewer(img_urls,start_from=selected_file_url)
+
+    def share_file(self,widget_at_called=None):
+        print(self.path)
+
+    def query_open_with(self,widget_at_called=None):
+        print('query_open_with')

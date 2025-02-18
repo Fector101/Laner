@@ -22,7 +22,7 @@ class TypeMapElement(MDBoxLayout):
     title = StringProperty()
     func = ObjectProperty()
     def on_touch_up(self,touch):
-        self.parent.parent.hide() # Closes MDBOttomSheet
+        self.parent.parent.hide(False) # Closes MDBOttomSheet
         return super().on_touch_up(touch)
         
 class MyBtmSheet(MDBottomSheet):
@@ -58,13 +58,11 @@ class MyBtmSheet(MDBottomSheet):
         self.add_widget(self.drag_sheet)
         self.add_widget(self.content)
         self.enable_swiping=0
-        self.generate_content()
         # self.set_state('close')
         
-        self.bind(on_open=lambda x : asynckivy.start(self.generate_content()))
-        
-    async def generate_content(self):
-        self.content.clear_widgets()
+        self.bind(on_open=self.generate_content)
+    
+    def generate_content(self,arg):
         
         # {
         #     "Preview": "eye",
@@ -74,10 +72,9 @@ class MyBtmSheet(MDBottomSheet):
         # }
         # await asynckivy.sleep(0)
         # print("test----|",self,'|||',self.content)
-        print(self.children)
+        # print(self.children)
         if self.children:
             for each_item in self.items:
-                await asynckivy.sleep(0)
                 self.content.add_widget(
                     TypeMapElement(
                         title=each_item['title'].capitalize(),
@@ -106,17 +103,18 @@ class MyBtmSheet(MDBottomSheet):
         self.enable_swiping=0
         return super().on_close(*args)
     def show(self,file_name,items_object:dict):
+        self.content.clear_widgets()
         self.items=items_object
         self.sheet_title.text=file_name
         self.enable_swiping=True
         self.set_state("toggle")
-    def hide(self):
-        self.set_state('close')
+    def hide(self,animation=True):
+        self.set_state('close',animation=animation)
         
 class MDTextButton(MDButton):
     text = StringProperty('Fizz')
     # text_widget = ObjectProperty() # for on_text if statement to work
-    
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # self.text = self.text
@@ -125,7 +123,7 @@ class MDTextButton(MDButton):
     
 class CustomDropDown(MDBoxLayout):
     title = StringProperty("Advanced Options")
-    
+
     is_open = BooleanProperty(False)
 
     def __init__(self, **kwargs):
@@ -138,7 +136,7 @@ class CustomDropDown(MDBoxLayout):
         else:
             for each in self.not_keeps_sake:
                 self.ids.dropdown_content.add_widget(each)
-            
+
         self.is_open = not self.is_open
 
     def add_widget(self, widget, index=0, canvas=None):
@@ -147,5 +145,4 @@ class CustomDropDown(MDBoxLayout):
             if self.is_open:
                 self.ids.dropdown_content.add_widget(widget)
         else:
-            super().add_widget(widget, index=index, canvas=canvas)        
-            
+            super().add_widget(widget, index=index, canvas=canvas)
