@@ -1,28 +1,49 @@
 #:import asynckivy asynckivy
 
-<MyBtmSheet>
-    _on_open: asynckivy.start(self.generate_content())
 
 <TypeMapElement>
-    orientation: "vertical"
+    id:container
+    orientation: "horizontal"
     adaptive_height: True
-    spacing: "8dp"
+    spacing: 0
 
-    MDIconButton:
-        id: icon
-        icon: root.icon
-        theme_bg_color: "Custom"
-        md_bg_color: "#EDF1F9" if not root.selected else app.theme_cls.primaryColor
-        pos_hint: {"center_x": .5}
-        theme_icon_color: "Custom"
-        icon_color: "white" if root.selected else "black"
-        on_release: root.set_active_element(root, root.title.lower())
+    MDListItem:
+        theme_bg_color:"Custom"
+        md_bg_color: container.md_bg_color
+        on_release: root.func(root.title)
+        MDListItemLeadingIcon:
+            id: icon
+            icon: root.icon
+            md_bg_color: "#EDF1F9" if not root.selected else app.theme_cls.primaryColor
+            theme_bg_color: "Custom"
+        MDListItemHeadlineText:
+            text: root.title
 
-    MDLabel:
-        text: root.title
-        pos_hint: {"center_x": .5}
-        halign: "center"
-        adaptive_height: True
+        # pos_hint: {"center_x": .5}
+        # theme_icon_color: "Custom"
+        # icon_color: "white" if root.selected else "black"
+
+    # MDLabel:
+    #     text: root.title
+    #     pos_hint: {"center_x": .5}
+    #     halign: "center"
+    #     adaptive_height: True
+
+    # MDIconButton:
+    #     id: icon
+    #     icon: root.icon
+    #     theme_bg_color: "Custom"
+    #     md_bg_color: "#EDF1F9" if not root.selected else app.theme_cls.primaryColor
+    #     pos_hint: {"center_x": .5}
+    #     theme_icon_color: "Custom"
+    #     icon_color: "white" if root.selected else "black"
+    #     on_release: root.set_active_element(root, root.title.lower())
+
+    # MDLabel:
+    #     text: root.title
+    #     pos_hint: {"center_x": .5}
+    #     halign: "center"
+    #     adaptive_height: True
 
 
 <CustomDropDown>:
