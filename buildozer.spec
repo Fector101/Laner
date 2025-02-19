@@ -37,7 +37,8 @@ version = 1.0
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,materialyoucolor,asynckivy,asyncgui,pyjnius,docutils,netifaces,filetype,android-notify
+requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,materialyoucolor,asynckivy,asyncgui,pyjnius,docutils,netifaces,filetype,requests_toolbelt
+# requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,materialyoucolor,asynckivy,asyncgui,pyjnius,docutils,netifaces,filetype,android-notify==1.52.3,requests_toolbelt
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
 # requirements.source.kivy = ../../kivy
@@ -54,7 +55,7 @@ orientation = portrait
 
 # (list) List of service to declare
 #services = NAME:ENTRYPOINT_TO_PY,NAME2:ENTRYPOINT2_TO_PY
-services = Sendnoti:./services/foreground.py:True
+# services = Uploadutil:./services/gitlab.py:True
 
 #
 # OSX Specific

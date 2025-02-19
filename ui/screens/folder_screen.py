@@ -27,12 +27,12 @@ from kivymd.uix.button import MDFabButton
 from android_notify import Notification, NotificationStyles
 from plyer import filechooser # pylint: disable=import-error
 
-from widgets.header import Header
-from widgets.popup import PopupDialog, Snackbar
-from workers.helper import getHiddenFilesDisplay_State, makeDownloadFolder, getAppFolder,getFormat
-from workers.requests.async_request import AsyncRequest
-from widgets.img.SafeAsyncImage import SafeAsyncImage
-from workers.utils.constants import IMAGE_FORMATS
+from ui.header import Header
+from ui.popup import PopupDialog, Snackbar
+from ui.pictureviewer import SafeAsyncImage # it's been Used in .kv file
+from utils.helper import getHiddenFilesDisplay_State, makeDownloadFolder, getAppFolder,getFormat
+from utils import AsyncRequest
+from utils.constants import IMAGE_FORMATS
 
 
 if platform == "android":
@@ -40,7 +40,7 @@ if platform == "android":
 
 # Setup paths and load KV file.
 my_downloads_folder = makeDownloadFolder()
-kv_file_path = os.path.join(getAppFolder(), "widgets", "screens", "folderscreen.kv")
+kv_file_path = os.path.join(getAppFolder(), "ui", "screens", "folderscreen.kv")
 with open(kv_file_path, encoding="utf-8") as kv_file:
     Builder.load_string(kv_file.read(), filename="folderscreen.kv")
 
@@ -51,9 +51,7 @@ class RV(RecycleView):
 
 class DetailsLabel(Label):
     """Label with custom style for displaying folder details."""
-class SafeAsyncImage_(SafeAsyncImage):
-    pass
-            
+
 class MyCard(RecycleDataViewBehavior,RectangularRippleBehavior,ButtonBehavior,MDRelativeLayout):
     path=StringProperty()
     icon=StringProperty()
@@ -298,6 +296,7 @@ class DisplayFolderScreen(MDScreen):
             {'title':"Preview",'icon': "eye",'function': lambda x: file_operations.open_image_viewer(current_dir_info=self.current_dir_info,selected_file_url=file_url)},
             {'title':"Download",'icon': "download",'function': lambda _: self.show_download_dialog(path)},
             {'title':"Open with",'icon': "apps",'function': file_operations.query_open_with},
+            {'title':"Info",'icon': "information",'function': file_operations.share_file},
             {'title':"Share",'icon': "share",'function': file_operations.share_file}
         ])
         def fail():
@@ -350,6 +349,7 @@ class DisplayFolderScreen(MDScreen):
             )
         AsyncRequest().is_file(path,success=success)
 
+from kivy.metrics import sp
 
 class FileOperations:
 
@@ -367,7 +367,7 @@ class FileOperations:
         def success(file_name):
             Snackbar(confirm_txt='Open',h1='Download Successfull')
         def failed():
-            Snackbar(confirm_txt='Open',h1="Download Failed try Checking Laner on PC")
+            Snackbar(confirm_txt='Open',font_size=sp(15),h1="Download Failed try Checking Laner on PC")
             
         instance=AsyncRequest()
         instance.download_file(needed_file,save_path,success,failed)

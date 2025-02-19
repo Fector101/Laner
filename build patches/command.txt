@@ -1,0 +1,3 @@
+buildozer android debug && adb install bin/lan_ft-1.0-arm64-v8a_armeabi-v7a-debug.apk && adb shell monkey -p org.laner.lan_ft 1 && adb logcat | grep python
+       .buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/python-installs/lan_ft/arm64-v8a/android_notify*
+       .buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/python-installs/lan_ft/armeabi-v7a/android_notify*

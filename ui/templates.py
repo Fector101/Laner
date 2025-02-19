@@ -7,11 +7,12 @@ from kivy.lang import Builder
 from kivymd.uix.bottomsheet.bottomsheet import MDBottomSheet,MDBottomSheetDragHandle,MDBottomSheetDragHandleTitle,MDBottomSheetDragHandleButton
 from kivymd.uix.button import MDButton, MDButtonText,MDButtonIcon,MDIconButton
 from kivymd.uix.boxlayout import MDBoxLayout
+from kivy.utils import platform # OS
 
-from widgets.popup import Snackbar
-from workers.helper import getAppFolder
+from ui.popup import Snackbar
+from utils.helper import getAppFolder
 
-with open(os.path.join(getAppFolder(),"widgets","templates.kv"), encoding="utf-8") as kv_file:
+with open(os.path.join(getAppFolder(),"ui","templates.kv"), encoding="utf-8") as kv_file:
     Builder.load_string(kv_file.read(), filename="MyBtmSheet.kv")
 
 
@@ -32,7 +33,7 @@ class MyBtmSheet(MDBottomSheet):
         super().__init__(**kwargs)
         # super(MyBtmSheet,self).__init__(**kwargs)
         self.size_hint_y=None
-        self.height=sp(350)
+        self.height=sp(410 if platform == 'android' else 340)
         self.drag_sheet= MDBottomSheetDragHandle(
                                                     # drag_handle_color= "grey" 
                                                  )

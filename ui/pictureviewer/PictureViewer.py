@@ -7,11 +7,11 @@ from kivymd.uix.floatlayout import MDFloatLayout
 from kivymd.uix.button import MDIconButton
 from kivymd.uix.swiper.swiper import MDSwiperItem,MDSwiper
 
-from workers.helper import getAppFolder
-from widgets.img.SafeAsyncImage import SafeAsyncImage
+from utils.helper import getAppFolder
+from .SafeAsyncImage import SafeAsyncImage
 
 
-kv_file_path = os.path.join(getAppFolder(), "widgets", "img", "PictureViewer.kv")
+kv_file_path = os.path.join(getAppFolder(), "ui", "pictureviewer", "PictureViewer.kv")
 with open(kv_file_path, encoding="utf-8") as kv_file:
     Builder.load_string(kv_file.read(), filename="PictureViewer.kv")
     

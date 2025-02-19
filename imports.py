@@ -33,7 +33,7 @@ from kivymd.uix.divider import MDDivider
 
 import os, sys, json, requests, asyncio, threading
 
-from workers.helper import (
+from utils.helper import (
     THEME_COLOR_TUPLE, get_full_class_name,
     makeDownloadFolder, setHiddenFilesDisplay,
     getAndroidBounds,getViewPortSize,
@@ -41,15 +41,14 @@ from workers.helper import (
     getAppFolder
     )
 
-from workers.sword import NetworkManager, Settings
-from workers.requests.async_request import AsyncRequest
+from utils import Settings,NetworkManager,AsyncRequest
 
 
-from widgets.popup import Snackbar
-from widgets.templates import CustomDropDown, MDTextButton,MyBtmSheet
-from widgets.screens import DisplayFolderScreen
-from widgets.header import Header
-from widgets.img.PictureViewer import PictureViewer
+from ui.popup import Snackbar
+from ui.templates import CustomDropDown, MDTextButton,MyBtmSheet
+from ui.screens import DisplayFolderScreen
+from ui.header import Header
+from ui.pictureviewer import PictureViewer
 
 
 if platform == 'android':
@@ -98,10 +97,53 @@ def startService():
     try:
         mActivity = autoclass('org.kivy.android.PythonActivity').mActivity
         context =  mActivity.getApplicationContext()
-        SERVICE_NAME = str(context.getPackageName()) + '.Service' + 'Sendnoti'
+        SERVICE_NAME = str(context.getPackageName()) + '.Service' + 'Uploadutil'
         service = autoclass(SERVICE_NAME)
         service.start(mActivity,'small_icon','title','content','FECTOR101')
         print('returned service')
     except Exception as e:
         print(f'Foreground service failed {e}')
 startService()
+
+
+
+
+
+
+# Get required Android classes
+# Context = autoclass('android.content.Context')
+# Notification = autoclass('android.app.Notification')
+# NotificationManager = autoclass('android.app.NotificationManager')
+# PendingIntent = autoclass('android.app.PendingIntent')
+# Intent = autoclass('android.content.Intent')
+# PythonService = autoclass('org.kivy.android.PythonService')
+
+
+
+# Get the application context
+# service = PythonService.mService
+# context = service.getApplicationContext()
+
+# # Get the NotificationManager
+# notif_manager = context.getSystemService(Context.NOTIFICATION_SERVICE)
+
+# # Create a notification channel (for Android 8+)
+# if notif_manager.getNotificationChannel("my_channel") is None:
+#     NotificationChannel = autoclass('android.app.NotificationChannel')
+#     channel = NotificationChannel("my_channel", "Persistent Notification", NotificationManager.IMPORTANCE_LOW)
+#     notif_manager.createNotificationChannel(channel)
+
+# # Create an Intent to open the app when tapped
+# intent = Intent(context, PythonService)
+# pending_intent = PendingIntent.getActivity(context, 0, intent, 0)
+
+# # Build the persistent notification
+# builder = autoclass('androidx.core.app.NotificationCompat').Builder(context, "my_channel")
+# builder.setContentTitle("My App Running")
+# builder.setContentText("This notification stays permanently.")
+# builder.setSmallIcon(17301659)  # Default Android icon (change if needed)
+# builder.setContentIntent(pending_intent)
+# builder.setOngoing(True)  # Make it persistent
+
+# # Start foreground service with the notification
+# service.startForeground(1, builder.build())

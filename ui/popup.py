@@ -63,17 +63,19 @@ class PopupDialog(MDWidget):
 
 
 class Snackbar(MDWidget):
-    h1=StringProperty()
+    # h1=StringProperty()
     # caption=StringProperty()
     # cancel_txt=StringProperty()
-    confirm_txt=StringProperty('')
+    # confirm_txt=StringProperty('')
     # failedCallBack=ObjectProperty()
     # successCallBack=ObjectProperty()
-    def __init__(self, **kwargs):
+    # font_size=sp(16)
+    def __init__(self,h1,confirm_txt='',font_size=sp(16), **kwargs):
         super().__init__(**kwargs)
         self.snackbar = MDSnackbar(
             MDSnackbarSupportingText(
-                text=self.h1 or "Saved",
+                text=h1,
+                font_size=font_size,
                 theme_text_color="Custom",
                 text_color=(0, 40/255, 0, 1)
             ),
@@ -86,11 +88,11 @@ class Snackbar(MDWidget):
             background_color=(.85, .95, .88, .9)
         )
         buttons_container = MDSnackbarButtonContainer(pos_hint={"center_y": 0.5})
-        if self.confirm_txt:
+        if confirm_txt:
             buttons_container.add_widget(
                 MDSnackbarActionButton(
                     MDSnackbarActionButtonText(
-                        text=self.confirm_txt,
+                        text=confirm_txt,
                         theme_text_color="Custom",
                         text_color=(0, 40/255, 0, 1)
                     ),

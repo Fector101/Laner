@@ -5,8 +5,6 @@ from kivy.properties import ( ListProperty, StringProperty)
 from kivymd.uix.label import MDLabel
 from kivy.metrics import dp,sp
 from kivymd.uix.menu import MDDropdownMenu
-# from widgets.screens import DisplayFolderScreen
-
 
 class HeaderBtn(MDFabButton):
     def __init__(self, **kwargs):

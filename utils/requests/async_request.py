@@ -8,11 +8,23 @@ from kivy.clock import Clock
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 from android_notify import Notification, NotificationStyles
 
-from workers.helper import getAppFolder,get_full_class_name,urlSafePath,getFormat
-from workers.sword import Settings,NetworkManager
-from widgets.popup import Snackbar
-from workers.utils.constants import IMAGE_FORMATS
+from utils.helper import getAppFolder,get_full_class_name,urlSafePath,getFormat
+from utils.config import Settings
+from .networkmanager import NetworkManager
+from ui.popup import Snackbar
+from utils.constants import IMAGE_FORMATS
 # Notification.logs = True
+
+from kivy.utils import platform # OS
+if platform == 'android':
+    from android.runnable import run_on_ui_thread # pylint: disable=import-error
+else:
+    def run_on_ui_thread(func):
+        """Fallback for Developing on PC"""
+        def wrapper(*args, **kwargs):
+            # print("Simulating run on UI thread")
+            return func(*args, **kwargs)
+        return wrapper
 
 class ProgressData:
     # Monitor LookAlike
@@ -25,6 +37,8 @@ class AsyncRequest:
         self.download_notification= None
         self.upload_notification= None
         self.percent=0 # Don't share Instances
+        self.cancel_download = False
+        self.cancel_upload = False
     # requests.get(server,data='to be sent',auth=(username,password))
     def get_server_ip(self) -> str:
         """Return the server IP from settings."""
@@ -50,6 +64,7 @@ class AsyncRequest:
                 
         thread = threading.Thread(target=__make_request)
         thread.start()
+    @run_on_ui_thread
     def on_ui_thread(self,fun,args=[]):
         if not fun:
             return
@@ -116,11 +131,16 @@ class AsyncRequest:
                 title="Downloaded (0%)",
                 message=file_name,
                 style=NotificationStyles.PROGRESS,
-                progress_max_value=100,progress_current_value=0,
+                progress_max_value=100,progress_current_value=0.5,
                 channel_name='Downloads'
                     # TODO use notification groups
                 )
+        def cancel_download_method():
+            self.cancel_download=True
+        self.download_notification.addButton('Cancel',on_release=cancel_download_method)
         self.download_notification.send()
+    
+        
     def update_progress(self,monitor,notification:Notification,type_):
         new_percent = int((monitor.bytes_read / monitor.len) * 100)
         if new_percent == 100:
@@ -134,6 +154,9 @@ class AsyncRequest:
         
     def download_file(self, file_path,save_path,success,failed=None):
         file_name = os.path.basename(save_path)
+        def failed_download_notification(msg='Download Error!'):
+            self.download_notification.updateTitle(msg)
+            self.download_notification.removeProgressBar()
         def _download():
             try:
                 url = f"http://{self.get_server_ip()}:{self.get_port_number()}/{file_path}"
@@ -148,6 +171,10 @@ class AsyncRequest:
                     with open(save_path, 'wb') as f:
                         for chunk in response.iter_content(chunk_size=chunk_size):
                             if chunk:  # Filter out keep-alive chunks
+                                if self.cancel_download:
+                                    failed_download_notification('Download Cancelled!')
+                                    Clock.schedule_once(lambda dt: Snackbar(h1="Download Cancelled"))
+                                    break
                                 f.write(chunk)
                                 downloaded += len(chunk)
                                 progress_data = ProgressData(bytes_read=downloaded,len_=total_size)
@@ -156,16 +183,15 @@ class AsyncRequest:
                                 # If no content length header, just print downloaded bytes.
                                 print(f"Downloaded: {downloaded} bytes")
                                 
-                    
-                    self.successfull_download_notification(save_path)
-                    self.on_ui_thread(success,[file_name])
+                    if not self.cancel_download:
+                        self.successfull_download_notification(save_path)
+                        self.on_ui_thread(success,[file_name])
                 else:
                     self.on_ui_thread(failed)
                     
             except Exception as e:
                 print("Failed Download Error type: ",e)
-                self.download_notification.updateTitle('Download Error!')
-                self.download_notification.removeProgressBar()
+                failed_download_notification()
                 traceback.print_exc()
                 self.on_ui_thread(failed)
         threading.Thread(target=_download).start()
@@ -173,18 +199,30 @@ class AsyncRequest:
         
     def upload_file(self, file_path, save_path,success,failed=None,file_data=None):
         file_basename = os.path.basename(file_path)        
-        def update_progress(monitor):
-            self.update_progress(monitor,notification=self.upload_notification,type_='Upload')                
-            
-        self.upload_notification = Notification(
-            title="Uploading (0%)",
-            message=file_basename,
-            style=NotificationStyles.PROGRESS,
-            progress_max_value=100,progress_current_value=0,
-            channel_name="Uploads"
-            )
-        self.upload_notification.send()
         
+        def send_initial_upload_notification():
+            self.upload_notification = Notification(
+                title="Uploading (0%)",
+                message=file_basename,
+                style=NotificationStyles.PROGRESS,
+                progress_max_value=100,progress_current_value=0.5,
+                channel_name="Uploads"
+                )
+            def cancel_upload_method():
+                self.cancel_upload=True
+            self.upload_notification.addButton('Cancel',on_release=cancel_upload_method)
+            self.upload_notification.send()
+        
+        def failed_upload_notification(msg='Upload Error!'):
+            self.upload_notification.updateTitle(msg)
+            self.upload_notification.removeProgressBar()
+            
+        def update_progress(monitor):
+            if self.cancel_upload:
+                failed_upload_notification("Upload Cancelled!")
+                Clock.schedule_once(lambda dt: Snackbar(h1="Upload Cancelled"))
+                raise Exception("Upload canceled by user")
+            self.update_progress(monitor,notification=self.upload_notification,type_='Upload')
         
         def __upload():
             try:
@@ -197,7 +235,7 @@ class AsyncRequest:
                         'file': (os.path.basename(file_path), open(file_path, 'rb'), 'application/octet-stream')
                     }
                 )
-
+                send_initial_upload_notification()
                 # Wrap it in a monitor to get progress updates.
                 monitor = MultipartEncoderMonitor(encoder, update_progress)
 
@@ -215,11 +253,11 @@ class AsyncRequest:
                     self.on_ui_thread(failed)
 
             except Exception as e:
-                self.upload_notification.updateTitle('Upload Error!')
-                self.upload_notification.removeProgressBar()
-                self.on_ui_thread(failed)
-                print("Failed Upload ",e)
-                traceback.print_exc()
+                if not self.cancel_upload:
+                    failed_upload_notification()
+                    self.on_ui_thread(failed)
+                    print("Failed Upload ",e)
+                    traceback.print_exc()
                 
         threading.Thread(target=__upload).start()
         
@@ -266,3 +304,16 @@ class AsyncRequest:
                 try_old_ports()
                     
         threading.Thread(target=__auto_connect).start()
+    def ping(self,input_ip_address,port,success,failed):
+        def __ping():
+            try:
+                response=requests.get(f"http://{input_ip_address}:{port}/ping",json={'passcode':'08112321825'},timeout=.2)
+                if response.status_code == 200:
+                    self.on_ui_thread(success,[response.json()['data']])
+                else:
+                    self.on_ui_thread(failed)
+            except Exception as e:
+                print('Failed Ping',e)
+                self.on_ui_thread(failed)
+        threading.Thread(target=__ping).start()
+

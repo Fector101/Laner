@@ -434,26 +434,22 @@ class SettingsScreen(MDScreen):
         port=MDApp.get_running_app().settings.get('server', 'port')
         # TODO create an async quick scanner to check valid port from a list of ports
         
-        try:
+        
+        def success(pc_name):
+            self.pc_name = pc_name
+            self.app.settings.add_recent_connection(input_ip_address)
+
+            connect_btn=self.ids['connect_btn']
+
+            ip_input.text="Connected to: "+self.pc_name
+            ip_input.disabled=True
+            connect_btn.text= 'Disconnect'
+            self.change_button_callback(connect_btn,self.setIP, self.disconnect,input_ip_address)
             
-            response=requests.get(f"http://{input_ip_address}:{port}/ping",json={'passcode':'08112321825'},timeout=.2)
-            if response.status_code == 200:
-                self.pc_name = response.json()['data']
-                self.app.settings.add_recent_connection(input_ip_address)
-
-                connect_btn=self.ids['connect_btn']
-
-                ip_input.text="Connected to: "+self.pc_name
-                ip_input.disabled=True
-                connect_btn.text= 'Disconnect'
-                self.change_button_callback(connect_btn,self.setIP, self.disconnect,input_ip_address)
-                
-                Snackbar(h1="Verification Successfull")
-            else:
-                Snackbar(h1="Bad Code check 'Laner PC' for right one")
-
-        except Exception as e:
-            print("here---|",e)
+            Snackbar(h1="Verification Successfull")
+        def failed():
+            Snackbar(h1="Bad Code check 'Laner PC' for right one")
+        AsyncRequest().ping(input_ip_address,port,success,failed)
             # text=ip_input.text
             # buttons = MDApp.get_running_app().bottom_navigation_bar.children
             # for btn in buttons:
@@ -462,7 +458,6 @@ class SettingsScreen(MDScreen):
                     
             #     else:
             #         btn.btn_icon.font_size=text
-            Snackbar(h1="Bad Code check \"Laner PC\" for right one")
 
         print(input_ip_address,'===', self.app.settings.get('server', 'ip'))
         
@@ -531,6 +526,7 @@ class Laner(MDApp):
                 if isinstance(screen, DisplayFolderScreen):
                     screen.details_box.md_bg_color =light_grey_for_light_theme
                     screen.details_label.color = [0.41, 0.42, 0.4, 1]
+    
     def toogle_image_viewer(self,urls:list,start_from:str):
         def on_close_pic_viewer():
             self.bottom_navigation_bar.open()
@@ -539,6 +535,7 @@ class Laner(MDApp):
         self.my_screen_manager.current_screen.disable_click()
         self.my_screen_manager.current_screen.add_widget(layout)
         self.bottom_navigation_bar.close()
+
     def build(self):
         self.title = 'Laner'
         Window.bind(size=self.on_resize)
@@ -565,6 +562,7 @@ class Laner(MDApp):
         self.root_screen.add_widget(self.nav_layout)
         # self.toogle_image_viewer('http://192.168.88.4:8000//home/fabian/Pictures/inspo.png')
         return self.root_screen
+
     def on_resize(self, *args):
         btm_nav_btns=self.bottom_navigation_bar.children if isinstance(self.bottom_navigation_bar.children[0],TabButton) else []
         for btn in btm_nav_btns:

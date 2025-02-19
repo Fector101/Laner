@@ -1,26 +1,32 @@
 from jnius import autoclass
-import time
+# import time
 print("Entered Sendnoti Service is running... python")
-from os import environ
+# from os import environ
 
-print('python Reviced Args in Service ---> ', environ.get('PYTHON_SERVICE_ARGUMENT',''))
-# Android classes
+# print('python Reviced Args in Service ---> ', environ.get('PYTHON_SERVICE_ARGUMENT',''))
+# # Android classes
 Context = autoclass('android.content.Context')
 NotificationManager = autoclass('android.app.NotificationManager')
 NotificationChannel = autoclass('android.app.NotificationChannel')
 NotificationBuilder = autoclass('android.app.Notification$Builder')
 AndroidString = autoclass('java.lang.String')
-# Constants
-channel_id = "download_channel"
-channel_name = "Download Notifications"
 
-# Initialize NotificationManager
-service = autoclass('org.kivy.android.PythonService').mService
+# New
+PythonService=autoclass('org.kivy.android.PythonService')
+PendingIntent = autoclass('android.app.PendingIntent')
+Intent = autoclass('android.content.Intent')
+
+# # Constants
+channel_id = "my_channel"
+channel_name = "Persistent Notification"
+
+# # Initialize NotificationManager
+service = PythonService.mService
 service.setAutoRestartService(True)
 context = service.getApplication().getApplicationContext()
 notification_manager = context.getSystemService(Context.NOTIFICATION_SERVICE)
 
-# Create Notification Channel (required for Android 8.0+)
+# # Create Notification Channel (required for Android 8.0+)
 if notification_manager.getNotificationChannel(channel_id) is None:
     channel = NotificationChannel(
         channel_id,
@@ -29,36 +35,43 @@ if notification_manager.getNotificationChannel(channel_id) is None:
     )
     notification_manager.createNotificationChannel(channel)
 
-# Create the Notification Builder
+# New
+# intent = Intent(context, PythonService)
+# pending_intent = PendingIntent.getActivity(context, 0, intent, 0)
+
+# # Create the Notification Builder
 builder = NotificationBuilder(context, channel_id)
-builder.setContentTitle(AndroidString("Downloading..."))
+builder.setContentTitle(AndroidString("My App Running"))
+builder.setContentText("This notification stays permanently.")
 builder.setSmallIcon(autoclass("android.R$drawable").ic_menu_save)
-builder.setProgress(100, 0, False)  # Set initial progress
+# builder.setContentIntent(pending_intent)#New
+builder.setOngoing(True)  # Make it persistent
 
-# Display the notification
+# builder.setProgress(100, 0, False)  # Set initial progress
+
+# # Display the notification
 notification_id = 1
-notification_manager.notify(notification_id, builder.build())
+service.startForeground(notification_id, builder.build())
 
 
 
+# # # Simulate Download Progress
+# secs=6
+# i=0
+# for progress in range(0, 360, 10):
+#     builder.setProgress(100, progress, False)
+#     builder.setContentText(AndroidString(f"Waitied for ... {i} min"))
+#     notification_manager.notify(notification_id, builder.build())
+#     i+=secs
+#     time.sleep(secs*15)
+#     # builder.setContentText(AndroidString(f"{progress}% downloaded"))
+#     # notification_manager.notify(notification_id, builder.build())
+#     # print('done waiting... python')
 
-# # Simulate Download Progress
-secs=6
-i=0
-for progress in range(0, 101, 10):
-    builder.setProgress(100, progress, False)
-    builder.setContentText(AndroidString(f"Waitied for ... {i} min"))
-    notification_manager.notify(notification_id, builder.build())
-    i+=secs
-    time.sleep(secs*60)
-    # builder.setContentText(AndroidString(f"{progress}% downloaded"))
-    # notification_manager.notify(notification_id, builder.build())
-    # print('done waiting... python')
-
-# Finish Notification
-builder.setContentText(AndroidString(f"Download complete! {i}"))
-builder.setProgress(0, 0, False)  # Remove the progress bar
-notification_manager.notify(notification_id, builder.build())
+# # Finish Notification
+# builder.setContentText(AndroidString(f"Download complete! {i}"))
+# builder.setProgress(0, 0, False)  # Remove the progress bar
+# notification_manager.notify(notification_id, builder.build())
 
 
 
@@ -195,3 +208,12 @@ notification_manager.notify(notification_id, builder.build())
 #     builder.setContentText(AndroidString(f"{progress}% downloaded"))
 #     notification_manager.notify(1, builder.build())
 # service.stopForeground()
+
+
+
+
+
+
+
+
+
