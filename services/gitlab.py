@@ -1,4 +1,3 @@
-
 from jnius import autoclass, cast
 import os
 
@@ -49,6 +48,10 @@ intent = PendingIntent.getActivity(
 notification_builder.setContentIntent(intent)
 notification_builder.setCategory(Notification.CATEGORY_SERVICE)
 notification_builder.setSmallIcon(app_context.getApplicationInfo().icon)
-notification_builder.setAutoCancel(True)
-s=autoclass('android.app.ServiceInfo')
-service.startForeground(1, notification_builder.getNotification(),s.dataSync)
+notification_builder.setOngoing(True)
+notification_builder.setAutoCancel(False)
+
+
+# s=autoclass('android.app.ServiceInfo') # Error no such class
+# service.startForeground(1, notification_builder.getNotification(),s.dataSync)
+notification_service.notify(100, notification_builder.getNotification())

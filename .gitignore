@@ -13,6 +13,7 @@ laner-linux
 auto_stuff.sh
 plyer
 _main.py
+android_notify
 
 # Remove this when you want to upload
 for-download/

@@ -13,7 +13,7 @@ from utils.config import Settings
 from .networkmanager import NetworkManager
 from ui.popup import Snackbar
 from utils.constants import IMAGE_FORMATS
-# Notification.logs = True
+Notification.logs = True
 
 from kivy.utils import platform # OS
 if platform == 'android':
@@ -145,6 +145,7 @@ class AsyncRequest:
         new_percent = int((monitor.bytes_read / monitor.len) * 100)
         if new_percent == 100:
             notification.updateTitle(f'Completed {type_}')
+            notification.removeButtons()
             notification.removeProgressBar()
         elif new_percent != self.percent:
             # print(f"{type_}ing ({new_percent}%)")
@@ -156,7 +157,9 @@ class AsyncRequest:
         file_name = os.path.basename(save_path)
         def failed_download_notification(msg='Download Error!'):
             self.download_notification.updateTitle(msg)
+            self.download_notification.removeButtons()
             self.download_notification.removeProgressBar()
+            
         def _download():
             try:
                 url = f"http://{self.get_server_ip()}:{self.get_port_number()}/{file_path}"
@@ -172,8 +175,6 @@ class AsyncRequest:
                         for chunk in response.iter_content(chunk_size=chunk_size):
                             if chunk:  # Filter out keep-alive chunks
                                 if self.cancel_download:
-                                    failed_download_notification('Download Cancelled!')
-                                    Clock.schedule_once(lambda dt: Snackbar(h1="Download Cancelled"))
                                     break
                                 f.write(chunk)
                                 downloaded += len(chunk)
@@ -183,10 +184,16 @@ class AsyncRequest:
                                 # If no content length header, just print downloaded bytes.
                                 print(f"Downloaded: {downloaded} bytes")
                                 
-                    if not self.cancel_download:
+                    
+                    if self.cancel_download:
+                        failed_download_notification('Download Cancelled!')
+                        Clock.schedule_once(lambda dt: Snackbar(h1="Download Cancelled"))
+                    else:
                         self.successfull_download_notification(save_path)
                         self.on_ui_thread(success,[file_name])
+                        
                 else:
+                    failed_download_notification()
                     self.on_ui_thread(failed)
                     
             except Exception as e:
@@ -215,6 +222,7 @@ class AsyncRequest:
         
         def failed_upload_notification(msg='Upload Error!'):
             self.upload_notification.updateTitle(msg)
+            self.upload_notification.removeButtons()
             self.upload_notification.removeProgressBar()
             
         def update_progress(monitor):
@@ -249,8 +257,10 @@ class AsyncRequest:
                 if response.status_code == 200:
                     self.on_ui_thread(success)
                 else:
+                    failed_upload_notification()
                     Clock.schedule_once(lambda dt:Snackbar(h1=f'Upload Failed - Code {response.status_code}'))
                     self.on_ui_thread(failed)
+                self.upload_notification.removeButtons()
 
             except Exception as e:
                 if not self.cancel_upload:

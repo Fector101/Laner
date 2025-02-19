@@ -51,7 +51,8 @@ builder.setOngoing(True)  # Make it persistent
 
 # # Display the notification
 notification_id = 1
-service.startForeground(notification_id, builder.build())
+# service.startForeground(notification_id, builder.build())
+notification_manager.notify(notification_id, builder.build())
 
 
 

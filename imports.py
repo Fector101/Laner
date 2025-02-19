@@ -97,7 +97,7 @@ def startService():
     try:
         mActivity = autoclass('org.kivy.android.PythonActivity').mActivity
         context =  mActivity.getApplicationContext()
-        SERVICE_NAME = str(context.getPackageName()) + '.Service' + 'Uploadutil'
+        SERVICE_NAME = str(context.getPackageName()) + '.Service' + 'Upload'
         service = autoclass(SERVICE_NAME)
         service.start(mActivity,'small_icon','title','content','FECTOR101')
         print('returned service')
