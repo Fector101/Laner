@@ -392,10 +392,18 @@ class FileOperations:
         img_urls=[]
         if getFormat(self.path) not in IMAGE_FORMATS:
             return
+        
+        selected_file_index = None
+        i=0
         for each in current_dir_info:
             if getFormat(each['path']) in IMAGE_FORMATS:
-                img_urls.append(each['icon'])
-        self.app.toogle_image_viewer(img_urls,start_from=selected_file_url)
+                img_urls.append(each['thumbnail_url'])  #thumbnail_url is the async img genrated by server
+                if each['path'] == self.path:
+                    selected_file_index = i
+                i+=1
+                
+        print(img_urls,selected_file_index)
+        self.app.toogle_image_viewer(img_urls,start_from=selected_file_index)
 
     def share_file(self,widget_at_called=None):
         print(self.path)
