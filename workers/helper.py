@@ -1,9 +1,15 @@
 import subprocess
+import re
+import shutil
+import socket
+import platform
 import os
 import json
 import sys
 import hashlib
 import urllib.parse
+from os.path import join as _joinPath
+
 def getSystemName():
   # Windows
   USER_HOME_PATH=os.getenv('HOMEPATH')
@@ -77,17 +83,9 @@ def writeIntoDB(data):
   dictionary_words = json.dumps(Dict_Structure, indent=4)
   with open("public/data.json", mode="w") as new_word:
       new_word.write(dictionary_words)
-import subprocess
-import platform
-import re
-import shutil
-import socket
 
 
 
-import socket
-import subprocess
-import platform
 
 def getAppFolder():
     """
@@ -251,7 +249,6 @@ def inHomePath(request_path,folder):
     print(os.path.join(getHomePath(),folder), "==", os.path.join(request_path,folder))
     return os.path.join(getHomePath(),folder) == os.path.join(request_path,folder)
 
-from os.path import join as _joinPath
 def getAbsPath(*path_list):
   """Get file real path
 
@@ -262,3 +259,4 @@ def getAbsPath(*path_list):
       str: Actual Path
   """
   return _joinPath(getAppFolder(),*path_list)
+
