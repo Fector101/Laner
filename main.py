@@ -150,6 +150,7 @@ class BottomNavigationBar(MDNavigationDrawer):
         # self.md_bg_color = (.1, 1, 0, .5)
         # self.md_bg_color = (.1, .1, .1, 1)
         self.pos=[0,-1]
+        self.closing_time=0
 
         for index in range(len(icons)):
             self.btn = TabButton(
