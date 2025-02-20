@@ -184,25 +184,22 @@ class JPEGWorker:
     
     def genrateJPEG(self):
         print('goten img path ',self.img_path)
+        new_file_name = gen_unique_filname(self.img_path) + '.jpg'
+        new_img_path = _joinPath(self.preview_folder,new_file_name)
+        new_img_url=self.getJPEG_URL() #For debugging
         try:
-            # url_path=urlSafePath(img_path)
-            # importing the image  
-            im = Image.open(self.img_path) 
-
-            # converting to jpg 
-            rgb_im = im.convert("RGB") 
-
-            # exporting the image 
-            new_file_name = gen_unique_filname(self.img_path) + '.jpg'
+            im = Image.open(self.img_path)
+            rgb_im = im.convert("RGB")
             
-            new_img_path = _joinPath(self.preview_folder,new_file_name)
-            
-            rgb_im.save(new_img_path)
-            new_img_url=self.getJPEG_URL()
+            rgb_im.save(new_img_path, quality=90)
             # print('new_file_name ',new_file_name)
-            print('new_img_url ',new_img_url)
+            print('new_img_url ',new_img_url) #For debugging
             
         except PIL.UnidentifiedImageError:
+            im = Image.open(_joinPath(getAppFolder(),'assets','imgs','image.png'))
+            rgb_im = im.convert("RGB")
+            rgb_im.save(new_img_path, quality=60)
+            
             print(f'Failed getting JPEG {self.img_path} -----------------------------------------')
             return "assets/icons/image.png"
         
