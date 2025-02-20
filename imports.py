@@ -147,3 +147,9 @@ startService()
 
 # # Start foreground service with the notification
 # service.startForeground(1, builder.build())
+
+# try:
+#     from  utils import test
+    # print('Android Notify Passsed All Tests')
+# except Exception as e:
+#     print('Andorid notify Tests failed -----',e)
