@@ -10,19 +10,20 @@ import tempfile
 
 # Worker imports
 if __name__=='__main__':
+    # For Tests
     from helper import (
     gen_unique_filname, getAppFolder, getFileExtension, getHomePath, getdesktopFolder,
         makeFolder, removeFirstDot, sortedDir, urlSafePath, getUserPCName
     )
     from thumbmailGen import generateThumbnails
-    from sword import NetworkManager
+    from sword import NetworkManager,JPEGWorker
 else:
     from workers.helper import (
         gen_unique_filname, getAppFolder, getFileExtension, getHomePath, getdesktopFolder,
         makeFolder, removeFirstDot, sortedDir, urlSafePath, getUserPCName
     )
     from workers.thumbmailGen import generateThumbnails
-    from workers.sword import NetworkManager
+    from workers.sword import NetworkManager,JPEGWorker
     
 # File Type Definitions
 MY_OWNED_ICONS = ['.py', '.js', '.css', '.html', '.json', '.deb', '.md', '.sql', '.java']
@@ -57,6 +58,7 @@ def writeErrorLog(title, value):
     error_log_path = os.path.join(getAppFolder(), 'errors.txt')
     with open(error_log_path, 'a') as log_file:
         log_file.write(f'====== {title} LOG ====\n{value}\n\n')
+        print(f'====== {title} LOG ====\n{value}\n\n')
 
 
 # Handle stderr when compiled to a single file
@@ -246,7 +248,9 @@ class CustomHandler(SimpleHTTPRequestHandler):
         elif format_ in AUDIO_FORMATS:
             return "assets/icons/audio.png", ''
         elif format_ in PICTURE_FORMATS:
-            return f"http://{SERVER_IP}:8000/{urlSafePath(path)}", ''
+            # return f"http://{SERVER_IP}:8000/{urlSafePath(path)}", ''
+            instance = JPEGWorker(path,SERVER_IP)
+            return "assets/icons/image.png", instance.getJPEG_URL()
         return "assets/icons/file.png", ''
 
 
