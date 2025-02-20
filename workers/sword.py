@@ -7,6 +7,11 @@ import netifaces
 from dataclasses import dataclass
 import socket
 import time
+import threading
+import os
+from PIL import Image 
+import PIL
+from workers.helper import gen_unique_filname,_joinPath,getAppFolder
 
 
 @dataclass
@@ -155,6 +160,53 @@ class NetworkManager:
             time.sleep(.5)  # Broadcast every second
         print('Ended BroadCast !!!')
 
+class JPEGWorker:
+        
+    # TODO Make an init file or config file for app for things like this
+    preview_folder = os.path.join(getAppFolder(), 'preview-imgs')
+    def __init__(self,img_path:str,server_ip:str):
+        self.server_ip = server_ip
+        self.img_path = img_path
+
+        os.makedirs(self.preview_folder,exist_ok=True)
+        
+        threading.Thread(
+                        target=self.genrateJPEG,
+                        daemon=True
+                    ).start()
+        
+    def getJPEG_URL(self):
+        """Returns JPG path while waiting for server"""
+        new_file_name = gen_unique_filname(self.img_path) + '.jpg'
+        new_img_path = _joinPath(self.preview_folder,new_file_name)
+        return f"http://{self.server_ip}:8000/{new_img_path}"
+        
+    
+    def genrateJPEG(self):
+        print('goten img path ',self.img_path)
+        try:
+            # url_path=urlSafePath(img_path)
+            # importing the image  
+            im = Image.open(self.img_path) 
+
+            # converting to jpg 
+            rgb_im = im.convert("RGB") 
+
+            # exporting the image 
+            new_file_name = gen_unique_filname(self.img_path) + '.jpg'
+            
+            new_img_path = _joinPath(self.preview_folder,new_file_name)
+            
+            rgb_im.save(new_img_path)
+            new_img_url=self.getJPEG_URL()
+            # print('new_file_name ',new_file_name)
+            print('new_img_url ',new_img_url)
+            
+        except PIL.UnidentifiedImageError:
+            print(f'Failed getting JPEG {self.img_path} -----------------------------------------')
+            return "assets/icons/image.png"
+        
+        #TODO Probalbly catch all errors
 # Create singleton instance
 # # Usage example:
 # network = NetworkManager()
