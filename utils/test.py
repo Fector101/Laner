@@ -129,3 +129,10 @@ try:
 except Exception as e:
     print('test101 Failed attaching identifier1',e)
     traceback.print_exc()
+
+try:
+    Notification(app_icon="assets/imgs/imgx.png",title="Custom Icon",message="Custom icon message").send(persistent=True)
+    print('test101 Custom Successfull')
+except Exception as e:
+    print('test101 Custom Icon Failed: ',e)
+    traceback.print_exc()
