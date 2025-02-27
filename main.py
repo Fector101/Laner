@@ -420,14 +420,51 @@ class SettingsScreen(MDScreen):
     def autoConnect(self):
         ip_input=self.ids['ip_addr_input']
         connect_btn=self.ids['connect_btn']
-        
-        def success(pc_name,ip_address):
+        stay_active_fun=False
+        doing_call=False
+        notif : Notification = None
+        def failed_noti(erro_name):
+            print(erro_name)
+            update_noti(False)
+                        
+        def set_data(pc_name,ip_address):
             self.pc_name = ip_input.text="Connected to: "+pc_name
             ip_input.disabled=True
             connect_btn.text= 'Disconnect'
             self.change_button_callback(connect_btn,self.setIP, self.disconnect,ip_address)
-            Snackbar(h1="Auto Connect Successfull")
-        AsyncRequest().auto_connect(success)
+            
+        def update_noti(good,pc_name=''):
+            nonlocal notif
+            if not notif:
+                notif = Notification()
+                notif.send(silent=True,persistent=False,close_on_click=False)
+            notif.updateTitle('Laner Connected' if good else 'Laner Disconnected')
+            notif.updateMessage(f"Connection To {pc_name} Active" if good else f"No Active Connection To {self.pc_name or "PC"}")
+            
+        def success(pc_name,ip_address):
+            nonlocal stay_active_fun, doing_call
+            set_data(pc_name,ip_address)
+            update_noti(True,pc_name)
+            if not stay_active_fun:
+                Snackbar(h1="Auto Connect Successfull")
+                stayActive()
+            doing_call = False
+            stay_active_fun=True
+        
+        def stayActive():
+            nonlocal doing_call
+            def do_check(dt):
+                nonlocal doing_call
+                if not doing_call:
+                    doing_call = True
+                    AsyncRequest().find_server_with_ports(success,failed_noti)
+                    
+            # Scans Ports For If InCase IP Has Changed
+            Clock.schedule_interval(do_check,2)
+            #According to my calculations AsyncRequest().find_server_with_ports Takes 6 secs to complete if scanning all PORTS
+            
+        AsyncRequest().auto_connect(success,failed=stayActive)
+        
     def setIP(self, widget_that_called):
         ip_input=self.ids['ip_addr_input']
         input_ip_address:str=ip_input.text.strip()

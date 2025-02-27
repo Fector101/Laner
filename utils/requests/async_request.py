@@ -12,7 +12,7 @@ from utils.helper import getAppFolder,get_full_class_name,urlSafePath,getFormat
 from utils.config import Settings
 from .networkmanager import NetworkManager
 from ui.popup import Snackbar
-from utils.constants import IMAGE_FORMATS
+from utils.constants import IMAGE_FORMATS, PORTS
 Notification.logs = True
 
 from kivy.utils import platform # OS
@@ -76,9 +76,10 @@ class AsyncRequest:
         except Exception as e:
             print('Failed to excute function on ui Thread: ',e)
     
-    def do_failed(self,failed):
+    def do_failed(self,failed,args:list=[]):
+        print('This is args: ',args)
         if failed:
-            self.on_ui_thread(failed)
+            self.on_ui_thread(failed,args)
         
     def is_folder(self, path,success,failed=None):
         url = f"http://{self.get_server_ip()}:{self.get_port_number()}/api/isdir"
@@ -293,27 +294,43 @@ class AsyncRequest:
                     print("Old Port Failed - Dev Auto Connect Error: ", get_full_class_name(ea))
 
         def __auto_connect():
-            print('theading...')
-            port = 8000
-            ip_address = NetworkManager().find_server(port,timeout=timeout)
-            print(f"Connecting to server at {ip_address}")
-            try:
-                if ip_address:    
-                    response=requests.get(f"http://{ip_address}:{port}/ping",json={'passcode':'08112321825'},timeout=timeout)
-                    if response.status_code == 200:
-                        pc_name = response.json()['data']
-                        Settings().set('server', 'ip', ip_address)
-                        Settings().set('server', 'port', port)# TODO use a loop to check list of `ports` and set `port` in settings file with right `port`
-                        Settings().add_recent_connection(ip_address) # TODO create another key `ports` in `recent_connections` settings.json
-                        self.on_ui_thread(success,args=[pc_name,ip_address])
-                        print("Broadcast Worked found Port 🥳🥳🥳")
-                else:
-                    try_old_ports()
-            except Exception as e:
-                print("Finding Server - Auto Connect Error: ", get_full_class_name(e))
+            def _failed(e):
+                print("Finding Server - Auto Connect Error: ", e)
                 try_old_ports()
+            self.find_server_with_ports(success=success,failed=_failed)
                     
         threading.Thread(target=__auto_connect).start()
+    def find_server_with_ports(self,success,failed=None) -> None:
+        def scan():
+            try:
+                timeout = .3
+                for each_port in PORTS:
+                    ip_address = NetworkManager().find_server(each_port,timeout=.2)
+                    # timeout for scanning port needs to be longer than sleep time when broadcasting in desktop/workers/sword.py 
+                    # TODO Remove Sleep for NetworkManager.find_server method and hardcode timeout
+                    if ip_address:
+                        print(f"Connecting to server at {ip_address}")
+                        try:
+                            response=requests.get(f"http://{ip_address}:{each_port}/ping",json={'passcode':'08112321825'},timeout=timeout)
+                            if response.status_code == 200:
+                                pc_name = response.json()['data']
+                                Settings().set('server', 'ip', ip_address)
+                                Settings().set('server', 'port', each_port)# TODO use a loop to check list of `ports` and set `port` in settings file with right `port`
+                                Settings().add_recent_connection(ip_address) # TODO create another key `ports` in `recent_connections` settings.json
+                                print("Finding Server Worked found IP & Port 🥳🥳🥳")
+                                self.on_ui_thread(success,args=[pc_name,ip_address])
+                                return # Ending the function and Loop
+                        except Exception as e:
+                            print('For Loop error Not Suppose to happen Take a Look !!!',get_full_class_name(e))
+            except Exception as e:
+                
+                self.do_failed(failed,[get_full_class_name(e)])
+                print("Finding Server - Auto Connect Error: ", get_full_class_name(e))
+                return
+            # InCase where no Error in function and still couldn't find server
+            self.do_failed(failed,[get_full_class_name(e)])
+                
+        threading.Thread(target=scan).start()
     def ping(self,input_ip_address,port,success,failed):
         def __ping():
             try:

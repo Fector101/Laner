@@ -85,7 +85,7 @@ class MyCard(RecycleDataViewBehavior,RectangularRippleBehavior,ButtonBehavior,MD
 
     def on_thumbnail_url(self, instance, value):
         """Called whenever thumbnail_url changes."""
-        self.thumbnail_update_interval = Clock.schedule_interval(lambda dt: self.update_image(), 2)
+        self.thumbnail_update_interval = Clock.schedule_interval(lambda dt: self.update_image(), 1)
         
     def on_parent(self, widget,parent):
         # Cleanup intervals when user leaves screen before thumbnail is created
