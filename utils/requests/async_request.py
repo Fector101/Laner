@@ -308,6 +308,7 @@ class AsyncRequest:
                     ip_address = NetworkManager().find_server(each_port,timeout=.2)
                     # timeout for scanning port needs to be longer than sleep time when broadcasting in desktop/workers/sword.py 
                     # TODO Remove Sleep for NetworkManager.find_server method and hardcode timeout
+                    print('trying port: ',each_port)
                     if ip_address:
                         print(f"Connecting to server at {ip_address}")
                         try:
@@ -328,7 +329,7 @@ class AsyncRequest:
                 print("Finding Server - Auto Connect Error: ", get_full_class_name(e))
                 return
             # InCase where no Error in function and still couldn't find server
-            self.do_failed(failed,[get_full_class_name(e)])
+            self.do_failed(failed,['No Error | No Server'])
                 
         threading.Thread(target=scan).start()
     def ping(self,input_ip_address,port,success,failed):

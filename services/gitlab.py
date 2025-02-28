@@ -35,8 +35,8 @@ if SDK_INT >= 26:
 else:
     notification_builder = NotificationBuilder(app_context)
 
-notification_builder.setContentTitle(AndroidString('title'))
-notification_builder.setContentText(AndroidString('message'))
+notification_builder.setContentTitle(AndroidString('Laner Service'))
+notification_builder.setContentText(AndroidString('active service: TODO find a way to get when service crashs'))
 notification_intent = Intent(app_context, PythonActivity)
 notification_intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK)
 notification_intent.setAction(Intent.ACTION_MAIN)

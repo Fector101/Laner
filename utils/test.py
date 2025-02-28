@@ -16,6 +16,32 @@ except Exception as e:
     print('test101 Failed Basic Noti',e)
     traceback.print_exc()
 
+
+try:
+    notification = Notification(
+        title="Failed Test Title didn't change",
+        message="Failed Test Title didn't change"
+    )
+    notification.send()
+    notification.updateTitle('New Title')
+    print("test101 passed updateTitle")
+except Exception as e:
+    print('test101 Failed updateTitle',e)
+    traceback.print_exc()
+
+try:
+    notification = Notification(
+        title="Failed Test Message didn't change",
+        message="Failed Test Message didn't change"
+    )
+    notification.send()
+    notification.updateMessage('New Message')
+    print("test101 passed updateMessage")
+except Exception as e:
+    print('test101 Failed updateMessage',e)
+    traceback.print_exc()
+
+
 try:
     progress = 0
 

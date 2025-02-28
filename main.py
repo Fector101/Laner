@@ -426,6 +426,8 @@ class SettingsScreen(MDScreen):
         def failed_noti(erro_name):
             print(erro_name)
             update_noti(False)
+            stayActive()
+            
                         
         def set_data(pc_name,ip_address):
             self.pc_name = ip_input.text="Connected to: "+pc_name
@@ -435,11 +437,12 @@ class SettingsScreen(MDScreen):
             
         def update_noti(good,pc_name=''):
             nonlocal notif
+            fallback_name=self.pc_name or "PC"
             if not notif:
-                notif = Notification()
-                notif.send(silent=True,persistent=False,close_on_click=False)
+                notif = Notification(channel_name='Active State')
+                notif.send(silent=True,persistent=True,close_on_click=False)
             notif.updateTitle('Laner Connected' if good else 'Laner Disconnected')
-            notif.updateMessage(f"Connection To {pc_name} Active" if good else f"No Active Connection To {self.pc_name or "PC"}")
+            notif.updateMessage(f"Connection To {pc_name} Active" if good else f"No Active Connection To {fallback_name}")
             
         def success(pc_name,ip_address):
             nonlocal stay_active_fun, doing_call
