@@ -424,13 +424,15 @@ class SettingsScreen(MDScreen):
         doing_call=False
         notif : Notification = None
         def failed_noti(erro_name):
+            nonlocal doing_call
             print(erro_name)
             update_noti(False)
-            stayActive()
+            doing_call = False
             
                         
         def set_data(pc_name,ip_address):
-            self.pc_name = ip_input.text="Connected to: "+pc_name
+            self.pc_name = pc_name
+            ip_input.text="Connected to: "+pc_name
             ip_input.disabled=True
             connect_btn.text= 'Disconnect'
             self.change_button_callback(connect_btn,self.setIP, self.disconnect,ip_address)
