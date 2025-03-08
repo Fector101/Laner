@@ -426,7 +426,6 @@ class SettingsScreen(MDScreen):
         def failed_noti(erro_name):
             nonlocal doing_call
             print(erro_name)
-            update_noti(False)
             doing_call = False
             
                         
