@@ -440,7 +440,7 @@ class SettingsScreen(MDScreen):
             nonlocal notif
             fallback_name=self.pc_name or "PC"
             if not notif:
-                notif = Notification(channel_name='Active State')
+                notif = Notification(logs=False,channel_name='Active State')
                 notif.send(silent=True,persistent=True,close_on_click=False)
             notif.updateTitle('Laner Connected' if good else 'Laner Disconnected')
             notif.updateMessage(f"Connection To {pc_name} Active" if good else f"No Active Connection To {fallback_name}")
