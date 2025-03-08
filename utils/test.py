@@ -67,7 +67,7 @@ try:
             Clock.schedule_once(removeBar,3)
         return progress < 100  # Stops when reaching 100%
 
-    Clock.schedule_interval(update_progress, 3)
+    Clock.schedule_interval(update_progress, .1)
 except Exception as e:
     traceback.print_exc()
     print('test101 Failed Progress Noti',e)
