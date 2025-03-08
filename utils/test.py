@@ -1,4 +1,4 @@
-print('Starting test ----------------------------------')
+print('Starting test101 ----------------------------------')
 from android_notify import Notification, NotificationStyles
 from kivy.clock import Clock
 import traceback
@@ -59,9 +59,8 @@ try:
         noti_progress.updateProgressBar(progress, f"{progress}% downloaded")
 
         def removeBar(dt):
-        # Remove progress bar
-            noti_progress.removeProgressBar("Download Complete")
-            print("test101 removed progress bar passed")
+            noti_progress.removeProgressBar(message='Test for new PB Msg',title="Download Complete removed progress")
+            print("test101 passed removed progress bar")
 
         if progress >= 100: # Stops when reaching 100%
             Clock.schedule_once(removeBar,3)

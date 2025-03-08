@@ -13,7 +13,7 @@ from utils.config import Settings
 from .networkmanager import NetworkManager
 from ui.popup import Snackbar
 from utils.constants import IMAGE_FORMATS, PORTS
-Notification.logs = True
+Notification.logs = False
 
 from kivy.utils import platform # OS
 if platform == 'android':
@@ -144,22 +144,19 @@ class AsyncRequest:
         
     def update_progress(self,monitor,notification:Notification,type_):
         new_percent = int((monitor.bytes_read / monitor.len) * 100)
-        if new_percent == 100:
-            notification.updateTitle(f'Completed {type_}')
+        if new_percent >= 100:
             notification.removeButtons()
-            notification.removeProgressBar()
+            notification.removeProgressBar(title=f'Completed {type_}')
         elif new_percent != self.percent:
             # print(f"{type_}ing ({new_percent}%)")
             self.percent=new_percent
-            notification.updateTitle(f"{type_}ing ({self.percent}%)")
-            notification.updateProgressBar(self.percent)
+            notification.updateProgressBar(self.percent,title=f"{type_}ing ({self.percent}%)")
         
     def download_file(self, file_path,save_path,success,failed=None):
         file_name = os.path.basename(save_path)
         def failed_download_notification(msg='Download Error!'):
-            self.download_notification.updateTitle(msg)
             self.download_notification.removeButtons()
-            self.download_notification.removeProgressBar()
+            self.download_notification.removeProgressBar(title=msg)
             
         def _download():
             try:
@@ -222,9 +219,8 @@ class AsyncRequest:
             self.upload_notification.send()
         
         def failed_upload_notification(msg='Upload Error!'):
-            self.upload_notification.updateTitle(msg)
             self.upload_notification.removeButtons()
-            self.upload_notification.removeProgressBar()
+            self.upload_notification.removeProgressBar(title=msg)
             
         def update_progress(monitor):
             if self.cancel_upload:
@@ -318,7 +314,6 @@ class AsyncRequest:
                                 Settings().set('server', 'ip', ip_address)
                                 Settings().set('server', 'port', each_port)# TODO use a loop to check list of `ports` and set `port` in settings file with right `port`
                                 Settings().add_recent_connection(ip_address) # TODO create another key `ports` in `recent_connections` settings.json
-                                print("Finding Server Worked found IP & Port 🥳🥳🥳")
                                 self.on_ui_thread(success,args=[pc_name,ip_address])
                                 return # Ending the function and Loop
                         except Exception as e:
