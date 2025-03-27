@@ -1,0 +1,11 @@
+{
+    "files.exclude": {
+      ".git": true,
+      "bin": true,
+      "lab": true,
+      "plyer": true,
+      "build patches": true,
+      "venv": true,
+      "android_notify": true,
+    }
+  }

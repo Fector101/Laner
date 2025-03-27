@@ -147,9 +147,14 @@ startService()
 
 # # Start foreground service with the notification
 # service.startForeground(1, builder.build())
+import logging
+
+logging.getLogger("urllib3").setLevel(logging.WARNING)
+# logging.getLogger("requests").setLevel(logging.WARNING)
+# logging.getLogger("kivy").setLevel(logging.WARNING)  # If using Kivy
 
 # try:
 #     from  utils import test
-#     print('Android Notify Passsed All Tests')
+#     print('Ran All Android Notify Tests')
 # except Exception as e:
 #     print('Andorid notify Tests failed -----',e)
