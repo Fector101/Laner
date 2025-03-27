@@ -1,0 +1,270 @@
+#: import MDTextButton ui.templates.MDTextButton
+<FirstSlide>:
+    size_hint: None, None
+    size: "320dp", "420dp"
+    pos_hint: {"center_x": 0.5, "center_y": 0.5}
+    elevation: 5
+    radius: [20]
+    padding: "20dp"
+    orientation: "vertical"
+
+    MDLabel:
+        text: "Welcome"
+
+        theme_font_size:"Custom"
+        font_size:"30sp"
+        halign: "center"
+        bold: True
+    MDLabel:
+        text: "Let's get your devices connected"
+        halign: "center"
+        theme_text_color: "Secondary"
+        font_size: "14sp"
+
+    # Dots indicator (use three labels as placeholders)
+    MDBoxLayout:
+        size_hint_y: None
+        height: "20dp"
+        adaptive_width:True
+        spacing: "5dp"
+        pos_hint: {"center_x": 0.5}
+        MDIcon:
+            icon: "circle"
+            theme_text_color: "Custom"
+            text_color: 0, 0.4, 1, 1
+            theme_font_size:"Custom"
+            font_size: "10sp"
+        MDIcon:
+            icon: "circle"
+            theme_text_color: "Custom"
+            text_color: 0.8, 0.8, 0.8, 1
+            theme_font_size:"Custom"
+            font_size: "10sp"
+        MDIcon:
+            icon: "circle"
+            theme_text_color: "Custom"
+            text_color: 0.8, 0.8, 0.8, 1
+            theme_font_size:"Custom"
+            font_size: "10sp"
+
+    Widget:
+        size_hint_y: None
+        height: "10dp"
+
+    # WiFi to device connection
+    MDBoxLayout:
+        orientation: "horizontal"
+        adaptive_width:True
+        spacing: "15dp"
+        pos_hint: {"center_x": 0.5}
+
+        MDIcon:
+            icon: "wifi"
+            theme_text_color: "Custom"
+            text_color: 0, 0.4, 1, 1  # Blue
+            theme_font_size:"Custom"
+            font_size: "50sp"
+        
+        MDIcon:
+            icon: "arrow-right"
+            theme_text_color: "Custom"
+            text_color: 0, 0.4, 1, 1
+            theme_font_size:"Custom"
+            font_size: "40sp"
+
+        MDIcon:
+            icon: "server"
+            theme_text_color: "Custom"
+            text_color: 0, 0.4, 1, 1  # Blue
+            theme_font_size:"Custom"
+            font_size: "50sp"
+
+    MDLabel:
+        text: "Connect your devices"
+        # font_style: "H6"
+        halign: "center"
+        bold: True
+
+    MDLabel:
+        text: "Connect your phone's hotspot to your PC's Wi-Fi or connect both devices to the same network."
+        halign: "center"
+        theme_text_color: "Secondary"
+        font_size: "14sp"
+        size_hint_y: None
+        height: "60dp"
+
+    Widget:
+        size_hint_y: None
+        height: "10dp"
+
+    MDTextButton:
+        text: "Continue"
+        pos_hint: {"center_x": 0.5}
+        md_bg_color: 0, 0.4, 1, 1
+        size_hint_x: 0.8
+<SecondSlide>:
+    size_hint: None, None
+    size: "320dp", "420dp"
+    pos_hint: {"center_x": 0.5, "center_y": 0.5}
+    elevation: 5
+    radius: [20]
+    padding: "20dp"
+    orientation: "vertical"
+    MDLabel:
+        text: "Welcome"
+        halign: "center"
+        
+        theme_font_size:"Custom"
+        font_size:"30sp"
+        bold: True
+
+    MDLabel:
+        text: "Let's get your devices connected"
+        halign: "center"
+        theme_text_color: "Secondary"
+        font_size: "14sp"
+
+    BoxLayout:
+        size_hint_y: None
+        height: "20dp"
+        spacing: "5dp"
+        pos_hint: {"center_x": 0.5}
+        
+        MDIcon:
+            icon: "circle"
+            theme_text_color: "Custom"
+            text_color: 0, 0.5, 1, 1
+            font_size: "10sp"
+
+        MDIcon:
+            icon: "circle"
+            theme_text_color: "Custom"
+            text_color: 0, 0.5, 1, 0.4
+            font_size: "10sp"
+
+        MDIcon:
+            icon: "circle"
+            theme_text_color: "Custom"
+            text_color: 0, 0.5, 1, 0.2
+            font_size: "10sp"
+
+    Widget:
+        size_hint_y: None
+        height: "10dp"
+
+    BoxLayout:
+        orientation: "horizontal"
+        size_hint_y: None
+        height: "80dp"
+        spacing: "15dp"
+        pos_hint: {"center_x": 0.5}
+
+        MDIcon:
+            icon: "server"
+            text_color: 0, 0.5, 1, 1
+            font_size: "50sp"
+
+        MDIcon:
+            icon: "arrow-right"
+            text_color: 0.3, 0.3, 0.3, 1
+            font_size: "40sp"
+
+        MDIcon:
+            icon: "cellphone"
+            text_color: 0, 0.5, 1, 1
+            font_size: "50sp"
+
+    MDLabel:
+        text: "Start on PC"
+        
+        theme_font_size:"Custom"
+        font_size:"25sp"
+        halign: "center"
+        bold: True
+
+    MDLabel:
+        text: 'Press the "Start" button on your PC application to initiate the connection.'
+        halign: "center"
+        theme_text_color: "Secondary"
+        font_size: "14sp"
+        size_hint_y: None
+        height: "60dp"
+
+    Widget:
+        size_hint_y: None
+        height: "10dp"
+
+    BoxLayout:
+        orientation: "vertical"
+        spacing: "10dp"
+        size_hint_y: None
+        height: "100dp"
+        pos_hint: {"center_x": 0.5}
+
+        MDTextButton:
+            text: "Next"
+            md_bg_color: 0, 0.5, 1, 1
+            on_release: app.on_next()
+
+        MDTextButton:
+            text: "Back"
+            md_bg_color: 0.9, 0.9, 0.9, 1
+            text_color: 0, 0, 0, 1
+            on_release: app.on_back()
+<LastSlide>:
+    MDLabel:
+        text: "Final Step"
+        halign: "center"
+        theme_font_size:"Custom"
+        font_size:"30sp"
+        bold: True
+    MDLabel:
+        text: "You're all set!"
+        halign: "center"
+        theme_text_color: "Secondary"
+        font_size: "14sp"
+
+<ConnectScreen>:
+    name: "connect"
+    MDScreen:
+        md_bg_color: 1, 1, 1, 1
+
+        MDCard:
+            size_hint: None, None
+            size: "320dp", "450dp"
+            pos_hint: {"center_x": 0.5, "center_y": 0.5}
+            elevation: 5
+            radius: [20]
+            padding: "20dp"
+            orientation: "vertical"
+
+            MDSwiper:
+                id: swiper
+                size_hint_y: None
+                height: "300dp"
+                on_swipe: app.update_dots(swiper.current_slide)
+                FirstSlide:
+                SecondSlide:
+                LastSlide:
+                    
+
+            # Pagination Dots
+            MDBoxLayout:
+                id: dots
+                size_hint_y: None
+                height: "20dp"
+                adaptive_width: True
+                spacing: "5dp"
+                pos_hint: {"center_x": 0.5}
+
+            MDTextButton:
+                text: "Next"
+                on_release: root.next_slide()
+
+            MDTextButton:
+                text: "Back"
+                on_release: root.prev_slide()
+
+
+
+

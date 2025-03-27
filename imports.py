@@ -19,6 +19,7 @@ from kivy.uix.scrollview import ScrollView
 from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.label import MDIcon, MDLabel
 from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.floatlayout import MDFloatLayout
 from kivymd.uix.behaviors import RectangularRippleBehavior
 from kivymd.uix.relativelayout import MDRelativeLayout
 from kivymd.uix.stacklayout import MDStackLayout
@@ -30,6 +31,7 @@ from kivymd.material_resources import DEVICE_TYPE # if mobile or PC
 from kivymd.uix.filemanager import MDFileManager
 from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDNavigationLayout)
 from kivymd.uix.divider import MDDivider
+
 
 import os, sys, json, requests, asyncio, threading
 
@@ -46,7 +48,7 @@ from utils import Settings,NetworkManager,AsyncRequest
 
 from ui.popup import Snackbar
 from ui.templates import CustomDropDown, MDTextButton,MyBtmSheet
-from ui.screens import DisplayFolderScreen
+from ui.screens import DisplayFolderScreen, ConnectScreen
 from ui.header import Header
 from ui.pictureviewer import PictureViewer
 
@@ -103,7 +105,9 @@ def startService():
         print('returned service')
     except Exception as e:
         print(f'Foreground service failed {e}')
-startService()
+
+if platform == 'android':
+    startService()
 
 
 

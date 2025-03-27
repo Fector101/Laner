@@ -2,9 +2,12 @@ from imports import *
 #Making/Getting Downloads Folder
 if platform == 'android':
     my_downloads_folder=makeDownloadFolder()
-    requestMultiplePermissions()
+    from .utils.permissions import PermissionHandler
+    PermissionHandler()
+    # requestMultiplePermissions()
 else:
     Window.size = (400, 600)
+
 
 
 class WindowManager(MDScreenManager):
@@ -20,8 +23,10 @@ class WindowManager(MDScreenManager):
         self.add_widget(DisplayFolderScreen(name='upload',current_dir='Home'))
         self.add_widget(DisplayFolderScreen(name='download',current_dir='.'))
         self.add_widget(SettingsScreen())
+        self.add_widget(ConnectScreen())
         self.transition=NoTransition()
-        self.current='upload'
+        # self.current='upload'
+        self.current='connect'
         Window.update_viewport()
         Window.bind(on_keyboard=self.Android_back_click)
 
@@ -330,7 +335,8 @@ class SettingsScreen(MDScreen):
         self.layout.add_widget(scroll)
         self.layout.add_widget(MDBoxLayout(height='70sp',size_hint=[1,None]))  # Buffer cause of bottom nav bar (will change to padding later)
         self.add_widget(self.layout)
-        self.autoConnect()
+        print('not doing auto connect')
+        # self.autoConnect()
 
     def add_category(self, title, items):
         def addID(item: dict, widget: object = None) -> None:
@@ -449,6 +455,8 @@ class SettingsScreen(MDScreen):
             nonlocal stay_active_fun, doing_call
             set_data(pc_name,ip_address)
             update_noti(True,pc_name)
+            print('not checking for new ip')
+            return
             if not stay_active_fun:
                 Snackbar(h1="Auto Connect Successfull")
                 stayActive()
@@ -457,6 +465,8 @@ class SettingsScreen(MDScreen):
         
         def stayActive():
             nonlocal doing_call
+            # print('not checking for new ip')
+            # return
             def do_check(dt):
                 nonlocal doing_call
                 if not doing_call:
@@ -467,7 +477,10 @@ class SettingsScreen(MDScreen):
             Clock.schedule_interval(do_check,2)
             #According to my calculations AsyncRequest().find_server_with_ports Takes 6 secs to complete if scanning all PORTS
             
-        AsyncRequest().auto_connect(success,failed=stayActive)
+        def fun():
+            print('not checking for new ip')
+        # AsyncRequest().auto_connect(success,failed=stayActive)
+        AsyncRequest().auto_connect(success,failed=fun)
         
     def setIP(self, widget_that_called):
         ip_input=self.ids['ip_addr_input']
@@ -589,6 +602,9 @@ class Laner(MDApp):
         self.btm_sheet = MyBtmSheet()
         self.my_screen_manager = WindowManager(self.btm_sheet)
         self.bottom_navigation_bar = BottomNavigationBar(self.my_screen_manager)
+        
+        print('doing connect screen')
+        self.bottom_navigation_bar.close()
         
         # if DEVICE_TYPE == "mobile":
         #     viewport_size=getViewPortSize()

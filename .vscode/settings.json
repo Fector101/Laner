@@ -5,7 +5,7 @@
       "lab": true,
       "plyer": true,
       "build patches": true,
-      "venv": true,
+      // "venv": true,
       "android_notify": true,
     }
   }
