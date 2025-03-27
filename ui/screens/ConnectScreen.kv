@@ -1,8 +1,7 @@
 #: import MDTextButton ui.templates.MDTextButton
 <FirstSlide>:
     pos_hint: {"center_x": 0.5, "center_y": 0.5}
-    elevation: 5
-    # radius: [20]
+    radius: [20]
     padding: "20dp"
     orientation: "vertical"
 
@@ -39,11 +38,19 @@
             theme_font_size:"Custom"
             font_size: "50sp"
 
+    Widget: # :( margin
+        size_hint_y: None
+        height: "8sp"
+
     MDLabel:
         text: "Connect your devices"
+        theme_font_size:"Custom"
+        font_size:"22sp"
         halign: "center"
         bold: True
-
+    Widget: # :( margin
+        size_hint_y: None
+        height: "5sp"
     MDLabel:
         text: "Connect your phone's hotspot to your PC's Wi-Fi or connect both devices to the same network."
         halign: "center"
@@ -90,6 +97,10 @@
             text_color: 0, 0.5, 1, 1
             theme_font_size:"Custom"
             font_size: "50sp"
+
+    Widget: # :( margin
+        size_hint_y: None
+        height: "8dp"
 
     MDLabel:
         text: "Start on PC"
