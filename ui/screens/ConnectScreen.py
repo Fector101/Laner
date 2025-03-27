@@ -35,26 +35,53 @@ class ConnectScreen(MDScreen):
     def next_slide(self):
         swiper = self.ids.swiper
         current_index = swiper.get_current_index()
-        if swiper.get_current_index() < len(swiper.children) - 1:
+        items=swiper.get_items()
+        if swiper.get_current_index() < len(items) - 1:
             swiper.set_current(current_index + 1)
-        self.update_dots(current_index)
+        self.updateBtns()
 
     def prev_slide(self):
         swiper = self.ids.swiper
-        print(swiper)
         current_index = swiper.get_current_index()
-        
         if current_index > 0:
             swiper.set_current(current_index - 1)
-        self.update_dots(current_index)
-
+        self.updateBtns()
+    def updateBtns(self):
+        main_card = self.ids.main_card
+        swiper = self.ids.swiper
+        current_index = swiper.get_current_index()
+        firstBtn = self.ids.first_btn
+        def showSecondBtn():
+            secondBtn.disabled=False
+            secondBtn.opacity=1
+            secondBtn.height='40sp'
+            self.ids.btns_padding.height='10sp'
+            
+        secondBtn = self.ids.second_btn
+        if (current_index == 0):
+            firstBtn.text='Continue'
+            
+            secondBtn.disabled=True
+            secondBtn.opacity=0
+            self.ids.btns_padding.height='0sp'
+            secondBtn.height='0sp'
+            
+        elif (current_index == 1):
+            firstBtn.text='Next'
+            showSecondBtn()
+        elif (current_index == 2):
+            firstBtn.text='Request Connection'
+            showSecondBtn()
+            
+            
+            
     def update_dots(self, current_index):
-        dots = self.ids.dots
-        dots.clear_widgets()
+        dots = [*self.ids.dots.children]
+        
+        dots.reverse()
+        print('-----start')
+        print('color --> ','--', 'current_index -->',current_index)
         for i in range(3):  # Total slides
             color = (0, 0.4, 1, 1) if i == current_index else (0.8, 0.8, 0.8, 1)
-            icon=MDIcon(icon="circle", text_color=color, font_size="10sp",theme_text_color="Custom")
-            icon.theme_text_color="Custom"
-            icon.theme_font_size="Custom"
-            icon.font_size= "10sp"
-            dots.add_widget(icon)
+            print(dots[i].text)
+            dots[i].text_color=color
