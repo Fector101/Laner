@@ -46,11 +46,11 @@ from utils.helper import (
 from utils import Settings,NetworkManager,AsyncRequest
 
 
-from ui.popup import Snackbar
-from ui.templates import CustomDropDown, MDTextButton,MyBtmSheet
-from ui.screens import DisplayFolderScreen, ConnectScreen
-from ui.header import Header
-from ui.pictureviewer import PictureViewer
+from components.popup import Snackbar
+from components.templates import CustomDropDown, MDTextButton,MyBtmSheet
+from screens import DisplayFolderScreen, ConnectScreen
+from components.header import Header
+from components.pictureviewer import PictureViewer
 
 
 if platform == 'android':

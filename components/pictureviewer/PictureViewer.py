@@ -11,7 +11,7 @@ from utils.helper import getAppFolder
 from .SafeAsyncImage import SafeAsyncImage
 
 
-kv_file_path = os.path.join(getAppFolder(), "ui", "pictureviewer", "PictureViewer.kv")
+kv_file_path = os.path.join(getAppFolder(), "components", "pictureviewer", "PictureViewer.kv")
 with open(kv_file_path, encoding="utf-8") as kv_file:
     Builder.load_string(kv_file.read(), filename="PictureViewer.kv")
     

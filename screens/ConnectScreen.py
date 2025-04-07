@@ -9,9 +9,9 @@ from kivymd.uix.label import MDIcon, MDLabel
 from kivy.uix.boxlayout import BoxLayout
 from utils.helper import getAppFolder
 from kivymd.uix.swiper.swiper import MDSwiperItem
-import ui.templates
+import components.templates
 filename="ConnectScreen.kv"
-kv_file_path = os.path.join(getAppFolder(), "ui", "screens", filename)
+kv_file_path = os.path.join(getAppFolder(), "screens", filename)
 with open(kv_file_path, encoding="utf-8") as kv_file:
     Builder.load_string(kv_file.read(), filename=filename)
 

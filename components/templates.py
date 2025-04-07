@@ -9,10 +9,10 @@ from kivymd.uix.button import MDButton, MDButtonText,MDButtonIcon,MDIconButton
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivy.utils import platform # OS
 
-from ui.popup import Snackbar
+from components.popup import Snackbar
 from utils.helper import getAppFolder
 
-with open(os.path.join(getAppFolder(),"ui","templates.kv"), encoding="utf-8") as kv_file:
+with open(os.path.join(getAppFolder(),"components","templates.kv"), encoding="utf-8") as kv_file:
     Builder.load_string(kv_file.read(), filename="MyBtmSheet.kv")
 
 

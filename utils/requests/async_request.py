@@ -11,7 +11,7 @@ from android_notify import Notification, NotificationStyles
 from utils.helper import getAppFolder,get_full_class_name,urlSafePath,getFormat
 from utils.config import Settings
 from .networkmanager import NetworkManager
-from ui.popup import Snackbar
+from components.popup import Snackbar
 from utils.constants import IMAGE_FORMATS, PORTS
 Notification.logs = False
 

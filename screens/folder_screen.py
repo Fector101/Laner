@@ -27,9 +27,9 @@ from kivymd.uix.button import MDFabButton
 from android_notify import Notification, NotificationStyles
 from plyer import filechooser # pylint: disable=import-error
 
-from ui.header import Header
-from ui.popup import PopupDialog, Snackbar
-from ui.pictureviewer import SafeAsyncImage # it's been Used in .kv file
+from components.header import Header
+from components.popup import PopupDialog, Snackbar
+from components.pictureviewer import SafeAsyncImage # it's been Used in .kv file
 from utils.helper import getHiddenFilesDisplay_State, makeDownloadFolder, getAppFolder,getFormat
 from utils import AsyncRequest
 from utils.constants import IMAGE_FORMATS
@@ -40,7 +40,7 @@ if platform == "android":
 
 # Setup paths and load KV file.
 my_downloads_folder = makeDownloadFolder()
-kv_file_path = os.path.join(getAppFolder(), "ui", "screens", "folderscreen.kv")
+kv_file_path = os.path.join(getAppFolder(), "screens", "folderscreen.kv")
 with open(kv_file_path, encoding="utf-8") as kv_file:
     Builder.load_string(kv_file.read(), filename="folderscreen.kv")
 
