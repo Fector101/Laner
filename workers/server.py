@@ -8,6 +8,12 @@ import traceback
 from os.path import join as _joinPath
 import tempfile
 
+import websockets
+from websockets.server import WebSocketServerProtocol
+import asyncio
+
+
+
 # Worker imports
 if __name__=='__main__':
     # For Tests
@@ -254,14 +260,106 @@ class CustomHandler(SimpleHTTPRequestHandler):
         return "assets/icons/file.png", ''
 
 
+class WebSocketConnectionHandler:
+    def __init__(self, websocket, connection_signal=None):
+        self.websocket = websocket
+        self.connection_signal = connection_signal
+        self.authenticated = False
+        self.response_event = asyncio.Event()
+
+    async def handle_connection_request(self):
+        """Handle WebSocket connection requests"""
+        device_ip = f"Device-{self.websocket.remote_address[0]}"
+        # device_ip = f"Device-{self.websocket.remote_address[0]}"
+        if self.connection_signal:
+            self.connection_signal.connection_request.emit( device_ip, self)  # Pass the handler instance
+            await self.response_event.wait()
+            return self.authenticated
+        return False
+
+    # async def send_response(self, accepted):
+    #     """Send acceptance/rejection to client"""
+    #     self.authenticated = accepted
+    #     if accepted:
+    #         await self.websocket.send("ACCESS_GRANTED")
+    #     else:
+    #         await self.websocket.send("ACCESS_DENIED")
+    #     self.response_event.set()
+
+    # async def on_connect(self):
+    #     """Handle new WebSocket connections"""
+    #     try:
+    #         authenticated = await self.handle_connection_request()
+    #         if not authenticated:
+    #             await self.websocket.close()
+    #             return
+
+    #         # Connection is authenticated, handle messages
+    #         async for message in self.websocket:
+    #             print(f"Received: {message}")
+    #             # Handle your WebSocket messages here
+
+    #     except websockets.exceptions.ConnectionClosed:
+    #         print("Client disconnected")
+    #     except Exception as e:
+    #         print(f"WebSocket error: {e}")
+    #         await self.websocket.close()
+    async def handle_connection(self):
+        """Main connection handling loop"""
+        try:
+            # Wait for authentication
+            authenticated = await self.handle_connection_request()
+            if not authenticated:
+                await self.websocket.close()
+                return
+
+            # Keep connection alive
+            while True:
+                message = await self.websocket.recv()
+                print(f"Received: {message}")
+                # Handle messages here
+                
+        except websockets.exceptions.ConnectionClosed:
+            print("Client disconnected")
+        except Exception as e:
+            print(f"WebSocket error: {e}")
+            await self.websocket.close()            
 # Server Class
 class FileSharingServer:
-    def __init__(self, ip, port=8000, directory="/"):
+    def __init__(self, ip, connection_signal, port=8000, directory="/"):
         self.ip = ip
         self.port = port
         self._server = None
         self.directory = directory
         makeFolder(os.path.join(getAppFolder(), 'thumbnails'))
+        print(connection_signal)
+        self.connection_signal = connection_signal
+        self.loop = None
+        # Start WebSocket server in event loop
+        self.ws_thread = threading.Thread(target=self.run_websocket_server)
+        self.ws_thread.daemon = True
+        self.ws_thread.start()
+    
+    async def websocket_handler(self, websocket):
+        """Handle new WebSocket connections"""
+        handler = WebSocketConnectionHandler(
+            websocket=websocket,
+            connection_signal=self.connection_signal
+        )
+        await handler.handle_connection()  # Make sure to await the connection handler        
+
+    # Modify the WebSocket server setup in the FileSharingServer class
+    async def start_websocket_server(self):
+        # Create a wrapper function to properly bind the instance method
+        async def handler(websocket):
+            await self.websocket_handler(websocket)
+        
+        self.server = await websockets.serve(
+            handler,  # Use the wrapper instead of the raw method
+            self.ip,
+            self.port + 1
+        )
+        print(f"WebSocket server started at ws://{self.ip}:{self.port+1}")
 
     def start(self):
         global SERVER_IP
@@ -287,7 +385,6 @@ class FileSharingServer:
             try:
                 self._server = ThreadingHTTPServer(("", port), CustomHandler)
                 # self._server = ThreadingHTTPServer((self.ip, port), CustomHandler)
-                print('classdone')
                 self.port=port
                 threading.Thread(target=self._server.serve_forever, daemon=True).start()
                 print(f"Server started at http://{SERVER_IP}:{self.port}")
@@ -301,7 +398,18 @@ class FileSharingServer:
     def stop(self):
         self._server.shutdown()
         self._server.server_close()
+        if self.loop:
+            self.loop.call_soon_threadsafe(self.loop.stop)
+            self.server.close()
+            self.loop.run_until_complete(self.server.wait_closed())
+            self.loop.close()
+            print("WebSocket server stopped")
         print("Server stopped.")
+    def run_websocket_server(self):
+        self.loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(self.loop)
+        self.loop.run_until_complete(self.start_websocket_server())
+        self.loop.run_forever()
 
 print(__name__,'==','__main__')
 if __name__ == "__main__":
@@ -324,5 +432,3 @@ if __name__ == "__main__":
         # Stop the server on Ctrl+C
         print("\nStopping the server...")
         server.stop()
-# filename="helper.py"\r\n\r\n
-# filename="server.py"\r\n\r\n

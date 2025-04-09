@@ -3,3 +3,4 @@ opencv-python-headless
 PyQt5
 pillow
 netifaces
+websockets

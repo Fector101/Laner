@@ -155,9 +155,9 @@ class NetworkManager:
 
         print(f"Broadcasting server IP: {server_ip} on port {port}")
 
-        while self.keep_broadcasting:
+        while True:
             sock.sendto(message.encode(), ('<broadcast>', port))
-            time.sleep(.5)  # Broadcast every second
+            time.sleep(.08)  # Broadcast every second
         print('Ended BroadCast !!!')
 
 class JPEGWorker:
