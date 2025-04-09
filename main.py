@@ -1,12 +1,8 @@
-import sys, os,asyncio
-import threading
-from PyQt5.QtWidgets import (
-    QApplication, QMainWindow, QVBoxLayout, QLabel, QPushButton, QWidget,QHBoxLayout,
-    QSystemTrayIcon, QMenu, QAction, QDialog, QFormLayout, QLineEdit, QStackedWidget,QSpinBox
-)
+import sys, os
+from PyQt5.QtWidgets import QApplication, QMainWindow, QSystemTrayIcon, QMenu, QAction, QStackedWidget
 from PyQt5.QtGui import QFont, QIcon
-from PyQt5 import QtGui
-from PyQt5.QtCore import Qt, QSize,QThread,pyqtSignal, QObject
+from PyQt5.QtCore import Qt,QThread,pyqtSignal, QObject
+
 from screens import MainScreen,SettingsScreen
 from popups import ConnectionRequest
 
@@ -56,7 +52,7 @@ class FileShareApp(QMainWindow):
     def init_ui(self):
         self.setWindowTitle("Laner")
         self.tray_live_icon=getAbsPath("assets", "imgs", "live.ico" if os.name == 'nt' else "live.png")
-        self.setWindowIcon(QtGui.QIcon(self.icon))
+        self.setWindowIcon(QIcon(self.icon))
         self.setGeometry(100, 100, 500, 500)
 
         # Stacked Widget
@@ -92,18 +88,10 @@ class FileShareApp(QMainWindow):
     def show_connection_request(self, device_name, handler):
         """Show connection dialog"""
         print(device_name,handler, ' name nd handler')
-        # if self.popup is None:
-        #     self.popup = PopupWindow()
-        #     self.popup.show()
-        # else:
-        #     # If window exists, just bring it to front
-        #     self.popup.raise_()
-        #     self.popup.activateWindow()
         self.request_connection_popup.show_request(device_name=device_name, websocket=handler.websocket,event_loop= handler.websocket.loop)
         
     def create_system_tray(self):
         self.tray = QSystemTrayIcon(self)
-
         self.tray.setIcon(QIcon(self.icon))
 
         # Create tray menu
