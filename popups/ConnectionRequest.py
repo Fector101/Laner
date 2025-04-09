@@ -1,15 +1,14 @@
 import asyncio
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout, QPushButton
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt,QEventLoop
 from PyQt5.QtGui import QFont
-
+from workers.server import WebSocketConnectionHandler
 
 # Add Don't show again for this device and then i settings add said device with a check box to off/on incoming requests
 class ConnectionRequest(QWidget):
     def __init__(self):
         super().__init__()
-        self.websocket = None
-        self.event_loop = None
+        self.handler: WebSocketConnectionHandler = None
         
         self.setWindowTitle("Incoming Connection Request")
         self.setFixedSize(350, 450)
@@ -116,10 +115,15 @@ class ConnectionRequest(QWidget):
         self.setWindowModality(Qt.ApplicationModal)
         self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
         
-    def show_request(self, device_name, websocket, event_loop):
+
+    # def show_request(self, device_name, websocket, event_loop):
+    def show_request(self, handler: WebSocketConnectionHandler, message_object={'name':'','request':''}):
         """Show the widget with new connection details"""
-        self.websocket = websocket
-        self.event_loop = event_loop
+        self.handler = handler
+        # self.websocket = websocket
+        # self.event_loop = event_loop
+        device_name = message_object['name']
+        request = message_object['request']
         self.device_label.setText(device_name)
         self.show()
 
@@ -129,21 +133,27 @@ class ConnectionRequest(QWidget):
 
     def accept_connection(self):
         """Handle accept connection"""
-        if self.websocket and self.event_loop:
-            asyncio.run_coroutine_threadsafe(self._send_response(True), self.event_loop)
+        if self.handler:
+            loop = QEventLoop()
+            asyncio.set_event_loop(asyncio.new_event_loop())
+            asyncio.get_event_loop().run_until_complete(self.handler.accept())
+            # asyncio.run_coroutine_threadsafe(self._send_response(True), self.event_loop)
         self.hide_request()
 
     def reject_connection(self):
         """Handle reject connection"""
-        if self.websocket and self.event_loop:
-            asyncio.run_coroutine_threadsafe(self._send_response(False), self.event_loop)
+        if self.handler:
+            loop = QEventLoop()
+            asyncio.set_event_loop(asyncio.new_event_loop())
+            asyncio.get_event_loop().run_until_complete(self.handler.reject())
+            # asyncio.run_coroutine_threadsafe(self._send_response(False), self.event_loop)
         self.hide_request()
 
-    async def _send_response(self, accepted):
-        """Send response to websocket"""
-        if self.websocket:
-            response = "accept" if accepted else "reject"
-            await self.websocket.send(response)
+    # async def _send_response(self, accepted):
+    #     """Send response to websocket"""
+    #     if self.websocket:
+    #         response = "accept" if accepted else "reject"
+    #         await self.websocket.send(response)
 
 # Window flags to keep on top
 # self.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.Dialog)

@@ -11,6 +11,7 @@ from workers.helper import getUserPCName, getAbsPath
 from workers.sword import NetworkManager
 
 DEV=1
+
 class WorkerThread(QThread):
     update_signal = pyqtSignal(object)  # Define signal
     def __init__(self, ip, connection_signal, parent=None):
@@ -34,7 +35,7 @@ class WorkerThread(QThread):
             print("See uncaught Errors on App main Thread: ",e)
 
 class ConnectionSignal(QObject):
-    connection_request = pyqtSignal(str, object)  # Emits (device_name, websocket)
+    connection_request = pyqtSignal(dict, object)  # Emits (device_name, websocket)
 
 class FileShareApp(QMainWindow):
     def __init__(self):
@@ -88,7 +89,8 @@ class FileShareApp(QMainWindow):
     def show_connection_request(self, device_name, handler):
         """Show connection dialog"""
         print(device_name,handler, ' name nd handler')
-        self.request_connection_popup.show_request(device_name=device_name, websocket=handler.websocket,event_loop= handler.websocket.loop)
+        # self.request_connection_popup.show_request(message_object=device_name, websocket=handler.websocket,event_loop=handler.websocket.loop)
+        self.request_connection_popup.show_request(message_object=device_name, handler=handler)
         
     def create_system_tray(self):
         self.tray = QSystemTrayIcon(self)
