@@ -7,7 +7,6 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtGui import QFont, QIcon
 from PyQt5 import QtGui
 from PyQt5.QtCore import Qt, QSize,QThread,pyqtSignal, QObject
-# from PyQt5.QtWidgets import QMessageBox
 from screens import MainScreen,SettingsScreen
 from popups import ConnectionRequest
 
@@ -24,10 +23,8 @@ class WorkerThread(QThread):
         self.connection_signal = connection_signal
     def run(self):
         try:
-            print(self.connection_signal    )
+            print(self.connection_signal)
             server = FileSharingServer(port=8000,ip=self.ip, directory= '/', connection_signal=self.connection_signal)
-            print('server ',server)
-            # server = FileSharingServer(port=8000,ip=self.ip, directory= '/', connection_signal=self.connection_signal)
             server.start()
             self.update_signal.emit(server)
 
@@ -76,6 +73,10 @@ class FileShareApp(QMainWindow):
 
         # System Tray
         self.create_system_tray()
+        
+        # Create PopUps
+        self.request_connection_popup = ConnectionRequest()
+        
         if DEV:
             self.start_server()
     def restart_server(self):
@@ -90,22 +91,15 @@ class FileShareApp(QMainWindow):
         # In your Qt main window class
     def show_connection_request(self, device_name, handler):
         """Show connection dialog"""
-        # reply = QMessageBox.question(
-        #     self,
-        #     "Connection Request",
-        #     f"Allow connection from {device_name}?",
-        #     QMessageBox.Yes | QMessageBox.No
-        # )
-        # Replace QMessageBox code with:
         print(device_name,handler, ' name nd handler')
-        self.popup = ConnectionRequest(
-            device_name=device_name,
-            websocket=handler.websocket,
-            event_loop=handler.websocket.loop
-        )
-        self.popup.setWindowModality(Qt.ApplicationModal)
-        self.popup.setWindowFlags(self.popup.windowFlags() | Qt.WindowStaysOnTopHint)
-        self.popup.show()
+        # if self.popup is None:
+        #     self.popup = PopupWindow()
+        #     self.popup.show()
+        # else:
+        #     # If window exists, just bring it to front
+        #     self.popup.raise_()
+        #     self.popup.activateWindow()
+        self.request_connection_popup.show_request(device_name=device_name, websocket=handler.websocket,event_loop= handler.websocket.loop)
         
     def create_system_tray(self):
         self.tray = QSystemTrayIcon(self)
