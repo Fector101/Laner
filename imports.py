@@ -3,7 +3,6 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import ScreenManager, SlideTransition,NoTransition
 from kivy.uix.label import Label
-from kivy.clock import Clock
 from kivy.metrics import dp,sp
 from kivy.core.window import Window
 from kivy.properties import (ObjectProperty, BooleanProperty, ListProperty, StringProperty)
@@ -46,11 +45,12 @@ from utils.helper import (
 from utils import Settings,NetworkManager,AsyncRequest
 
 
+from screens import DisplayFolderScreen, ConnectScreen,SettingsScreen
 from components.popup import Snackbar
 from components.templates import CustomDropDown, MDTextButton,MyBtmSheet
-from screens import DisplayFolderScreen, ConnectScreen
-from components.header import Header
-from components.pictureviewer import PictureViewer
+from components import Header
+from components import PictureViewer
+from components import BottomNavigationBar,TabButton
 
 
 if platform == 'android':
@@ -65,7 +65,6 @@ if platform == 'android':
     context = cast('android.content.Context', mActivity)
     
     
-from android_notify import send_notification,Notification,NotificationStyles
 
 def requestBatteryOptimization():
     try:

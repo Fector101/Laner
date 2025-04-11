@@ -1,3 +1,4 @@
+from kivymd.app import MDApp
 import os
 from kivy.lang import Builder
 
@@ -31,7 +32,12 @@ class ConnectScreen(MDScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name = 'connect'
-        # self.app = MDApp.get_running_app()
+        
+        self.app = MDApp.get_running_app()
+    def sendToSettingsScreen(self):
+        self.manager.current = 'settings'
+        self.app.bottom_navigation_bar.open()
+        
     def next_slide(self):
         swiper = self.ids.swiper
         current_index = swiper.get_current_index()

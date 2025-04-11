@@ -8,3 +8,4 @@ setuptools
 Cython
 netifaces
 requests_toolbelt
+websockets
