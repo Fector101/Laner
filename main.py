@@ -35,7 +35,7 @@ class WorkerThread(QThread):
             print("See uncaught Errors on App main Thread: ",e)
 
 class ConnectionSignal(QObject):
-    connection_request = pyqtSignal(dict, object)  # Emits (device_name, websocket)
+    connection_request = pyqtSignal(dict, object)  # Emits ({device_name:'',request:''}, websocket)
 
 class FileShareApp(QMainWindow):
     def __init__(self):
@@ -72,7 +72,7 @@ class FileShareApp(QMainWindow):
         self.create_system_tray()
         
         # Create PopUps
-        self.request_connection_popup = ConnectionRequest()
+        self.request_connection_popup:ConnectionRequest=None
         
         if DEV:
             self.start_server()
@@ -90,7 +90,8 @@ class FileShareApp(QMainWindow):
         """Show connection dialog"""
         print(device_name,handler, ' name nd handler')
         # self.request_connection_popup.show_request(message_object=device_name, websocket=handler.websocket,event_loop=handler.websocket.loop)
-        self.request_connection_popup.show_request(message_object=device_name, handler=handler)
+        self.request_connection_popup = ConnectionRequest(message_object=device_name, handler=handler)
+        # self.request_connection_popup.show_request()
         
     def create_system_tray(self):
         self.tray = QSystemTrayIcon(self)

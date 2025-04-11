@@ -1,16 +1,12 @@
-import sys
-import os
+import sys,os,tempfile
+import json,threading,traceback
+from websockets import ServerConnection # for type
+import websockets,asyncio
+from os.path import join as _joinPath
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn
-import json
-import threading
-import traceback
-from os.path import join as _joinPath
-import tempfile
+from .web_socket import WebSocketConnectionHandler
 
-import websockets
-from websockets.server import WebSocketServerProtocol
-import asyncio
 
 
 
@@ -259,95 +255,6 @@ class CustomHandler(SimpleHTTPRequestHandler):
             return "assets/icons/image.png", instance.getJPEG_URL()
         return "assets/icons/file.png", ''
 
-# Socket for connection (handling only authns for now)
-class WebSocketConnectionHandler:
-    def __init__(self, websocket, connection_signal=None):
-        self.websocket = websocket
-        self.connection_signal = connection_signal
-        self.authenticated = False
-        self.response_event = asyncio.Event()
-
-    async def handle_connection_request(self):
-        """Handle WebSocket connection requests"""
-        # TODO don't remove line use ip later in setting for some other stuff
-        device_ip = f"Device-{self.websocket.remote_address[0]}"
-        message = await self.websocket.recv()
-        try:
-            message_dict = json.loads(message)
-            # if self.connection_signal and message.request == 'password':
-            #     print('self ---- ',self)
-            #     self.connection_signal.connection_request.emit(message_dict, self)  # Pass the handler instance
-            #     await self.response_event.wait()
-            #     return self.authenticated
-        except json.JSONDecodeError:
-            print(f"Received non-JSON message: {message}")
-        except Exception as e:
-            print('unexcepted error from WebSocketConnectionHandler.handle_connection_request ',e)
-        
-        if self.connection_signal:
-            print('self ---- ',self)
-            self.connection_signal.connection_request.emit(message_dict, self)  # Pass the handler instance
-            await self.response_event.wait()
-            print('lie0----------------------')
-            return self.authenticated
-            print('lie1----------------------')
-        return False
-    # Seprate accept and reject methods because will add other stuff to each, TO KEEP CLEAN
-    async def accept(self):
-        await self.websocket.send("ACCESS_GRANTED")
-    async def reject(self):
-        await self.websocket.send("ACCESS_DENIED")
-        
-    async def handle_connection(self):
-        """Main connection handling loop"""
-        try:
-            # Wait for authentication
-            print('test0')
-            authenticated = await self.handle_connection_request()
-            print('test1')
-            
-            if not authenticated:
-                await self.websocket.close()
-                return
-            # Keep connection alive
-            while True:
-                message = await self.websocket.recv()
-                print(f"Received: {message}")
-                print('not reachs here')
-                # Handle messages here
-                
-        except websockets.exceptions.ConnectionClosed:
-            print("Client disconnected")
-        except Exception as e:
-            print(f"WebSocket error: {e}")
-            await self.websocket.close()            
-    # async def send_response(self, accepted):
-    #     """Send acceptance/rejection to client"""
-    #     self.authenticated = accepted
-    #     if accepted:
-    #         await self.websocket.send("ACCESS_GRANTED")
-    #     else:
-    #         await self.websocket.send("ACCESS_DENIED")
-    #     self.response_event.set()
-
-    # async def on_connect(self):
-    #     """Handle new WebSocket connections"""
-    #     try:
-    #         authenticated = await self.handle_connection_request()
-    #         if not authenticated:
-    #             await self.websocket.close()
-    #             return
-
-    #         # Connection is authenticated, handle messages
-    #         async for message in self.websocket:
-    #             print(f"Received: {message}")
-    #             # Handle your WebSocket messages here
-
-    #     except websockets.exceptions.ConnectionClosed:
-    #         print("Client disconnected")
-    #     except Exception as e:
-    #         print(f"WebSocket error: {e}")
-    #         await self.websocket.close()
 # Server Class
 class FileSharingServer:
     def __init__(self, ip, connection_signal, port=8000, directory="/"):
