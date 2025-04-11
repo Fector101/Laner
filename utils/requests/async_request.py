@@ -339,4 +339,3 @@ class AsyncRequest:
                 print('Failed Ping',e)
                 self.on_ui_thread(failed)
         threading.Thread(target=__ping).start()
-
