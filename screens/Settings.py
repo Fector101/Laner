@@ -15,7 +15,7 @@ from kivymd.uix.selectioncontrol import MDCheckbox
 from kivymd.uix.label import MDIcon, MDLabel
 
 from components.loading_layout import LoadingScreen
-from utils import Settings,NetworkManager,AsyncRequest
+from utils import Settings,NetworkManager,AsyncRequest,FindHosts
 from android_notify import send_notification,Notification,NotificationStyles
 from kivy.clock import Clock
 
@@ -196,7 +196,7 @@ class SettingsScreen(MDScreen):
 
         self.scanningScreen.add_widget(msg)
         self.add_widget(self.scanningScreen)
-        res=NetworkManager().scan_ports(ports=PORTS,timeout=5,on_find=self._render_pc)
+        FindHosts().scan_ports(ports=PORTS,timeout=5,on_find=self._render_pc)
     def _render_pc(self, sent_data=None):
         if sent_data is None:
             sent_data = {'name': '', 'ip': '','websocket_port':''}
@@ -207,12 +207,16 @@ class SettingsScreen(MDScreen):
             {'name': '', 'ip': '','websocket_port':''}
         """
         self.disabled=True
-        NetworkManager().start_password_request(sent_data['ip'], sent_data['websocket_port'], self._received_password_response)
+        FindHosts().start_password_request(sent_data['ip'], sent_data['websocket_port'], self._received_password_response)
         self.loading_widget = LoadingScreen()
         self.scanningScreen.add_widget(self.loading_widget)
         print(sent_data)
     def _received_password_response(self, response):
         self.loading_widget.remove()
+        if response == 'authenticated_successfully':
+            self.scanningScreen.md_bg_color=[0,1,0,1]
+        elif response == 'ACCESS_DENIED':
+            self.scanningScreen.md_bg_color=[1,0,0,1]
         print(response)
         self.disabled=False
 
