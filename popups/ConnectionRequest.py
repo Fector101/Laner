@@ -137,8 +137,11 @@ class ConnectionRequest(QWidget):
             For When User Closes Popup Without Choosing 'Yes' or 'No'
         """
         if not self._made_choice:
+            self._made_choice=True
             # `accept_connection` and `reject_connection` method till call close, this will help
             self.reject_connection()
+        self.hide()
+        event.ignore()
     def accept_connection(self):
         """Handle accept connection"""
         self._made_choice = True

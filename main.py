@@ -191,7 +191,7 @@ class FileShareApp(QMainWindow):
         self.stacked_widget.setCurrentWidget(self.settings_screen)
 
     def closeEvent(self, event):
-        print('peek', event)
+        # print('peek', event)
         self.hide()
         event.ignore()
 
