@@ -111,7 +111,8 @@ class Laner(MDApp):
             self.my_screen_manager.md_bg_color =[.12,.12,.12,1]
             
             for screen in self.my_screen_manager.screens:
-                screen.header.md_bg_color = light_grey_for_dark_theme
+                if not isinstance(screen, ConnectScreen):
+                    screen.header.md_bg_color = light_grey_for_dark_theme
                 
                 # Update DisplayFolderScreen backgrounds
                 if isinstance(screen, DisplayFolderScreen):
@@ -124,7 +125,8 @@ class Laner(MDApp):
             
             # Update DisplayFolderScreen backgrounds
             for screen in self.my_screen_manager.screens:
-                screen.header.md_bg_color = light_grey_for_light_theme
+                if not isinstance(screen, ConnectScreen):
+                    screen.header.md_bg_color = light_grey_for_light_theme
                 if isinstance(screen, DisplayFolderScreen):
                     screen.details_box.md_bg_color =light_grey_for_light_theme
                     screen.details_label.color = [0.41, 0.42, 0.4, 1]
