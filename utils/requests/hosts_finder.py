@@ -76,28 +76,48 @@ class FindHosts:
         asyncio.run(self._connect_websocket())
 
     async def _connect_websocket(self):
+        error_dict={'error':True}
         try:
             uri = f"ws://{self._ip_for_websocket}:{self._port_for_websocket}"
             message = {
-                    'name': get_device_name(),
-                    'request': 'password'
-                }
+                'name': get_device_name(),
+                'request': 'password'
+            }
             print(uri)
             async with websockets.connect(uri) as ws:
                 await ws.send(json.dumps(message))
                 response = await ws.recv()
-                if response.startswith("accepted:"):
-                    password = response.split("accepted:")[1]
-                    # print(f"Connected! Password: {password}")
-                    await ws.send(json.dumps({'request':'auth','token':password}))
+                response = json.loads(response)
+                if response.get('status') == 'yes':
+                    token = response['token']
+                    await ws.send(json.dumps({'request':'auth','token':token}))
                     auth_response = await ws.recv()
                     if self._password_response_callback:
-                        Clock.schedule_once(lambda dt: self._password_response_callback(auth_response))
-                    # print(f"Auth: {auth_response}")
-                else:
+                        Clock.schedule_once(lambda dt: self._password_response_callback(json.loads(auth_response)))
+                    else:
+                        print('invalid format pass in callback to `start_password_request` method')
+                elif response['status'] == 'no':
                     if self._password_response_callback:
+                        response['auth'] = False #self._password_response_callback expecting 'auth' state
                         Clock.schedule_once(lambda dt: self._password_response_callback(response))
-                    # print("Connection rejected.")
+                    else:
+                        print('invalid format pass in callback to `start_password_request` method')
+                else:
+                    print("Bad (Broke Token Auth)Haven't Planned For This Response: ",response)
+        except websockets.exceptions.ConnectionClosedError as e:
+            error_dict['error']=e
+            print('websockets.exceptions.ConnectionClosedError-101: ',e)
+            Clock.schedule_once(lambda dt: self._password_response_callback(error_dict))
+        except json.JSONDecodeError as e:
+            error_dict['error']=e
+            print('Server Sent Bad Format: ',e)
+            traceback.print_exc()
+        except ConnectionRefusedError as e:
+            print('ConnectionRefusedError-101: ',e)
+            error_dict['error']=e
+            Clock.schedule_once(lambda dt: self._password_response_callback(error_dict))
         except Exception as e:
+            error_dict['error']=e
             print('add error to exceptions ',e)
+            Clock.schedule_once(lambda dt: self._password_response_callback(error_dict))
             traceback.print_exc()
