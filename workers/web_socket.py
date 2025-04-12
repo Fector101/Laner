@@ -2,11 +2,18 @@ import websockets,asyncio,traceback
 from websockets.asyncio.connection import Connection # for type
 import json,secrets
 
+from workers.helper import getUserPCName
+
+
 # Socket for connection (handling only authns for now)
+# Always Send JSON dumps to client
 class WebSocketConnectionHandler:
-    def __init__(self, websocket: Connection, connection_signal=None):
+    def __init__(self, websocket: Connection,ip,main_server_port, connection_signal=None):
         self.websocket = websocket
+        self.ip=ip
+        self._main_server_port= main_server_port
         self.connection_signal = connection_signal
+        self.pc_name=getUserPCName()
         self.authenticated = False
         self.response_event = asyncio.Event()
         # TODO Use secret file to store connected users
@@ -34,19 +41,19 @@ class WebSocketConnectionHandler:
                 
                 if token and self.connected_clients.get(client_ip) == token:
                     self.authenticated = True
-                    await self.websocket.send("authenticated_successfully")
+                    await self.websocket.send(json.dumps({"auth": True,"token":token,'ip':self.ip,'name':self.pc_name,'main_server_port':self._main_server_port}))
                 else:
-                    await self.websocket.send("authentication_failed")
+                    await self.websocket.send(json.dumps({"auth": False,"token":token,'ip':self.ip,'name':self.pc_name}))
                     
             return self.authenticated
             
         except json.JSONDecodeError:
             print(f"Invalid JSON received: {message}")
-            await self.websocket.send("invalid_request_format")
+            await self.websocket.send(json.dumps({'error':"invalid_request_format send json dumps instead",'name':self.pc_name}))
         except Exception as e:
             traceback.print_exc()
             print(f'Unexpected error: {e}')
-            await self.websocket.send("server_error")
+            await self.websocket.send(json.dumps({'error':"server_error",'name':self.pc_name}))
         return False
 
     async def accept(self):
@@ -55,21 +62,17 @@ class WebSocketConnectionHandler:
         client_ip = self.websocket.remote_address[0]
         self.connected_clients[client_ip] = token
         self.authenticated = True
-        await self.websocket.send(f"accepted:{token}")
-        
-        # await self.websocket.send(json.dumps({
-        #     "status": "accepted",
-        #     "token": token
-        # }))
+        await self.websocket.send(json.dumps({
+            "status": "yes",
+            "token": token,'name':self.pc_name
+        }))
         self.response_event.set()
 
     async def reject(self):
         """Reject connection"""
-        await self.websocket.send("ACCESS_DENIED")
-        # await self.websocket.send(json.dumps({
-        #     "status": "rejected",
-        #     "reason": "access_denied"
-        # }))
+        await self.websocket.send(json.dumps({
+            "status": "no",'name':self.pc_name
+        }))
         self.response_event.set()
 
     async def handle_connection(self):

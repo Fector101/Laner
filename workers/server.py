@@ -7,9 +7,6 @@ from http.server import SimpleHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn
 from .web_socket import WebSocketConnectionHandler
 
-
-
-
 # Worker imports
 if __name__=='__main__':
     # For Tests
@@ -268,16 +265,15 @@ class FileSharingServer:
         self.loop = None
         self.websocket_port = None
         self.websocket_server = None
-        # Start WebSocket server in event loop
-        self.ws_thread = threading.Thread(target=self.run_websocket_server)
-        self.ws_thread.daemon = True
-        self.ws_thread.start()
-    
+        self.ws_thread=None
+
     async def websocket_handler(self, websocket):
         """Handle new WebSocket connections"""
         handler = WebSocketConnectionHandler(
             websocket=websocket,
-            connection_signal=self.connection_signal
+            connection_signal=self.connection_signal,
+            ip=self.ip,
+            main_server_port=self.port
         )
         await handler.handle_connection()  # Make sure to await the connection handler        
 
@@ -328,16 +324,30 @@ class FileSharingServer:
                 traceback.print_exc()
             except Exception as e:
                 print(f"Error: {e}")
+                # Start WebSocket server in event loop
+        self.ws_thread = threading.Thread(target=self.run_websocket_server)
+        self.ws_thread.daemon = True
+        self.ws_thread.start()
         print('Ended trying',port)
+
     def stop(self):
-        self._server.shutdown()
-        self._server.server_close()
+        # Stop HTTP server
+        if self._server:
+            self._server.shutdown()
+            self._server.server_close()
+
+        # Stop WebSocket server
         if self.loop:
-            self.loop.call_soon_threadsafe(self.loop.stop)
-            self.websocket_server.close()
-            self.loop.run_until_complete(self.websocket_server.wait_closed())
-            self.loop.close()
-            print("WebSocket server stopped")
+            # Schedule the server closure and loop stop
+            async def close_server_and_stop_loop():
+                if self.websocket_server:
+                    self.websocket_server.close()
+                    await self.websocket_server.wait_closed()
+                    print("WebSocket server stopped")
+                self.loop.stop()  # Stop the loop only after server is closed
+
+            # Schedule the entire shutdown sequence
+            self.loop.call_soon_threadsafe( lambda: asyncio.create_task(close_server_and_stop_loop()) )
         print("Server stopped.")
     def run_websocket_server(self):
         self.loop = asyncio.new_event_loop()

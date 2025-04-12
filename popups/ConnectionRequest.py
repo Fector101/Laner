@@ -11,7 +11,7 @@ class ConnectionRequest(QWidget):
         self.handler: WebSocketConnectionHandler = handler
         device_name = message_object['name']
         # request = message_object['request'] use in upcoming in-app terminal
-                
+        self._made_choice = False
         self.setWindowTitle("Incoming Connection Request")
         self.setFixedSize(350, 450)
         self.setStyleSheet("""
@@ -132,9 +132,16 @@ class ConnectionRequest(QWidget):
     # def hide_request(self):
     #     """Hide the widget"""
     #     self.hide()
-
+    def closeEvent(self, event):
+        """
+            For When User Closes Popup Without Choosing 'Yes' or 'No'
+        """
+        if not self._made_choice:
+            # `accept_connection` and `reject_connection` method till call close, this will help
+            self.reject_connection()
     def accept_connection(self):
         """Handle accept connection"""
+        self._made_choice = True
         if self.handler:
             loop = QEventLoop()
             asyncio.set_event_loop(asyncio.new_event_loop())
@@ -145,6 +152,7 @@ class ConnectionRequest(QWidget):
 
     def reject_connection(self):
         """Handle reject connection"""
+        self._made_choice = True
         if self.handler:
             loop = QEventLoop()
             asyncio.set_event_loop(asyncio.new_event_loop())
