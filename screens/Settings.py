@@ -121,6 +121,7 @@ class PortBoxLayout(MDBoxLayout):
             
         else:
             Snackbar(h1="Invalid port Check 'Laner PC' for right one")
+
 class ScanningLayout(MDRelativeLayout):
     def __init__(self, change_working_server, **kwargs):
         super().__init__(**kwargs)
@@ -209,7 +210,6 @@ class ScanningLayout(MDRelativeLayout):
     def close(self,widget=None):
         self.app.bottom_navigation_bar.open()
         self.parent.remove_widget(self)
-
 
 class SettingsScreen(MDScreen):
     def __init__(self, **kwargs):
@@ -370,8 +370,7 @@ class SettingsScreen(MDScreen):
         self.content.add_widget(MDDivider())
 
     def toggle_theme(self, instance,value):
-        # Call the app's toggle_theme method
-        MDApp.get_running_app().toggle_theme()
+        self.app.get_running_app().toggle_theme()
 
     def clear_cache(self, instance):
         # Cache clearing implementation
