@@ -10,7 +10,7 @@ import netifaces
 import socket
 
 from dataclasses import dataclass
-
+# Doesn't work adding sets in json
 class Settings:
     """A singleton class to manage application settings stored in a JSON file.
 
@@ -44,7 +44,8 @@ class Settings:
         },
         'recent_connections': {
             'ips':[]
-        }
+        },
+        'pcs':{}
     }
 
     def __new__(cls):
@@ -113,6 +114,7 @@ class Settings:
             value (Any): The new value to set
 
         Example:
+            settings = Settings()
             settings.set('server', 'ip', '192.168.1.1')\n
             .
         """
@@ -122,7 +124,24 @@ class Settings:
             self._store.put(category, **current)
         else:
             self._store.put(category, **{key: value})
-
+    def set_pc(self,pc_name,value:dict):
+        """
+        Sets Values for a specific PC,auto adds port to ports Set
+        :param pc_name: The PC's name, is acts as a key in pcs object
+        :param value: { ip:'', token:'', port: '3033'} Important `port` not `ports`
+        :return: void :)
+        """
+        if 'pcs' in self._store:
+            current = self._store.get('pcs')
+            old_pc_values = current.get(pc_name,{})
+            if 'port' in value:
+                ports= old_pc_values.get('ports',[])
+                ports = list({value.get('port'), *ports})# list of last ports connected in certain PC's
+                value['ports'] = ports
+            current[pc_name] = {**old_pc_values,**value}
+            self._store.put('pcs', **current)
+        else:
+            self._store.put('pcs',**{pc_name: value})
     def get_recent_connections(self) -> List:
         """Returns List of old connections ips
 
@@ -133,7 +152,6 @@ class Settings:
             recent_connections = self._store.get("recent_connections")
             if 'ips' in recent_connections:
                 return recent_connections['ips']
-        
         
     def add_recent_connection(self, ip: str) -> None:
         """Add a new connection to the recent connections list.
@@ -155,10 +173,9 @@ class Settings:
         
         if "recent_connections" in self._store:
             current = self._store.get("recent_connections")
-            current['ips'] = list(set([*current['ips'],ip]))
+            current['ips'] = list({*current['ips'], ip}) # filter with set then change to list
             self._store.put("recent_connections", **current)
-            
-            
+
 # # Usage example:
 # settings = Settings()
 # port = settings.get('server', 'port')
