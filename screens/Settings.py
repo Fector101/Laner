@@ -1,7 +1,10 @@
 import os, sys, json, requests, asyncio, threading,time
 from kivy.metrics import sp
+# from kivy.uix.scatterlayout import ScatterLayout
 
 from kivymd.app import MDApp
+# from kivymd.uix.gridlayout import MDGridLayout
+# from kivymd.uix.stacklayout import MDStackLayout
 from kivymd.uix.textfield import MDTextField
 from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.divider import MDDivider
@@ -25,6 +28,7 @@ from components.popup import Snackbar
 from utils.typing.main import Laner
 from utils.helper import setHiddenFilesDisplay
 from utils.constants import PORTS
+from components.popup import Snackbar
 
 class MySwitch(MDBoxLayout):
     text=StringProperty()
@@ -92,7 +96,7 @@ class PortBoxLayout(MDBoxLayout):
             )
         )
 
-    def verify_port(self, instance):
+    def verify_port(self, instance=None):
         port = self.port_input.text
         ports =  [
                     8000, 8080, 9090, 10000, 11000, 12000, 13000, 14000, 
@@ -102,7 +106,7 @@ class PortBoxLayout(MDBoxLayout):
                 ]
         ip_address= self.app.settings.get('server', 'ip')
         print('Port:',port,'ip_address',ip_address)
-        print("http://{ip_address}:{port}/ping")
+        print(f"http://{ip_address}:{port}/ping")
         if port.isdigit() and int(port) in ports:
             try:
                 response=requests.get(f"http://{ip_address}:{port}/ping",json={'passcode':'08112321825'},timeout=.2)
@@ -117,6 +121,95 @@ class PortBoxLayout(MDBoxLayout):
             
         else:
             Snackbar(h1="Invalid port Check 'Laner PC' for right one")
+class ScanningLayout(MDRelativeLayout):
+    def __init__(self, change_working_server, **kwargs):
+        super().__init__(**kwargs)
+        self.app=MDApp.get_running_app()
+        self.app.bottom_navigation_bar.close()
+        self.md_bg_color = [1, 0, 1, 1]
+        self.loading_widget=None
+        self.change_working_server=change_working_server
+        # Header Text
+        msg = MDLabel(text='Tap Your PC to Request Connection', md_bg_color=[1, 0, .5, 1], pos_hint={'top': 1},
+                      size_hint=[1, None], height=sp(45), padding=[sp(10), 0, 0, 0])
+        self.add_widget(msg)
+
+        # Found Laner-PC's Container
+        self.found_pcs_container = MDBoxLayout(md_bg_color=[1, 1, 0, 1], adaptive_width=True, adaptive_height=True,
+                                               pos_hint={'center_x': 0.5, 'center_y': 0.7}, orientation='vertical',
+                                               spacing=sp(20), padding=[sp(20)], radius=[sp(10)])
+        self.add_widget(self.found_pcs_container)
+
+        # Controls Btn
+        control_btns_layout = MDBoxLayout(adaptive_width=True, adaptive_height=True, orientation='vertical',
+                                          spacing=sp(10),
+                                          pos_hint={'center_x': 0.5, 'y': .05})
+        self.retry_scan_btn = MDTextButton(on_release=self.start_scan, adaptive_width=True,
+                                           disabled=True)
+        cancel_btn = MDTextButton(text='Close', on_release=self.close, adaptive_width=True, pos_hint={'center_x': 0.5})
+        control_btns_layout.add_widget(self.retry_scan_btn)
+        control_btns_layout.add_widget(cancel_btn)
+
+        self.add_widget(control_btns_layout)
+        self.start_scan()
+    def start_scan(self,widget=None):
+        self.retry_scan_btn.disabled=True
+        self.retry_scan_btn.text='Scanning...'
+        self.found_pcs_container.clear_widgets()
+        FindHosts().scan_ports(ports=PORTS, timeout=5, on_find=self._render_pc, on_complete=self._done_finding_pcs)
+
+    def _done_finding_pcs(self, ips_list: list):
+        # print('gg data ', ips_list)
+        self.retry_scan_btn.disabled = False
+        self.retry_scan_btn.text = 'Scan Again'
+
+    def _render_pc(self, sent_data=None):
+        self.found_pcs_container.add_widget(
+            MDTextButton(text=sent_data['name'], on_release=lambda x: self._ask_laner_pc_for_password(sent_data),
+                         adaptive_width=True))
+
+    def _ask_laner_pc_for_password(self, sent_data: dict):
+        """
+            {'name': '', 'ip': '','websocket_port':''}
+        """
+        self.disabled = True
+        FindHosts().start_password_request(sent_data['ip'], sent_data['websocket_port'],
+                                           self._received_password_response)
+        self.loading_widget = LoadingScreen()
+        self.add_widget(self.loading_widget)
+        print(sent_data)
+
+    def _received_password_response(self, response: dict):
+        self.loading_widget.remove()
+        print(response)
+        if response.get('auth'):
+            self._set_pc_data(response)
+            self.md_bg_color = [0, 1, 0, 1]
+            self.change_working_server(ip=response['ip'])
+            self.close()
+        elif not response.get('auth', False):  # , False) very important
+            self.md_bg_color = [1, 0, 0, 1]
+            Snackbar('Request Rejected')
+        elif response.get('error'):
+            Snackbar('Connection Error ' + response.get('error', ''))
+            self.md_bg_color = [0, 0, 1, 1]
+        self.disabled = False
+
+    @staticmethod
+    def _set_pc_data(response_data):
+        """Sets new PC and adds PC to pcs object because Laner-PC accepted request"""
+        ip = response_data['ip']
+        port = response_data['main_server_port']
+        settings = Settings()
+        settings.set('server', 'ip', ip)
+        settings.set('server', 'port', port)
+        data = {'ip': ip, 'token': response_data['token'], 'port': port}
+        settings.set_pc(pc_name=response_data['name'], value=data)
+
+    def close(self,widget=None):
+        self.app.bottom_navigation_bar.open()
+        self.parent.remove_widget(self)
+
 
 class SettingsScreen(MDScreen):
     def __init__(self, **kwargs):
@@ -162,7 +255,7 @@ class SettingsScreen(MDScreen):
         # use discover | enter specify address
         self.add_category("Connection", [
             {"type": "label","text": "Use Discovery"},
-            {'size':[sp(150),sp(50)],"type": "button",'id':'', "title": "Request Connection", "callback": self.doConnectionRequest},
+            {'size':[sp(150),sp(50)],"type": "button",'id':'', "title": "Find PC", "callback": self.doConnectionRequest},
             {"type": "label","text": "Enter Specify Address"},
             {'size':[sp(130),sp(50)],"type": "text", 'id':'ip_addr_input',"title": "Server IP", "widget": self.ipAddressInput},
             {'size':[sp(100),sp(50)],"type": "button",'id':'connect_btn', "title": "Verify Connection", "callback": self.setIP},
@@ -185,40 +278,13 @@ class SettingsScreen(MDScreen):
         self.layout.add_widget(scroll)
         self.layout.add_widget(MDBoxLayout(height='70sp',size_hint=[1,None]))  # Buffer cause of bottom nav bar (will change to padding later)
         self.add_widget(self.layout)
+        self.scanningScreen=None
         print('not doing auto connect')
         # self.autoConnect()
-    def doConnectionRequest(self,widget=None):
-        self.app.bottom_navigation_bar.close()
-        self.scanningScreen=MDRelativeLayout(md_bg_color=[1,0,1,1])
-        # self.scanningScreen.orientation='vertical'
-        msg = MDLabel(text='Tap Your PC to Request Connection',md_bg_color=[1,0,.5,1],pos_hint={'top':1})
-        msg.adaptive_height=True
 
-        self.scanningScreen.add_widget(msg)
+    def doConnectionRequest(self, widget=None):
+        self.scanningScreen = ScanningLayout(change_working_server=self.setIP)
         self.add_widget(self.scanningScreen)
-        FindHosts().scan_ports(ports=PORTS,timeout=5,on_find=self._render_pc)
-    def _render_pc(self, sent_data=None):
-        if sent_data is None:
-            sent_data = {'name': '', 'ip': '','websocket_port':''}
-        y_pos = len([child for child in self.scanningScreen.children if isinstance(child, MDTextButton)])+1
-        self.scanningScreen.add_widget(MDTextButton(text=sent_data['name'], y=y_pos * 40, on_release=lambda x: self._ask_laner_pc_for_password(sent_data), adaptive_width=True))
-    def _ask_laner_pc_for_password(self, sent_data:dict):
-        """
-            {'name': '', 'ip': '','websocket_port':''}
-        """
-        self.disabled=True
-        FindHosts().start_password_request(sent_data['ip'], sent_data['websocket_port'], self._received_password_response)
-        self.loading_widget = LoadingScreen()
-        self.scanningScreen.add_widget(self.loading_widget)
-        print(sent_data)
-    def _received_password_response(self, response):
-        self.loading_widget.remove()
-        if response == 'authenticated_successfully':
-            self.scanningScreen.md_bg_color=[0,1,0,1]
-        elif response == 'ACCESS_DENIED':
-            self.scanningScreen.md_bg_color=[1,0,0,1]
-        print(response)
-        self.disabled=False
 
     def add_category(self, title, items):
         def addID(item: dict, widget: object = None) -> None:
@@ -307,11 +373,11 @@ class SettingsScreen(MDScreen):
         # Call the app's toggle_theme method
         MDApp.get_running_app().toggle_theme()
 
-
     def clear_cache(self, instance):
         # Cache clearing implementation
 
         pass
+
     def on_checkbox_active(self,checkbox_instance, value):
         setHiddenFilesDisplay(value)
 
@@ -374,9 +440,9 @@ class SettingsScreen(MDScreen):
         # AsyncRequest().auto_connect(success,failed=stayActive)# comment out for autoconnect
         AsyncRequest().auto_connect(success,failed=fun)
 
-    def setIP(self, widget_that_called):
+    def setIP(self, widget_that_called=None,ip=''):
         ip_input=self.ids['ip_addr_input']
-        input_ip_address:str=ip_input.text.strip()
+        input_ip_address:str=ip or ip_input.text.strip()
         self.app.settings.set('server', 'ip', input_ip_address)
         port=MDApp.get_running_app().settings.get('server', 'port')
         # TODO create an async quick scanner to check valid port from a list of ports
@@ -393,6 +459,7 @@ class SettingsScreen(MDScreen):
             connect_btn.text= 'Disconnect'
             self.change_button_callback(connect_btn,self.setIP, self.disconnect,input_ip_address)
 
+            self.advanced_options.port_input.text = str(Settings().get('server','port'))
             Snackbar(h1="Verification Successfull")
         def failed():
             Snackbar(h1="Bad Code check 'Laner PC' for right one")
@@ -411,6 +478,7 @@ class SettingsScreen(MDScreen):
     def change_button_callback(self, button, old_callback,new_callback,*args):
         button.unbind(on_release=old_callback)
         button.bind(on_release=new_callback)
+
     def disconnect(self,instance):
         ip_input=self.ids['ip_addr_input']
         connect_btn=self.ids['connect_btn']
@@ -421,5 +489,4 @@ class SettingsScreen(MDScreen):
         self.change_button_callback(connect_btn,self.disconnect, self.setIP,connect_btn)
         self.app.settings.set('server', 'ip', '')
         Snackbar(h1="Disconnected from " + self.pc_name)
-
         print('Disconnected')
