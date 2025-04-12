@@ -1,9 +1,14 @@
+import traceback
+
 from imports import *
 #Making/Getting Downloads Folder
 if platform == 'android':
     my_downloads_folder=makeDownloadFolder()
-    from .utils.permissions import PermissionHandler
-    PermissionHandler()
+    from utils.permissions import PermissionHandler
+    try:
+        PermissionHandler()
+    except:
+        traceback.print_exc()
     # requestMultiplePermissions()
 else:
     Window.size = (400, 600)
