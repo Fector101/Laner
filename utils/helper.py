@@ -1,4 +1,5 @@
 import os,sys,platform
+import traceback
 import urllib.parse
 from kivymd.material_resources import DEVICE_TYPE # if mobile or PC
 from kivy.clock import Clock
@@ -105,33 +106,32 @@ if DEVICE_TYPE == 'mobile':
 	Context = PythonActivity.mActivity
 
 def getAndroidBounds():
+	# Access the Android Context and WindowManager
+	WindowManager = autoclass('android.view.WindowManager')
+	DisplayMetrics = autoclass('android.util.DisplayMetrics')
 
-    # Access the Android Context and WindowManager
-    WindowManager = autoclass('android.view.WindowManager')
-    DisplayMetrics = autoclass('android.util.DisplayMetrics')
+	# Get system service for WindowManager
+	PythonActivity = autoclass('org.kivy.android.PythonActivity')
+	window_manager = Context.getSystemService(Context.WINDOW_SERVICE)
 
-    # Get system service for WindowManager
-    PythonActivity = autoclass('org.kivy.android.PythonActivity')
-    window_manager = Context.getSystemService(Context.WINDOW_SERVICE)
-  
 
-    # Create a DisplayMetrics instance and populate it
-    metrics = DisplayMetrics()
-    
-    Rect=autoclass('android.graphics.Rect')
-    rect=Rect()
-    Context.window.getDecorView().getWindowVisibleDisplayFrame(rect)
-    print("height ",rect.height(), " width ",rect.width())
-    print("Width",rect.right-rect.left, "Height",rect.bottom-rect.top)
-      
-    window_manager.getDefaultDisplay().getMetrics(metrics)
+	# Create a DisplayMetrics instance and populate it
+	metrics = DisplayMetrics()
 
-    # Print DisplayMetrics values
-    print("Android 15 broken sizing: ")
-    print(f"Width: {metrics.widthPixels}px")
-    print(f"Height: {metrics.heightPixels}px")
-    print(f"Density: {metrics.density}")
-    print(f"DPI: {metrics.densityDpi}")
+	Rect=autoclass('android.graphics.Rect')
+	rect=Rect()
+	Context.window.getDecorView().getWindowVisibleDisplayFrame(rect)
+	print("height ",rect.height(), " width ",rect.width())
+	print("Width",rect.right-rect.left, "Height",rect.bottom-rect.top)
+
+	window_manager.getDefaultDisplay().getMetrics(metrics)
+
+	# Print DisplayMetrics values
+	print("Android 15 broken sizing: ")
+	print(f"Width: {metrics.widthPixels}px")
+	print(f"Height: {metrics.heightPixels}px")
+	print(f"Density: {metrics.density}")
+	print(f"DPI: {metrics.densityDpi}")
 
 def getViewPortSize():
 	try:
@@ -231,74 +231,57 @@ def urlSafePath(path:str):
 
 import sys
 
-def get_device_name():
-    # Check for Android (usually sys.platform returns 'android' on devices built with python-for-android)
-    if sys.platform == 'android':
-        try:
-            # Import PyJNIus for Android API calls.
-            from jnius import autoclass
-
-            # The Build class in the Android OS provides device and hardware information.
-            Build = autoclass('android.os.Build')
-
-            # Common attributes:
-            #   MODEL - The end-user visible name for the device.
-            #   MANUFACTURER - The manufacturer of the product/hardware.
-            # You can combine them or choose one.
-            device_model = Build.MODEL  # e.g., "Pixel 4a"
-            manufacturer = Build.MANUFACTURER  # e.g., "Google"
-
-            # Return a string that includes both manufacturer and model.
-            return f"{manufacturer} {device_model}"
-        except Exception as e:
-            # In case something goes wrong (or if PyJNIus isn’t available), return an error message.
-            return f"Android device, but error retrieving name: {e}"
-    else:
-        # For non-Android platforms, a basic fallback using the platform module.
-        try:
-            import platform
-            uname = platform.uname()
-            # The 'node' part can sometimes be used to get a hostname or device name.
-            return f"{uname.system} {uname.node}"
-        except Exception as e:
-            return f"Unknown Device: {e}"
-
-
-def getUserPCName():
-	"""
-    Get the current user's PC name.
-    Returns: str - PC name
-    """
-	pc_name = None
+def get_android_device_name():
+	from getpass import getuser
+	# print('frm python+++++++++++++++++++++++++++++ ', getuser())
+	device_name = ''
 	try:
-		# Try socket hostname first
-		pc_name = socket.gethostname()
-
-		# Clean and validate hostname
-		if pc_name and isinstance(pc_name, str):
-			# Remove special characters and extra spaces
-			cleaned_name = ' '.join(pc_name.split())
-			# Limit length and capitalize
-			pc_name = cleaned_name[:30]
-	# Fallback methods if socket failed
-
-	except Exception as e:
-		print(f"Error in getUserPCName: {e}")
-
-	def fallbackPCName():
-		"""Helper function to get PC name using environment variables"""
-		pc_name = 'Unknown-PC'
+		PythonActivity = autoclass('org.kivy.android.PythonActivity')
+		context = PythonActivity.mActivity.getApplicationContext()
 		try:
-			# Try different environment variables
-			for env_var in ['COMPUTERNAME', 'HOSTNAME', 'HOST', 'USER']:
-				name = os.environ.get(env_var)
-				if name:
-					pc_name = name.strip()[:30]
-					break
-
+			SettingsGlobal = autoclass('android.provider.Settings$Global')
+			device_name = SettingsGlobal.getString(context.getContentResolver(), "device_name")
 		except Exception as e:
-			print(f"Error in fallbackPCName: {e}")
-			pc_name = 'Unknown-PC'
-		return pc_name
+			print('add this to exception catch ',e)
 
-	return pc_name or fallbackPCName()
+		if not device_name:
+			try:
+				SettingsSecure = autoclass('android.provider.Settings$Secure')
+				device_name = SettingsSecure.getString(context.getContentResolver(), "bluetooth_name")
+				if not device_name:
+					device_name = SettingsSecure.getString(context.getContentResolver(), 'device_name')
+			except Exception as e:
+				print('add this to exception catch ', e)
+		if not device_name:
+			try:
+				SettingsSystem = autoclass('android.provider.Settings$System')
+				device_name = SettingsSystem.getString(context.getContentResolver(), 'device_name')
+			except Exception as e:
+				print('add this to exception catch ', e)
+		if not device_name:
+			try:
+				Build = autoclass('android.os.Build')
+				device_name = Build.MANUFACTURER +' - ' + Build.MODEL
+			except Exception as e:
+				print('add this to exception catch ', e)
+	except Exception as e:
+		traceback.print_exc()
+	return device_name.strip() if device_name else "Unknown Device"
+
+from kivy.utils import platform as kivyplatform
+def get_device_name():
+	if kivyplatform == 'android':
+		try:
+			return get_android_device_name()
+		except Exception as e:
+			print(f"Android device, but error retrieving name: {e}")
+			return ''
+	else:
+		# For non-Android platforms, a basic fallback using the platform module.
+		try:
+			import platform
+			uname = platform.uname()
+			# The 'node' part can sometimes be used to get a hostname or device name.
+			return f"{uname.system} {uname.node}"
+		except Exception as e:
+			return f"Unknown Device: {e}"
