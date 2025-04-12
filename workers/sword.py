@@ -1,3 +1,4 @@
+import json
 from typing import Any, Optional,List,Union
 import platform
 import subprocess
@@ -11,7 +12,7 @@ import threading
 import os
 from PIL import Image 
 import PIL
-from workers.helper import gen_unique_filname,_joinPath,getAppFolder
+from workers.helper import gen_unique_filname, _joinPath, getAppFolder, getUserPCName
 
 
 @dataclass
@@ -146,17 +147,18 @@ class NetworkManager:
         """Get current server IP address (public method)"""
         return self.get_server_ip()
     
-    def broadcast_ip(self,port):
+    def broadcast_ip(self,port,websocket_port):
         server_ip = self._get_system_ip()
-        message = f"SERVER_IP:{server_ip}"
-        
+        msg=json.dumps({'ip':server_ip,'name':getUserPCName(),'websocket_port':websocket_port})
+        # message = f"SERVER_IP:{server_ip}"
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
         print(f"Broadcasting server IP: {server_ip} on port {port}")
 
         while True:
-            sock.sendto(message.encode(), ('<broadcast>', port))
+            sock.sendto(msg.encode(), ('<broadcast>', port))
+            # sock.sendto(message.encode(), ('<broadcast>', port))
             time.sleep(.08)  # Broadcast every second
         print('Ended BroadCast !!!')
 

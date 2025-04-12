@@ -10,7 +10,7 @@ class ConnectionRequest(QWidget):
         super().__init__()
         self.handler: WebSocketConnectionHandler = handler
         device_name = message_object['name']
-        request = message_object['request']
+        # request = message_object['request'] use in upcoming in-app terminal
                 
         self.setWindowTitle("Incoming Connection Request")
         self.setFixedSize(350, 450)
@@ -46,7 +46,7 @@ class ConnectionRequest(QWidget):
         icon_layout.addWidget(self.icon_label, alignment=Qt.AlignCenter)
 
         # Device Name
-        self.device_label = QLabel()
+        self.device_label = QLabel(device_name)
         self.device_label.setObjectName("device_name")
         self.device_label.setFont(QFont("Arial", 12, QFont.Bold))
         self.device_label.setAlignment(Qt.AlignCenter)

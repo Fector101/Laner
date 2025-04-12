@@ -27,7 +27,7 @@ class WorkerThread(QThread):
 
             try:
                 # Using port from started Server
-                NetworkManager().broadcast_ip(server.port)
+                NetworkManager().broadcast_ip(server.port,server.websocket_port)
             except Exception as e:
                 print('BroadCast Failed: ',e)
                 

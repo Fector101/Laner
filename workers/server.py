@@ -266,6 +266,8 @@ class FileSharingServer:
         print(connection_signal)
         self.connection_signal = connection_signal
         self.loop = None
+        self.websocket_port = None
+        self.websocket_server = None
         # Start WebSocket server in event loop
         self.ws_thread = threading.Thread(target=self.run_websocket_server)
         self.ws_thread.daemon = True
@@ -284,11 +286,12 @@ class FileSharingServer:
         # Create a wrapper function to properly bind the instance method
         async def handler(websocket):
             await self.websocket_handler(websocket)
-        
-        self.server = await websockets.serve(
-            handler,  # Use the wrapper instead of the raw method
+
+        self.websocket_port=self.port + 1
+        self.websocket_server = await websockets.serve(
+            handler,
             self.ip,
-            self.port + 1
+            self.websocket_port
         )
         print(f"WebSocket server started at ws://{self.ip}:{self.port+1}")
 
@@ -331,8 +334,8 @@ class FileSharingServer:
         self._server.server_close()
         if self.loop:
             self.loop.call_soon_threadsafe(self.loop.stop)
-            self.server.close()
-            self.loop.run_until_complete(self.server.wait_closed())
+            self.websocket_server.close()
+            self.loop.run_until_complete(self.websocket_server.wait_closed())
             self.loop.close()
             print("WebSocket server stopped")
         print("Server stopped.")
