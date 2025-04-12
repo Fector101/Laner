@@ -1,4 +1,4 @@
-import os, sys, json, requests, asyncio, threading
+import os, sys, json, requests, asyncio, threading,time
 from kivy.metrics import sp
 
 from kivymd.app import MDApp
@@ -8,9 +8,13 @@ from kivymd.uix.divider import MDDivider
 
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.boxlayout import MDBoxLayout
+# from kivymd.uix.floatlayout import MDFloatLayout
+from kivymd.uix.relativelayout import MDRelativeLayout
 from kivy.properties import (ObjectProperty, BooleanProperty, ListProperty, StringProperty)
 from kivymd.uix.selectioncontrol import MDCheckbox
 from kivymd.uix.label import MDIcon, MDLabel
+
+from components.loading_layout import LoadingScreen
 from utils import Settings,NetworkManager,AsyncRequest
 from android_notify import send_notification,Notification,NotificationStyles
 from kivy.clock import Clock
@@ -18,6 +22,9 @@ from kivy.clock import Clock
 from components import Header
 from components.templates import CustomDropDown, MDTextButton,MyBtmSheet
 from components.popup import Snackbar
+from utils.typing.main import Laner
+from utils.helper import setHiddenFilesDisplay
+from utils.constants import PORTS
 
 class MySwitch(MDBoxLayout):
     text=StringProperty()
@@ -115,7 +122,7 @@ class SettingsScreen(MDScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.app:Laner=MDApp.get_running_app()
-        
+
         self.name = 'settings'
         self.pc_name = ''
         # Main layout
@@ -149,28 +156,28 @@ class SettingsScreen(MDScreen):
 
         # Categories
         self.ipAddressInput = MDTextField(pos_hint={'center_x': .5}, size_hint=[.8, None], height=sp(80))
-        
+
         self.advanced_options =PortBoxLayout()
-        
+
         # use discover | enter specify address
         self.add_category("Connection", [
             {"type": "label","text": "Use Discovery"},
-            {'size':[sp(150),sp(50)],"type": "button",'id':'', "title": "Request Connection", "callback": self.setIP},
+            {'size':[sp(150),sp(50)],"type": "button",'id':'', "title": "Request Connection", "callback": self.doConnectionRequest},
             {"type": "label","text": "Enter Specify Address"},
             {'size':[sp(130),sp(50)],"type": "text", 'id':'ip_addr_input',"title": "Server IP", "widget": self.ipAddressInput},
             {'size':[sp(100),sp(50)],"type": "button",'id':'connect_btn', "title": "Verify Connection", "callback": self.setIP},
         ])
-        
+
         self.add_category("Display", [
             {"type": "switch", "switch_state": False, "title": "Show Hidden Files", "callback": self.on_checkbox_active},
             {"type": "switch", "switch_state": True if MDApp.get_running_app().get_stored_theme() == 'Dark' else False, "title": "Dark Mode", "callback": self.toggle_theme}
         ])
-        
+
         self.add_category("Storage", [
             {'size':[sp(100),sp(50)],"type": "button", 'id':'clear_btn', "title": "Clear Cache", "callback": self.clear_cache},
             {"type": "info", "title": "Storage Used", "value": "Calculate storage"}
         ])
-        
+
         self.add_category("Advanced Options", [{"type": "custom", "widget": self.advanced_options}])
 
         scroll.add_widget(self.content)
@@ -178,8 +185,36 @@ class SettingsScreen(MDScreen):
         self.layout.add_widget(scroll)
         self.layout.add_widget(MDBoxLayout(height='70sp',size_hint=[1,None]))  # Buffer cause of bottom nav bar (will change to padding later)
         self.add_widget(self.layout)
-        # print('not doing auto connect')
-        self.autoConnect()
+        print('not doing auto connect')
+        # self.autoConnect()
+    def doConnectionRequest(self,widget=None):
+        self.app.bottom_navigation_bar.close()
+        self.scanningScreen=MDRelativeLayout(md_bg_color=[1,0,1,1])
+        # self.scanningScreen.orientation='vertical'
+        msg = MDLabel(text='Tap Your PC to Request Connection',md_bg_color=[1,0,.5,1],pos_hint={'top':1})
+        msg.adaptive_height=True
+
+        self.scanningScreen.add_widget(msg)
+        self.add_widget(self.scanningScreen)
+        res=NetworkManager().scan_ports(ports=PORTS,timeout=5,on_find=self._render_pc)
+    def _render_pc(self, sent_data=None):
+        if sent_data is None:
+            sent_data = {'name': '', 'ip': '','websocket_port':''}
+        y_pos = len([child for child in self.scanningScreen.children if isinstance(child, MDTextButton)])+1
+        self.scanningScreen.add_widget(MDTextButton(text=sent_data['name'], y=y_pos * 40, on_release=lambda x: self._ask_laner_pc_for_password(sent_data), adaptive_width=True))
+    def _ask_laner_pc_for_password(self, sent_data:dict):
+        """
+            {'name': '', 'ip': '','websocket_port':''}
+        """
+        self.disabled=True
+        NetworkManager().start_password_request(sent_data['ip'], sent_data['websocket_port'], self._received_password_response)
+        self.loading_widget = LoadingScreen()
+        self.scanningScreen.add_widget(self.loading_widget)
+        print(sent_data)
+    def _received_password_response(self, response):
+        self.loading_widget.remove()
+        print(response)
+        self.disabled=False
 
     def add_category(self, title, items):
         def addID(item: dict, widget: object = None) -> None:
@@ -198,7 +233,7 @@ class SettingsScreen(MDScreen):
             widget = item["widget"] if "widget" in item else widget
             if "id" in item:
                 self.ids[item["id"]] = widget
-        
+
         if title == 'Advanced Options':
             category=CustomDropDown()
         else:
@@ -243,7 +278,7 @@ class SettingsScreen(MDScreen):
 
                 )
                 item_layout.add_widget(label)
-                
+
             elif item["type"] == "button":
                 btn = MDTextButton(
                     text=item["title"],
@@ -252,7 +287,7 @@ class SettingsScreen(MDScreen):
                     # size=[sp(130), sp(50)] if item['id'] in ['connect_btn'] else [sp(100),sp(50)]
                 )
                 btn.bind(on_release=item["callback"])
-                
+
                 addID(item,widget=btn)
                 item_layout.add_widget(btn)
 
@@ -263,16 +298,16 @@ class SettingsScreen(MDScreen):
 
         self.content.add_widget(category)
         self.content.add_widget(MDDivider())
-    
+
     def toggle_theme(self, instance,value):
         # Call the app's toggle_theme method
         MDApp.get_running_app().toggle_theme()
 
-     
+
     def clear_cache(self, instance):
         # Cache clearing implementation
-        
-        pass        
+
+        pass
     def on_checkbox_active(self,checkbox_instance, value):
         setHiddenFilesDisplay(value)
 
@@ -286,15 +321,15 @@ class SettingsScreen(MDScreen):
             nonlocal doing_call
             print(erro_name)
             doing_call = False
-            
-                        
+
+
         def set_data(pc_name,ip_address):
             self.pc_name = pc_name
             ip_input.text="Connected to: "+pc_name
             ip_input.disabled=True
             connect_btn.text= 'Disconnect'
             self.change_button_callback(connect_btn,self.setIP, self.disconnect,ip_address)
-            
+
         def update_noti(good,pc_name=''):
             nonlocal notif
             fallback_name=self.pc_name or "PC"
@@ -303,19 +338,19 @@ class SettingsScreen(MDScreen):
                 notif.send(silent=True,persistent=True,close_on_click=False)
             notif.updateTitle('Laner Connected' if good else 'Laner Disconnected')
             notif.updateMessage(f"Connection To {pc_name} Active" if good else f"No Active Connection To {fallback_name}")
-            
+
         def success(pc_name,ip_address):
             nonlocal stay_active_fun, doing_call
             set_data(pc_name,ip_address)
             update_noti(True,pc_name)
-            # print('not checking for new ip')
-            # return # comment out for autoconnect
+            print('not checking for new ip')
+            return # comment out for autoconnect
             if not stay_active_fun:
                 Snackbar(h1="Auto Connect Successfull")
                 stayActive()
             doing_call = False
             stay_active_fun=True
-        
+
         def stayActive():
             nonlocal doing_call
             # print('not checking for new ip')
@@ -325,24 +360,24 @@ class SettingsScreen(MDScreen):
                 if not doing_call:
                     doing_call = True
                     AsyncRequest().find_server_with_ports(success,failed_noti)
-                    
+
             # Scans Ports For If InCase IP Has Changed
             Clock.schedule_interval(do_check,2)
             #According to my calculations AsyncRequest().find_server_with_ports Takes 6 secs to complete if scanning all PORTS
-            
+
         def fun():
             print('not checking for new ip')
-        AsyncRequest().auto_connect(success,failed=stayActive)
-        # AsyncRequest().auto_connect(success,failed=fun)
-        
+        # AsyncRequest().auto_connect(success,failed=stayActive)# comment out for autoconnect
+        AsyncRequest().auto_connect(success,failed=fun)
+
     def setIP(self, widget_that_called):
         ip_input=self.ids['ip_addr_input']
         input_ip_address:str=ip_input.text.strip()
         self.app.settings.set('server', 'ip', input_ip_address)
         port=MDApp.get_running_app().settings.get('server', 'port')
         # TODO create an async quick scanner to check valid port from a list of ports
-        
-        
+
+
         def success(pc_name):
             self.pc_name = pc_name
             self.app.settings.add_recent_connection(input_ip_address)
@@ -353,34 +388,34 @@ class SettingsScreen(MDScreen):
             ip_input.disabled=True
             connect_btn.text= 'Disconnect'
             self.change_button_callback(connect_btn,self.setIP, self.disconnect,input_ip_address)
-            
+
             Snackbar(h1="Verification Successfull")
         def failed():
             Snackbar(h1="Bad Code check 'Laner PC' for right one")
         AsyncRequest().ping(input_ip_address,port,success,failed)
-            # text=ip_input.text
-            # buttons = MDApp.get_running_app().bottom_navigation_bar.children
-            # for btn in buttons:
-            #     if 'sp' not in text:
-            #         btn.spacing=text
-                    
-            #     else:
-            #         btn.btn_icon.font_size=text
+        # text=ip_input.text
+        # buttons = MDApp.get_running_app().bottom_navigation_bar.children
+        # for btn in buttons:
+        #     if 'sp' not in text:
+        #         btn.spacing=text
+
+        #     else:
+        #         btn.btn_icon.font_size=text
 
         print(input_ip_address,'===', self.app.settings.get('server', 'ip'))
-        
+
     def change_button_callback(self, button, old_callback,new_callback,*args):
         button.unbind(on_release=old_callback)
         button.bind(on_release=new_callback)
     def disconnect(self,instance):
         ip_input=self.ids['ip_addr_input']
         connect_btn=self.ids['connect_btn']
-        
+
         ip_input.text=self.app.settings.get('server', 'ip')
         ip_input.disabled=False
         connect_btn.text= 'Verify Connection'
         self.change_button_callback(connect_btn,self.disconnect, self.setIP,connect_btn)
         self.app.settings.set('server', 'ip', '')
         Snackbar(h1="Disconnected from " + self.pc_name)
-        
+
         print('Disconnected')

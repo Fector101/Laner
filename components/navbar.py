@@ -114,7 +114,17 @@ class BottomNavigationBar(MDNavigationDrawer):
         self.screen_manager.change_screen(screen_name)
         # btn.designWidgets(self.screen_manager.current)
     def close(self,widget=None):
+        """My Method to hide bottom nav, mainly to show other screens
+
+        Args:
+            widget (object, optional): widget that calls method in callback. Defaults to None.
+        """
         self.set_state('close')
     def open(self,widget=None):
+        """My Method to show bottom nav
+
+        Args:
+            widget (_type_, optional): widget that calls method in callback. Defaults to None.
+        """
         TabButton.designWidgets(TabButton,self.screen_manager.current)
         self.set_state('open')

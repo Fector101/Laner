@@ -21,11 +21,14 @@ class WindowManager(MDScreenManager):
         self.pos_hint={'top': 1}
         self.add_widget(DisplayFolderScreen(name='upload',current_dir='Home'))
         self.add_widget(DisplayFolderScreen(name='download',current_dir='.'))
-        self.add_widget(SettingsScreen())
+        self.settings=SettingsScreen()
+        self.add_widget(self.settings)
         self.add_widget(ConnectScreen())
         self.transition=NoTransition()
-        # self.current='settings'
-        self.current='connect'
+        self.current='settings'
+        
+        
+        # self.current='connect'
         Window.update_viewport()
         Window.bind(on_keyboard=self.Android_back_click)
 
@@ -141,7 +144,7 @@ class Laner(MDApp):
         self.btm_sheet = MyBtmSheet()
         self.my_screen_manager = WindowManager(self.btm_sheet)
         self.bottom_navigation_bar = BottomNavigationBar(self.my_screen_manager)
-        
+        # self.my_screen_manager.settings.doConnectionRequest()
         # print('doing connect screen')
         # self.bottom_navigation_bar.close()
         

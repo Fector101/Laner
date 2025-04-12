@@ -2,7 +2,7 @@ import os,sys,platform
 import urllib.parse
 from kivymd.material_resources import DEVICE_TYPE # if mobile or PC
 from kivy.clock import Clock
-
+import socket
 THEME_COLOR_TUPLE=(.6, .9, .8, 1)
 
 def getFormat(file_path):
@@ -228,3 +228,77 @@ def urlSafePath(path:str):
 	# For URL encoding
 	url_safe_path=urllib.parse.quote(normalized_path)
 	return url_safe_path
+
+import sys
+
+def get_device_name():
+    # Check for Android (usually sys.platform returns 'android' on devices built with python-for-android)
+    if sys.platform == 'android':
+        try:
+            # Import PyJNIus for Android API calls.
+            from jnius import autoclass
+
+            # The Build class in the Android OS provides device and hardware information.
+            Build = autoclass('android.os.Build')
+
+            # Common attributes:
+            #   MODEL - The end-user visible name for the device.
+            #   MANUFACTURER - The manufacturer of the product/hardware.
+            # You can combine them or choose one.
+            device_model = Build.MODEL  # e.g., "Pixel 4a"
+            manufacturer = Build.MANUFACTURER  # e.g., "Google"
+
+            # Return a string that includes both manufacturer and model.
+            return f"{manufacturer} {device_model}"
+        except Exception as e:
+            # In case something goes wrong (or if PyJNIus isn’t available), return an error message.
+            return f"Android device, but error retrieving name: {e}"
+    else:
+        # For non-Android platforms, a basic fallback using the platform module.
+        try:
+            import platform
+            uname = platform.uname()
+            # The 'node' part can sometimes be used to get a hostname or device name.
+            return f"{uname.system} {uname.node}"
+        except Exception as e:
+            return f"Unknown Device: {e}"
+
+
+def getUserPCName():
+	"""
+    Get the current user's PC name.
+    Returns: str - PC name
+    """
+	pc_name = None
+	try:
+		# Try socket hostname first
+		pc_name = socket.gethostname()
+
+		# Clean and validate hostname
+		if pc_name and isinstance(pc_name, str):
+			# Remove special characters and extra spaces
+			cleaned_name = ' '.join(pc_name.split())
+			# Limit length and capitalize
+			pc_name = cleaned_name[:30]
+	# Fallback methods if socket failed
+
+	except Exception as e:
+		print(f"Error in getUserPCName: {e}")
+
+	def fallbackPCName():
+		"""Helper function to get PC name using environment variables"""
+		pc_name = 'Unknown-PC'
+		try:
+			# Try different environment variables
+			for env_var in ['COMPUTERNAME', 'HOSTNAME', 'HOST', 'USER']:
+				name = os.environ.get(env_var)
+				if name:
+					pc_name = name.strip()[:30]
+					break
+
+		except Exception as e:
+			print(f"Error in fallbackPCName: {e}")
+			pc_name = 'Unknown-PC'
+		return pc_name
+
+	return pc_name or fallbackPCName()
