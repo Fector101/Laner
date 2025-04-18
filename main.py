@@ -30,9 +30,8 @@ class WindowManager(MDScreenManager):
         self.add_widget(self.settings)
         self.add_widget(ConnectScreen())
         self.transition=NoTransition()
-        self.current='settings'
-        
-        
+        # self.current='settings'
+        self.current='upload'
         # self.current='connect'
         Window.update_viewport()
         Window.bind(on_keyboard=self.Android_back_click)
@@ -135,7 +134,17 @@ class Laner(MDApp):
         def on_close_pic_viewer():
             self.bottom_navigation_bar.open()
             self.my_screen_manager.current_screen.enable_click()
+            
         layout=PictureViewer(urls,start_from,on_close_pic_viewer)
+        self.my_screen_manager.current_screen.disable_click()
+        self.my_screen_manager.current_screen.add_widget(layout)
+        self.bottom_navigation_bar.close()
+    def open_file_reader(self, file_path):
+        def on_close_file_reader():
+            self.bottom_navigation_bar.open()
+            self.my_screen_manager.current_screen.enable_click()
+
+        layout = FileReader(file_path, on_close_file_reader)
         self.my_screen_manager.current_screen.disable_click()
         self.my_screen_manager.current_screen.add_widget(layout)
         self.bottom_navigation_bar.close()
@@ -165,9 +174,10 @@ class Laner(MDApp):
         self.nav_layout.add_widget(self.my_screen_manager)
         self.nav_layout.add_widget(self.bottom_navigation_bar)
         self.nav_layout.add_widget(self.btm_sheet)
-        
+            
         self.root_screen.add_widget(self.nav_layout)
         # self.toogle_image_viewer('http://192.168.88.4:8000//home/fabian/Pictures/inspo.png')
+        # self.open_file_reader('/home/fabian/Desktop/linked_clipboard.txt')
         return self.root_screen
 
     def on_resize(self, *args):

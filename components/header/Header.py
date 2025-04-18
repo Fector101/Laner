@@ -3,22 +3,25 @@ from kivymd.uix.button import MDFabButton
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivy.properties import ( ListProperty, StringProperty)
 from kivymd.uix.label import MDLabel
-from kivy.metrics import dp,sp
+from kivy.metrics import sp
 from kivymd.uix.menu import MDDropdownMenu
 
+from utils.helper import getFileName
+
+
 class HeaderBtn(MDFabButton):
-    def __init__(self, **kwargs):
+    # sp font_size return to coded by kivy as type float
+    def __init__(self,font_size:float=0.0, **kwargs):
         super().__init__(**kwargs)
          # self.back_btn.radius=0
         self.theme_bg_color="Custom"
         self.theme_shadow_color="Custom"
         self.shadow_color=[0,0,0,0]
         self.md_bg_color=[0,0,0,0]
-        
-        self.font_size=sp(26)    
+
+        self.font_size=font_size or sp(26)
         size__=45
         self.size=[sp(size__),sp(size__)]
-
 
 class Header(MDBoxLayout):
     """_summary_
@@ -88,4 +91,79 @@ class Header(MDBoxLayout):
     def refreshBtnClicked(self):
         self.screen.set_path_info(from_btn='frm_btn')
         self.dropDown.dismiss()
-        
+
+class HeaderBasic(MDBoxLayout):
+    """_summary_
+
+    Args:
+        text (str): _description_
+        text_halign (str): _description_
+        title_color (str): _description_
+    """
+    text=StringProperty()
+    text_halign=StringProperty()
+    title_color=ListProperty([1,1,1,1])
+    theme_text_color=StringProperty()
+    def __init__(self,btns,back_btn_func, **kwargs):
+        super().__init__(**kwargs)
+        self.dropDown = None
+        self.back_btn_func=back_btn_func
+        self.md_bg_color =[.15,.15,.15,1] if self.theme_cls.theme_style == "Dark" else  [0.92, 0.92, 0.92, 1]
+        self.size_hint=[1,None]
+        self.height=sp(70)
+        self.header_label=MDLabel(
+            text_color=self.title_color,
+            theme_text_color=self.theme_text_color if self.theme_text_color else 'Primary',
+            text=getFileName(self.text),
+            halign=self.text_halign if self.text_halign else 'left',
+            valign='center',
+            shorten_from='right',
+            shorten=True,
+            # md_bg_color=[1,0,0,1]
+            )
+
+        grey_i= 0.44
+        self.back_btn = HeaderBtn(
+            icon="arrow-left",
+            style= "standard",
+            pos_hint={"center_y": .5},
+            x=sp(10),
+            on_release=self.close,
+            color=[grey_i,grey_i,grey_i,1]
+        )
+        self.add_widget(self.back_btn)
+        self.padding=[sp(10),0,sp(10),0]
+        self.spacing=sp(10)
+        self.add_widget(self.header_label)
+        for each_btn in btns:
+            button=HeaderBtn(
+                icon=each_btn['icon'],
+                style= "standard",
+                pos_hint={"right":1,'center_y':.5},
+                font_size=sp(20),
+                x=sp(10),
+                on_release=each_btn['function']
+            )
+            self.add_widget(button)
+
+    def change_title(self,text:str):
+        self.header_label.text='~ '+ text if text == 'Home' else text
+    def open_menu(self, item):
+        icons=['refresh',
+        # 'file','folder'
+        ]
+        titles=['Refresh','New file','New folder']
+        functions = [self.refreshBtnClicked,None,None]
+        menu_items = [
+            {
+                "text": titles[i],
+                'leading_icon': icons[i],
+                'height': sp(45),
+
+                "on_release": lambda real_index=i:functions[real_index](),
+            } for i in range(len(icons))
+        ]
+        self.dropDown=MDDropdownMenu(caller=item, items=menu_items)
+        self.dropDown.open()
+    def close(self,widget=None):
+        self.back_btn_func()

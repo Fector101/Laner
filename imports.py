@@ -22,6 +22,7 @@ from kivymd.material_resources import DEVICE_TYPE # if mobile or PC
 from kivymd.uix.filemanager import MDFileManager
 from kivymd.uix.navigationdrawer import  MDNavigationLayout
 
+from components import PictureViewer,FileReader
 
 from utils.helper import (
     THEME_COLOR_TUPLE, makeDownloadFolder,
@@ -33,7 +34,6 @@ from utils.helper import (
 from utils import Settings
 from screens import DisplayFolderScreen, ConnectScreen,SettingsScreen
 from components.templates import MyBtmSheet
-from components import PictureViewer
 from components import BottomNavigationBar,TabButton
 
 
