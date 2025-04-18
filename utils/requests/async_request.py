@@ -195,7 +195,10 @@ class AsyncRequest:
                     else:
                         self.successfull_download_notification(save_path)
                         self.on_ui_thread(success,[file_name])
-                elif 
+                elif response.status_code == 404:
+                    print("Server Couldn't find File")
+                    # self.on_ui_thread(Snackbar)
+                    
                 else:
                     failed_download_notification()
                     self.on_ui_thread(failed)
