@@ -1,12 +1,7 @@
 """Folder Screen Wigdet"""
 
-import asyncio
 import os
-import threading
-import shutil
-
 from kivy.clock import Clock
-# pylint: disable=no-name-in-module
 from kivy.properties import StringProperty,BooleanProperty
 from kivy.uix.label import Label
 from kivy.uix.recycleview import RecycleView
@@ -24,7 +19,6 @@ from kivymd.uix.relativelayout import MDRelativeLayout
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.button import MDFabButton
 
-from android_notify import Notification, NotificationStyles
 from plyer import filechooser # pylint: disable=import-error
 
 from components.header import Header
@@ -390,7 +384,7 @@ class FileOperations:
         AsyncRequest().upload_file(file_path,current_dir,success,fail)
     
     def open_file_viewer(self,current_dir_info,selected_file_url,file_path):
-        if is_text_by_mime(getFileName(selected_file_url)):
+        if is_text_by_mime(getFileName(file_path)):
             self.app.open_file_reader(file_path=file_path)
         else:
             self.__open_image_viewer(current_dir_info,selected_file_url)
@@ -410,7 +404,7 @@ class FileOperations:
                 i+=1
                 
         print(img_urls,selected_file_index)
-        self.app.toogle_image_viewer(img_urls,start_from=selected_file_index)
+        self.app.toggle_image_viewer(img_urls,start_from=selected_file_index)
 
     def share_file(self,widget_at_called=None):
         print(self.path)
