@@ -194,7 +194,7 @@ class AsyncRequest:
                         Clock.schedule_once(lambda dt: Snackbar(h1="Download Cancelled"))
                     else:
                         self.successfull_download_notification(save_path)
-                        self.on_ui_thread(success,[file_name])
+                        self.on_ui_thread(success,[save_path])
                 elif response.status_code == 404:
                     print("Server Couldn't find File")
                     # self.on_ui_thread(Snackbar)

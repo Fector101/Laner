@@ -19,6 +19,7 @@ class FileReader(MDBoxLayout):
     def __init__(self, file_path:str, close_btn_callback, **kwargs):
         super().__init__(**kwargs)
         self.file_path =file_path
+        self.my_downloads_folder = makeDownloadFolder()
         self.orientation='vertical'
         self.close_btn_callback = close_btn_callback
         self.md_bg_color = [0, 0, 0, 1]
@@ -37,12 +38,11 @@ class FileReader(MDBoxLayout):
         # self.dropDown = MDDropdownMenu()
     def download_content(self):
         file_name = getFileName(self.file_path)
-        my_downloads_folder = makeDownloadFolder()
-        save_path=urlSafePath(os.path.join(my_downloads_folder,file_name))
-        print('file.path',self.file_path)
+        save_path=urlSafePath(os.path.join(self.my_downloads_folder,file_name))
         AsyncRequest().download_file(file_path=self.file_path,save_path=save_path,success=self.read_content,failed=self.failed_to_download)
 
     def read_content(self, saved_path):
+        # print(saved_path)
         with open(saved_path, "r", encoding="utf-8") as f:
             content = f.read()
         self.text_box.text = content
