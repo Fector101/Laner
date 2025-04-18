@@ -10,8 +10,7 @@ from utils.helper import getFileName
 
 
 class HeaderBtn(MDFabButton):
-    # sp font_size return to coded by kivy as type float
-    def __init__(self,font_size:float=0.0, **kwargs):
+    def __init__(self,font_size=26, **kwargs):
         super().__init__(**kwargs)
          # self.back_btn.radius=0
         self.theme_bg_color="Custom"
@@ -19,7 +18,7 @@ class HeaderBtn(MDFabButton):
         self.shadow_color=[0,0,0,0]
         self.md_bg_color=[0,0,0,0]
 
-        self.font_size=font_size or sp(26)
+        self.font_size=sp(font_size)
         size__=45
         self.size=[sp(size__),sp(size__)]
 
@@ -104,16 +103,16 @@ class HeaderBasic(MDBoxLayout):
     text_halign=StringProperty()
     title_color=ListProperty([1,1,1,1])
     theme_text_color=StringProperty()
-    def __init__(self,btns,back_btn_func, **kwargs):
+    def __init__(self,btns,back_btn_func,height=72, **kwargs):
         super().__init__(**kwargs)
         self.dropDown = None
         self.back_btn_func=back_btn_func
         self.md_bg_color =[.15,.15,.15,1] if self.theme_cls.theme_style == "Dark" else  [0.92, 0.92, 0.92, 1]
         self.size_hint=[1,None]
-        self.height=sp(70)
+        self.height=sp(height)
         self.header_label=MDLabel(
             text_color=self.title_color,
-            theme_text_color=self.theme_text_color if self.theme_text_color else 'Primary',
+            # theme_text_color=self.theme_text_color if self.theme_text_color else 'Primary',
             text=getFileName(self.text),
             halign=self.text_halign if self.text_halign else 'left',
             valign='center',
@@ -140,12 +139,12 @@ class HeaderBasic(MDBoxLayout):
                 icon=each_btn['icon'],
                 style= "standard",
                 pos_hint={"right":1,'center_y':.5},
-                font_size=sp(20),
+                font_size=21,
                 x=sp(10),
                 on_release=each_btn['function']
             )
             self.add_widget(button)
-
+        self.set_theme(self.theme_cls.theme_style)
     def change_title(self,text:str):
         self.header_label.text='~ '+ text if text == 'Home' else text
     def open_menu(self, item):
@@ -167,3 +166,16 @@ class HeaderBasic(MDBoxLayout):
         self.dropDown.open()
     def close(self,widget=None):
         self.back_btn_func()
+
+    def set_theme(self, theme):
+        """
+
+        :param theme: Dark|Light|`custom` custom would be some dict key
+        :return:
+        """
+        if theme == 'Light':
+            self.header_label.theme_text_color='Custom'
+            self.header_label.color  = [0,0,0,1]
+            # self.header_label.text_color  = [0,0,0,1] same as .color one might get deprecated,this is for reference
+        else:
+            self.header_label.color  = [1,1,1,1]
