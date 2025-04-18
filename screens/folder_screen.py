@@ -30,7 +30,8 @@ from plyer import filechooser # pylint: disable=import-error
 from components.header import Header
 from components.popup import PopupDialog, Snackbar
 from components.pictureviewer import SafeAsyncImage # it's been Used in .kv file
-from utils.helper import getHiddenFilesDisplay_State, makeDownloadFolder, getAppFolder,getFormat
+from utils.helper import getHiddenFilesDisplay_State, makeDownloadFolder, getAppFolder, getFormat, getFileName, \
+    is_text_by_mime
 from utils import AsyncRequest
 from utils.constants import IMAGE_FORMATS
 
@@ -293,7 +294,7 @@ class DisplayFolderScreen(MDScreen):
             file_name = os.path.basename(path.replace('\\', '/'))
             file_operations = FileOperations(path)
             self.manager.btm_sheet.show(file_name,items_object=[
-            {'title':"Preview",'icon': "eye",'function': lambda x: file_operations.open_image_viewer(current_dir_info=self.current_dir_info,selected_file_url=file_url)},
+            {'title':"Preview",'icon': "eye",'function': lambda x: file_operations.open_file_viewer(current_dir_info=self.current_dir_info,selected_file_url=file_url,file_path=path)},
             {'title':"Download",'icon': "download",'function': lambda _: self.show_download_dialog(path)},
             {'title':"Open with",'icon': "apps",'function': file_operations.query_open_with},
             {'title':"Info",'icon': "information",'function': file_operations.share_file},
@@ -331,7 +332,7 @@ class DisplayFolderScreen(MDScreen):
         :param path: The path to download.
         """
         print('frm dialog')
-        file_name = os.path.basename(path.replace('\\', '/'))
+        file_name = getFileName(path)
         saving_path = os.path.join(my_downloads_folder, file_name)
         def success(url):
             def failed_callback():
@@ -387,8 +388,14 @@ class FileOperations:
             Snackbar(h1="Failed to Upload File check Laner on PC")
         
         AsyncRequest().upload_file(file_path,current_dir,success,fail)
+    
+    def open_file_viewer(self,current_dir_info,selected_file_url,file_path):
+        if is_text_by_mime(getFileName(selected_file_url)):
+            self.app.open_file_reader(file_path=file_path)
+        else:
+            self.__open_image_viewer(current_dir_info,selected_file_url)
 
-    def open_image_viewer(self,current_dir_info,selected_file_url):
+    def __open_image_viewer(self,current_dir_info,selected_file_url):
         img_urls=[]
         if getFormat(self.path) not in IMAGE_FORMATS:
             return
