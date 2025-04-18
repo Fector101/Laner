@@ -34,7 +34,8 @@ class ProgressData:
 
 class AsyncRequest:
     
-    def __init__(self):
+    def __init__(self,notifications=True):
+        self.notifications = notifications
         self.download_notification= None
         self.upload_notification= None
         self.percent=0 # Don't share Instances
@@ -122,6 +123,8 @@ class AsyncRequest:
         thread.start()
 
     def successfull_download_notification(self,save_path):
+        if not self.notifications:
+            return
         file_name = os.path.basename(save_path)
         try:
             # If the file is an image, copy it to the app's assets and send a notification.
@@ -133,6 +136,8 @@ class AsyncRequest:
             print(e,"Adding Img to Notification")
 
     def send_initial_download_notification(self,file_name):
+        if not self.notifications:
+            return
         print('Sent file_name', file_name)
         self.download_notification = Notification(
                 title="Downloaded (0%)",
@@ -148,6 +153,8 @@ class AsyncRequest:
         self.download_notification.send()
 
     def update_progress(self,monitor,notification:Notification,type_):
+        if not self.notifications:
+            return
         new_percent = int((monitor.bytes_read / monitor.len) * 100)
         if new_percent >= 100:
             notification.removeButtons()
@@ -161,6 +168,8 @@ class AsyncRequest:
     def download_file(self, file_path,save_path,success,failed=None):
         file_name = os.path.basename(save_path)
         def failed_download_notification(msg='Download Error!'):
+            if not self.notifications:
+                return
             self.download_notification.removeButtons()
             self.download_notification.removeProgressBar(title=msg)
             
@@ -168,7 +177,6 @@ class AsyncRequest:
             try:
                 url = f"http://{self.get_server_ip()}:{self.get_port_number()}/{file_path}"
                 response = requests.get(url, stream=True,timeout=(2,None))
-                print('got file -- Doing progress bar',response)
                 self.send_initial_download_notification(file_name)
                 if response.status_code == 200:
                     # Get the total file size from the response headers (if available)
@@ -214,6 +222,8 @@ class AsyncRequest:
         file_basename = os.path.basename(file_path)        
         
         def send_initial_upload_notification():
+            if not self.notifications:
+                return
             self.upload_notification = Notification(
                 title="Uploading (0%)",
                 message=file_basename,
@@ -227,10 +237,14 @@ class AsyncRequest:
             self.upload_notification.send()
         
         def failed_upload_notification(msg='Upload Error!'):
+            if not self.notifications:
+                return
             self.upload_notification.removeButtons()
             self.upload_notification.removeProgressBar(title=msg)
             
         def update_progress(monitor):
+            if not self.notifications:
+                return
             if self.cancel_upload:
                 failed_upload_notification("Upload Cancelled!")
                 Clock.schedule_once(lambda dt: Snackbar(h1="Upload Cancelled"))
@@ -265,7 +279,8 @@ class AsyncRequest:
                     failed_upload_notification()
                     Clock.schedule_once(lambda dt:Snackbar(h1=f'Upload Failed - Code {response.status_code}'))
                     self.on_ui_thread(failed)
-                self.upload_notification.removeButtons()
+                if self.notifications:
+                    self.upload_notification.removeButtons()
 
             except Exception as e:
                 if not self.cancel_upload:
