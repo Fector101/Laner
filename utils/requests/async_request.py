@@ -5,9 +5,9 @@ import threading
 import traceback
 
 from kivy.clock import Clock
+from kivy.utils import platform
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 from android_notify import Notification, NotificationStyles
-
 from utils.helper import getAppFolder,get_full_class_name,urlSafePath,getFormat
 from utils.config import Settings
 from .networkmanager import NetworkManager
@@ -15,7 +15,6 @@ from components.popup import Snackbar
 from utils.constants import IMAGE_FORMATS, PORTS
 Notification.logs = False
 
-from kivy.utils import platform # OS
 if platform == 'android':
     from android.runnable import run_on_ui_thread # pylint: disable=import-error
 else:
@@ -31,6 +30,8 @@ class ProgressData:
     def __init__(self,bytes_read,len_):
         self.bytes_read=bytes_read
         self.len=len_
+
+
 class AsyncRequest:
     
     def __init__(self):
@@ -47,6 +48,7 @@ class AsyncRequest:
     def get_port_number(self) -> str:
         """Return the server port number from settings."""
         return Settings().get("server", "port")
+
     def get_path_data(self,path,success,failed=None):
         def __make_request():
             try:
@@ -64,6 +66,7 @@ class AsyncRequest:
                 
         thread = threading.Thread(target=__make_request)
         thread.start()
+
     @run_on_ui_thread
     def on_ui_thread(self,fun,args=[]):
         if not fun:
@@ -117,6 +120,7 @@ class AsyncRequest:
                 
         thread = threading.Thread(target=__make_request)
         thread.start()
+
     def successfull_download_notification(self,save_path):
         file_name = os.path.basename(save_path)
         try:
@@ -127,7 +131,9 @@ class AsyncRequest:
                 self.download_notification.addNotificationStyle(NotificationStyles.LARGE_ICON,already_sent=True)
         except Exception as e:
             print(e,"Adding Img to Notification")
+
     def send_initial_download_notification(self,file_name):
+        print('Sent file_name', file_name)
         self.download_notification = Notification(
                 title="Downloaded (0%)",
                 message=file_name,
@@ -140,8 +146,7 @@ class AsyncRequest:
             self.cancel_download=True
         self.download_notification.addButton('Cancel',on_release=cancel_download_method)
         self.download_notification.send()
-    
-        
+
     def update_progress(self,monitor,notification:Notification,type_):
         new_percent = int((monitor.bytes_read / monitor.len) * 100)
         if new_percent >= 100:
@@ -150,6 +155,7 @@ class AsyncRequest:
         elif new_percent != self.percent:
             # print(f"{type_}ing ({new_percent}%)")
             self.percent=new_percent
+            # notification.logs=True
             notification.updateProgressBar(self.percent,title=f"{type_}ing ({self.percent}%)")
         
     def download_file(self, file_path,save_path,success,failed=None):
@@ -162,13 +168,13 @@ class AsyncRequest:
             try:
                 url = f"http://{self.get_server_ip()}:{self.get_port_number()}/{file_path}"
                 response = requests.get(url, stream=True,timeout=(2,None))
-                print('got file -- Doing progress bar')
+                print('got file -- Doing progress bar',response)
+                self.send_initial_download_notification(file_name)
                 if response.status_code == 200:
                     # Get the total file size from the response headers (if available)
                     total_size = int(response.headers.get('Content-Length', 0))
                     downloaded = 0
                     chunk_size = 8192  # Adjust chunk size as needed
-                    self.send_initial_download_notification(file_name)
                     with open(save_path, 'wb') as f:
                         for chunk in response.iter_content(chunk_size=chunk_size):
                             if chunk:  # Filter out keep-alive chunks
@@ -181,15 +187,15 @@ class AsyncRequest:
                             else:
                                 # If no content length header, just print downloaded bytes.
                                 print(f"Downloaded: {downloaded} bytes")
-                                
-                    
+
+
                     if self.cancel_download:
                         failed_download_notification('Download Cancelled!')
                         Clock.schedule_once(lambda dt: Snackbar(h1="Download Cancelled"))
                     else:
                         self.successfull_download_notification(save_path)
                         self.on_ui_thread(success,[file_name])
-                        
+                elif 
                 else:
                     failed_download_notification()
                     self.on_ui_thread(failed)
@@ -200,8 +206,7 @@ class AsyncRequest:
                 traceback.print_exc()
                 self.on_ui_thread(failed)
         threading.Thread(target=_download).start()
-    
-        
+
     def upload_file(self, file_path, save_path,success,failed=None,file_data=None):
         file_basename = os.path.basename(file_path)        
         
@@ -296,6 +301,7 @@ class AsyncRequest:
             self.find_server_with_ports(success=success,failed=_failed)
                     
         threading.Thread(target=__auto_connect).start()
+
     def find_server_with_ports(self,success,failed=None) -> None:
         def scan():
             try:
@@ -327,6 +333,7 @@ class AsyncRequest:
             self.do_failed(failed,['No Error | No Server'])
                 
         threading.Thread(target=scan).start()
+
     def ping(self,input_ip_address,port,success,failed):
         def __ping():
             try:
