@@ -24,7 +24,6 @@ from kivy.clock import Clock
 
 from components import Header
 from components.templates import CustomDropDown, MDTextButton,MyBtmSheet
-from components.popup import Snackbar
 from utils.typing.main import Laner
 from utils.helper import setHiddenFilesDisplay
 from utils.constants import PORTS
@@ -279,8 +278,8 @@ class SettingsScreen(MDScreen):
         self.layout.add_widget(MDBoxLayout(height='70sp',size_hint=[1,None]))  # Buffer cause of bottom nav bar (will change to padding later)
         self.add_widget(self.layout)
         self.scanningScreen=None
-        print('not doing auto connect')
-        # self.autoConnect()
+        # print('not doing auto connect')
+        self.autoConnect()
 
     def doConnectionRequest(self, widget=None):
         self.scanningScreen = ScanningLayout(change_working_server=self.setIP)
@@ -412,8 +411,8 @@ class SettingsScreen(MDScreen):
             nonlocal stay_active_fun, doing_call
             set_data(pc_name,ip_address)
             update_noti(True,pc_name)
-            print('not checking for new ip')
-            return # comment out for autoconnect
+            # print('not checking for new ip')
+            # return # comment out for autoconnect
             if not stay_active_fun:
                 Snackbar(h1="Auto Connect Successfull")
                 stayActive()
@@ -436,8 +435,8 @@ class SettingsScreen(MDScreen):
 
         def fun():
             print('not checking for new ip')
-        # AsyncRequest().auto_connect(success,failed=stayActive)# comment out for autoconnect
-        AsyncRequest().auto_connect(success,failed=fun)
+        AsyncRequest().auto_connect(success,failed=stayActive)# comment out for autoconnect
+        # AsyncRequest().auto_connect(success,failed=fun)
 
     def setIP(self, widget_that_called=None,ip=''):
         ip_input=self.ids['ip_addr_input']
