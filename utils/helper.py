@@ -1,5 +1,6 @@
 import os,sys,platform
 import traceback
+import mimetypes
 import urllib.parse
 from kivymd.material_resources import DEVICE_TYPE # if mobile or PC
 from kivy.clock import Clock
@@ -7,11 +8,12 @@ import socket
 THEME_COLOR_TUPLE=(.6, .9, .8, 1)
 
 def getFormat(file_path):
-    return os.path.splitext(file_path)[1]
+	return os.path.splitext(file_path)[1]
+
 def getAppFolder():
 	"""
-	Returns the correct application folder path, whether running on native Windows,
-	Wine, or directly in Linux.
+		Returns the correct application folder path, whether running on native Windows,
+		Wine, or directly in Linux.
 	"""
 	if hasattr(sys, "_MEIPASS"): # PyInstaller creates a temp folder (_MEIPASS)
 		path__ = os.path.abspath(sys._MEIPASS)
@@ -57,7 +59,7 @@ def wine_path_to_unix(win_path):
 			wine_home_folder=os.environ['WINECONFIGDIR'].replace("\\","/").split(':/') if 'WINECONFIGDIR' in os.environ else ''
 			wine_home_folder=wine_home_folder[1] if len(wine_home_folder) > 0 else ''
 			unix_path = unix_path.replace("C:/", '/'+wine_home_folder+"/drive_c/")
-    
+
 	return os.path.normpath(unix_path)
   
   
@@ -78,7 +80,7 @@ def makeDownloadFolder():
 		from android.storage import app_storage_path, primary_external_storage_path # type: ignore
 		folder_path=os.path.join(primary_external_storage_path(),'Download','Laner')
 		makeFolder(folder_path)
-  	
+
 	return folder_path
 
 
@@ -91,10 +93,10 @@ def getHiddenFilesDisplay_State():
 
 
 def get_full_class_name(obj):
-    module = obj.__class__.__module__
-    if module is None or module == str.__class__.__module__:
-        return obj.__class__.__name__
-    return module + '.' + obj.__class__.__name__
+	module = obj.__class__.__module__
+	if module is None or module == str.__class__.__module__:
+		return obj.__class__.__name__
+	return module + '.' + obj.__class__.__name__
 
 
 
@@ -159,7 +161,7 @@ def getStatusBarHeight():
   
 def requestMultiplePermissions():
 
-    
+
 	from android import mActivity # type: ignore
 	
 	# try:
@@ -191,7 +193,7 @@ def requestMultiplePermissions():
 				print("Notification permission denied")
 			storage_permissions = [Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE]
 			request_permissions(storage_permissions, on_storage_permissions_result)
-      
+
 		def on_storage_permissions_result(permissions, grants):
 			# Storage permissions granted, request all files access for Android 11+
 			if api_version >= 30:
@@ -209,11 +211,11 @@ def requestMultiplePermissions():
 							Clock.schedule_once(lambda dt: mActivity.startActivity(intent), 2)
 						except Exception as e:
 							Clock.schedule_once(lambda dt: toast("Failed to request storage permissions"), 2)
-           
+
 			else:
 				print("Storage permissions not called Android less 11 | Feature not available 101")
 
-        # Request notification permission first
+		# Request notification permission first
 		request_permissions([Permission.POST_NOTIFICATIONS], on_permissions_result)
 
 	try:
@@ -285,3 +287,11 @@ def get_device_name():
 			return f"{uname.system} {uname.node}"
 		except Exception as e:
 			return f"Unknown Device: {e}"
+
+def getFileName(file_path:str):
+	return os.path.basename(file_path.replace('\\', '/'))
+
+
+def is_text_by_mime(filepath):
+	mime, _ = mimetypes.guess_type(filepath)
+	return mime is not None and mime.startswith('text')
