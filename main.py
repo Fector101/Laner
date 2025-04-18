@@ -89,7 +89,7 @@ class Laner(MDApp):
         super().__init__(**kwargs)
         self.theme_cls.theme_style = self.get_stored_theme()
         self.theme_cls.primary_palette = "White"
-        
+
     def get_stored_theme(self):
         return self.settings.get('display', 'theme')
 
@@ -129,8 +129,8 @@ class Laner(MDApp):
                 if isinstance(screen, DisplayFolderScreen):
                     screen.details_box.md_bg_color =light_grey_for_light_theme
                     screen.details_label.color = [0.41, 0.42, 0.4, 1]
-    
-    def toogle_image_viewer(self,urls:list,start_from:str):
+
+    def toggle_image_viewer(self,urls:list,start_from:str):
         def on_close_pic_viewer():
             self.bottom_navigation_bar.open()
             self.my_screen_manager.current_screen.enable_click()
@@ -139,6 +139,7 @@ class Laner(MDApp):
         self.my_screen_manager.current_screen.disable_click()
         self.my_screen_manager.current_screen.add_widget(layout)
         self.bottom_navigation_bar.close()
+
     def open_file_reader(self, file_path):
         def on_close_file_reader():
             self.bottom_navigation_bar.open()
@@ -176,7 +177,7 @@ class Laner(MDApp):
         self.nav_layout.add_widget(self.btm_sheet)
             
         self.root_screen.add_widget(self.nav_layout)
-        # self.toogle_image_viewer('http://192.168.88.4:8000//home/fabian/Pictures/inspo.png')
+        # self.toggle_image_viewer('http://192.168.88.4:8000//home/fabian/Pictures/inspo.png')
         # self.open_file_reader('/home/fabian/Desktop/linked_clipboard.txt')
         return self.root_screen
 
