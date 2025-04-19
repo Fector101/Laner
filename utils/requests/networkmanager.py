@@ -149,7 +149,7 @@ class NetworkManager:
             if data:
                 msg = json.loads(data.decode())
                 server_ip = msg['ip']
-                print("Detected Server IP:", server_ip,'at port: ',port, 'pc name: ',msg['name'])
+                # print("Detected Server IP:", server_ip,'at port: ',port, 'pc name: ',msg['name'])
                 if on_find:
                     Clock.schedule_once(lambda dt: on_find(msg))
                 return server_ip  # Use this IP to connect to the server

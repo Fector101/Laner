@@ -328,9 +328,9 @@ class AsyncRequest:
                     ip_address = NetworkManager().find_server(each_port,timeout=.2)
                     # timeout for scanning port needs to be longer than sleep time when broadcasting in desktop/workers/sword.py 
                     # TODO Remove Sleep for NetworkManager.find_server method and hardcode timeout
-                    print('trying port: ',each_port)
+                    # print('trying port: ',each_port)
                     if ip_address:
-                        print(f"Connecting to server at {ip_address}")
+                        # print(f"Connecting to server at {ip_address}")
                         try:
                             response=requests.get(f"http://{ip_address}:{each_port}/ping",json={'passcode':'08112321825'},timeout=timeout)
                             if response.status_code == 200:

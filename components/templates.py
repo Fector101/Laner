@@ -118,7 +118,7 @@ class MDTextButton(MDButton):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # self.text = self.text
-        print(self.adaptive_width)
+        # print(self.adaptive_width)
         self.theme_height = "Custom"
         self.theme_width = "Primary" if self.adaptive_width else "Custom"
     

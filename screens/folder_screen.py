@@ -75,7 +75,7 @@ class MyCard(RecycleDataViewBehavior,RectangularRippleBehavior,ButtonBehavior,MD
 
         except Exception as e:
             Clock.schedule_once(lambda dt:Snackbar(h1="Dev pinging for thumb valid"))
-            print(f"isDir method: {e}")
+            # print(f"isDir method: {e}")
             return False
 
     def on_thumbnail_url(self, instance, value):
@@ -86,18 +86,17 @@ class MyCard(RecycleDataViewBehavior,RectangularRippleBehavior,ButtonBehavior,MD
         # Cleanup intervals when user leaves screen before thumbnail is created
         try:
             if not parent and self.thumbnail_update_interval:
-                print('canceling ',self.thumbnail_update_interval,'parent ',parent)
+                # print('canceling ',self.thumbnail_update_interval,'parent ',parent)
                 self.thumbnail_update_interval.cancel()
                 self.thumbnail_update_interval=None
         except Exception as e:
             print('interval cancel error ',e)
         
-    
     def update_image(self):
         def without_url_format(url:str):
             return os.path.join(*url.split('/')[4:])
         
-        print('cheacking self.thumbnail_url for ---> ',self.thumbnail_url)
+        # print('cheacking self.thumbnail_url for ---> ',self.thumbnail_url)
         # if self.thumbnail_url:
             # print(self.validated_paths,'||', without_url_format(self.thumbnail_url))
         if self.thumbnail_url and (self.thumbnail_url in self.validated_paths or self.isFile(without_url_format(self.thumbnail_url))):
@@ -109,8 +108,7 @@ class MyCard(RecycleDataViewBehavior,RectangularRippleBehavior,ButtonBehavior,MD
             self.thumbnail_update_interval=None
         elif not self.thumbnail_url:
             self.thumbnail_update_interval.cancel()
-            
-            
+
     def myFormat(self, text:str):
         if len(text) > 20:
             return text[0:18] + '...'
