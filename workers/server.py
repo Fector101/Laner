@@ -29,7 +29,7 @@ MY_OWNED_ICONS = ['.py', '.js', '.css', '.html', '.json', '.deb', '.md', '.sql',
 ZIP_FORMATS = ['.zip', '.7z', '.tar', '.bzip2', '.gzip', '.xz', '.lz4', '.zstd', '.bz2', '.gz']
 VIDEO_FORMATS = ('.mkv', '.mp4', '.avi', '.mov')
 AUDIO_FORMATS = ('.mp3', '.wav', '.aac', '.ogg', '.m4a', '.flac', '.wma', '.aiff', '.opus')
-PICTURE_FORMATS = ('.png', '.jpg', '.jpeg', '.tif', '.bmp', '.gif')
+PICTURE_FORMATS = ('.png', '.jpg', '.jpeg', '.tif', '.bmp', '.gif','.svg')
 SPECIAL_FOLDERS = ['home', 'pictures', 'templates', 'videos', 'documents', 'music', 'favorites', 'share', 'downloads']
 SUBTITLE_EXTENSIONS = (
     # Plain Text Subtitle Formats
@@ -209,6 +209,7 @@ class CustomHandler(SimpleHTTPRequestHandler):
             self._send_json_response({'error': str(e)}, status=400)
 
         self.request_count += 1
+
     def parseMyPath(self):
         """ Takes unreal_path from app and format to real path eg Home --> ~ Home :) TODO Remove this"""
         app_requested_path=self._get_request_body('path')
@@ -319,12 +320,14 @@ class FileSharingServer:
                 threading.Thread(target=self._server.serve_forever, daemon=True).start()
                 print(f"Server started at http://{SERVER_IP}:{self.port}")
                 break  # Exit the loop if the server starts successfully
-            except OSError:
+            except OSError as e:
                 print(f"Port {port} is unavailable, trying the next one...")
+                writeErrorLog(f'{e} -- Port :{port}',traceback.format_exc())
                 traceback.print_exc()
             except Exception as e:
                 print(f"Error: {e}")
-                # Start WebSocket server in event loop
+                writeErrorLog(f'{e} -- Port :{port}',traceback.format_exc())
+        # Start WebSocket server in event loop
         self.ws_thread = threading.Thread(target=self.run_websocket_server)
         self.ws_thread.daemon = True
         self.ws_thread.start()
