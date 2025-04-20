@@ -53,7 +53,6 @@ class WindowManager(MDScreenManager):
     def Android_back_click(self, window, key, *args):
         """Handle the Android back button."""
         if key == 27:  # Back button key code
-            print('escape clicked')
             if isinstance(self.current_screen,DisplayFolderScreen) and len(self.current_screen.screen_history):
                 # might switch to "if []:" since it works on python but "if len([]):" is more understandable
                 # print(self.current_screen.screen_history)
