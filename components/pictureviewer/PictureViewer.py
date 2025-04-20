@@ -19,11 +19,11 @@ class MySwiper(MDSwiperItem):
     def __init__(self, source, **kwargs):
         super().__init__(**kwargs)
         self.add_widget(SafeAsyncImage(source=source))
+
         
 class PictureViewer(MDFloatLayout,PopupScreen):
     def __init__(self, sources:list,start_from:str, **kwargs):
         super().__init__(**kwargs)
-        self.parent=self.parent
         self.swiper:MDSwiper=self.ids.swiper_id
         self.sources = sources
         self.md_bg_color=[0,0,0,1]

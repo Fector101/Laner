@@ -30,8 +30,7 @@ class CustomTextInput(TextInput):
         self.height = Window.height - self.header_height
         Window.bind(size=self.on_resize_box)
         self.cursor_color = self.app.theme_cls.primaryColor
-        # self._editable=False
-        # self.disabled=False
+
         # Changes|Add more than border color change text color
         # with self.canvas.before:
             # self.border_color = Color(1, 0, .1, 1)  # changes textcolor for some reason
@@ -60,7 +59,7 @@ class FileReader(MDBoxLayout,PopupScreen):
         ]
         self.header = HeaderBasic(text=self.file_path,btns=btns_data,back_btn_func=self.close,height=80)
         self.text_box= CustomTextInput(text='Loading...',header_height=self.header.height)
-        self.text_box.readonly = True
+        # self.text_box.readonly = True
         self.add_widget(self.header)
         self.add_widget(self.text_box)
         self.__download_content()

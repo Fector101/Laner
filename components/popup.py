@@ -10,12 +10,11 @@ from kivy.metrics import sp
 class PopupScreen:
     def __init__(self,close_btn_callback,bottom_navigation_bar):
         self.close_btn_callback=close_btn_callback
-        # Setting `self.parent=None` here cause of pycharm
+        # setting `self.parent=None` here because of pycharm
         self.parent=None # parent DisplayFolderScreen Class
         self.bottom_navigation_bar=bottom_navigation_bar
 
     def close(self,widget=None):
-
         self.close_btn_callback()
         self.parent.enable_click()
         self.parent.remove_widget(self)
