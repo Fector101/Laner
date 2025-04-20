@@ -1,4 +1,5 @@
 IMAGE_FORMATS = ('.png', '.jpg', '.jpeg', '.tif', '.bmp', '.gif','.svg')
+OTHER_TXT_FORMATS = ('.kv','.json')
 PORTS =  (
                     8000, 8080, 9090, 10000,
                     11000, 12000, 13000, 14000, 

@@ -4,7 +4,10 @@ import mimetypes
 import urllib.parse
 from kivymd.material_resources import DEVICE_TYPE # if mobile or PC
 from kivy.clock import Clock
-import socket
+from pathlib import Path
+
+from utils.constants import OTHER_TXT_FORMATS
+
 THEME_COLOR_TUPLE=(.6, .9, .8, 1)
 
 def getFormat(file_path):
@@ -292,6 +295,8 @@ def getFileName(file_path:str):
 	return os.path.basename(file_path.replace('\\', '/'))
 
 
-def is_text_by_mime(filepath):
+def is_text_by_mime(filepath:str):
 	mime, _ = mimetypes.guess_type(filepath)
-	return mime is not None and mime.startswith('text')
+	is_text_type = (mime is not None and mime.startswith('text')) or Path(filepath).suffix in OTHER_TXT_FORMATS
+	print(mime,is_text_type)
+	return is_text_type
