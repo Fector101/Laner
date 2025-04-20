@@ -22,7 +22,7 @@ source.include_exts = py,png,jpg,kv,atlas,ttf,json
 #source.exclude_exts = spec
 
 # (list) List of directory to exclude (let empty to not exclude anything)
-source.exclude_dirs = tests, bin, venv,lab, worked, __pycache__, .idea, dist, for-download,laner-linux
+source.exclude_dirs = tests, bin, venv,lab, worked, __pycache__, .idea, dist, for-download,laner-linux, .filereader
 
 # (list) List of exclusions using pattern matching
 # Do not prefix with './'
