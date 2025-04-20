@@ -1,8 +1,10 @@
-"""Folder Screen Wigdet"""
+"""Folder Screen Widget"""
 
 import os
+import requests
 from kivy.clock import Clock
 from kivy.properties import StringProperty,BooleanProperty
+from kivy.metrics import sp
 from kivy.uix.label import Label
 from kivy.uix.recycleview import RecycleView
 from kivy.lang import Builder
@@ -22,7 +24,7 @@ from kivymd.uix.button import MDFabButton
 from plyer import filechooser # pylint: disable=import-error
 
 from components.header import Header
-from components.popup import PopupDialog, Snackbar
+from components.popup import PopupDialog, Snackbar, PopupScreen
 from components.pictureviewer import SafeAsyncImage # it's been Used in .kv file
 from utils.helper import getHiddenFilesDisplay_State, makeDownloadFolder, getAppFolder, getFormat, getFileName, \
     is_text_by_mime
@@ -64,9 +66,8 @@ class MyCard(RecycleDataViewBehavior,RectangularRippleBehavior,ButtonBehavior,MD
         port=MDApp.get_running_app().settings.get('server', 'port')
         # print('What file ',path)
         try:
-            import requests
             response=requests.get(f"http://{sever_ip}:{port}/api/isfile",json={'path':path},timeout=2)
-            print(response.json())
+            # print(response.json())
             if response.status_code != 200:
                 # Clock.schedule_once(lambda dt:Snackbar(h1="Dev pinging for thumb valid"))
                 return False
@@ -116,7 +117,7 @@ class MyCard(RecycleDataViewBehavior,RectangularRippleBehavior,ButtonBehavior,MD
 
 
 
-class My_RecycleGridLayout(RecycleGridLayout):
+class MyRecycleGridLayout(RecycleGridLayout):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.adjust_columns()
@@ -140,6 +141,8 @@ class DisplayFolderScreen(MDScreen):
         super().__init__(**kwargs)
         self.app = MDApp.get_running_app()
         self.screen_history: list[str] = []
+        # noinspection PyTypeChecker
+        self.current_popup:PopupScreen|None=None # To track if i need to close popup when android back btn is pressed
         self.current_dir_info: list[dict]=[]
         self.could_not_open_path_msg = "Couldn't Open Folder Check Laner on PC"
         # self.md_bg_color=[1,1,0,1]
@@ -186,9 +189,11 @@ class DisplayFolderScreen(MDScreen):
         self.layout.add_widget(MDBoxLayout(height='70sp',size_hint=[1,None]))
         self.add_widget(self.layout)
         self.add_widget(self.upload_btn)
-    def disable_click(self):
+
+    def disable_click(self,popup:PopupScreen=None):
         self.layout.disabled=True
         self.upload_btn.disabled=True
+        self.current_popup = popup
 
     def enable_click(self):
         self.layout.disabled=False
@@ -205,7 +210,12 @@ class DisplayFolderScreen(MDScreen):
     def set_last_folder_screen(self) -> None:
         """Navigate to the last folder if history exists."""
         if self.screen_history:
-            last_dir = self.screen_history.pop()
+            if self.current_popup:
+                self.current_popup.close()
+                self.current_popup=None
+                last_dir = self.current_dir
+            else:
+                last_dir = self.screen_history.pop()
             self.set_folder(last_dir, add_to_history=False)
 
     def get_server_ip(self) -> str:
@@ -286,7 +296,7 @@ class DisplayFolderScreen(MDScreen):
             file_name = os.path.basename(path.replace('\\', '/'))
             file_operations = FileOperations(path)
             self.manager.btm_sheet.show(file_name,items_object=[
-            {'title':"Preview",'icon': "eye",'function': lambda x: file_operations.open_file_viewer(current_dir_info=self.current_dir_info,selected_file_url=file_url,file_path=path)},
+            {'title':"Preview",'icon': "eye",'function': lambda x: file_operations.open_file_viewer(current_dir_info=self.current_dir_info)},
             {'title':"Download",'icon': "download",'function': lambda _: self.show_download_dialog(path)},
             {'title':"Open with",'icon': "apps",'function': file_operations.query_open_with},
             {'title':"Info",'icon': "information",'function': file_operations.share_file},
@@ -303,7 +313,6 @@ class DisplayFolderScreen(MDScreen):
         :param path: The new path to set.
         :param add_to_history: Whether to add the current path to history.
         """
-        
         def success():
             if add_to_history:
                 self.screen_history.append(self.current_dir)
@@ -311,10 +320,10 @@ class DisplayFolderScreen(MDScreen):
             self.current_dir = path
             self.header.changeTitle(path)
             self.set_path_info()
-            
+
         def failed():
             Snackbar(h1=self.could_not_open_path_msg)
-            
+
         instance=AsyncRequest()
         instance.is_folder(path=self.current_dir,success=success,failed=failed)
         
@@ -342,7 +351,6 @@ class DisplayFolderScreen(MDScreen):
             )
         AsyncRequest().is_file(path,success=success)
 
-from kivy.metrics import sp
 
 class FileOperations:
 
@@ -381,13 +389,13 @@ class FileOperations:
         
         AsyncRequest().upload_file(file_path,current_dir,success,fail)
     
-    def open_file_viewer(self,current_dir_info,selected_file_url,file_path):
-        if is_text_by_mime(getFileName(file_path)):
-            self.app.open_file_reader(file_path=file_path)
+    def open_file_viewer(self,current_dir_info):
+        if is_text_by_mime(getFileName(self.path)):
+            self.app.open_file_reader(file_path=self.path)
         else:
-            self.__open_image_viewer(current_dir_info,selected_file_url)
+            self.__open_image_viewer(current_dir_info)
 
-    def __open_image_viewer(self,current_dir_info,selected_file_url):
+    def __open_image_viewer(self,current_dir_info):
         img_urls=[]
         if getFormat(self.path) not in IMAGE_FORMATS:
             return
