@@ -73,9 +73,7 @@ class FileShareApp(QMainWindow):
         
         # Create PopUps
         self.request_connection_popup:ConnectionRequest=None
-        
-        if DEV:
-            self.start_server()
+
     def restart_server(self):
         QApplication.quit()
         import subprocess,sys
@@ -202,7 +200,7 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = FileShareApp()
 
-    if auto_start:
+    if auto_start or DEV:
         window.start_server()
     else:
         window.show()
