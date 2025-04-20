@@ -6,6 +6,28 @@ from kivy.properties import StringProperty, ObjectProperty
 from kivymd.uix.widget import MDWidget
 from kivy.metrics import sp
 
+
+class PopupScreen:
+    def __init__(self,close_btn_callback,bottom_navigation_bar):
+        self.close_btn_callback=close_btn_callback
+        # Setting `self.parent=None` here cause of pycharm
+        self.parent=None # parent DisplayFolderScreen Class
+        self.bottom_navigation_bar=bottom_navigation_bar
+
+    def close(self,widget=None):
+
+        self.close_btn_callback()
+        self.parent.enable_click()
+        self.parent.remove_widget(self)
+        self.bottom_navigation_bar.open()
+
+    def on_parent(self,instance,parent):
+        # This will call when widget is mounted and removed
+        if parent: # when unmounted parent = None
+            parent.disable_click(popup=self)
+        self.bottom_navigation_bar.close()
+
+
 class PopupDialog(MDWidget):
     caption=StringProperty()
     sub_caption=StringProperty()
@@ -58,8 +80,6 @@ class PopupDialog(MDWidget):
         
     def close(self):
         self.dialog.dismiss()
-        
-        
 
 
 class Snackbar(MDWidget):

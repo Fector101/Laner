@@ -5,6 +5,7 @@ from kivy.utils import platform
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivy.uix.textinput import TextInput
 from kivymd.app import MDApp
+from ..popup import PopupScreen
 
 if platform == 'android':
     from kivymd.toast import toast
@@ -29,7 +30,8 @@ class CustomTextInput(TextInput):
         self.height = Window.height - self.header_height
         Window.bind(size=self.on_resize_box)
         self.cursor_color = self.app.theme_cls.primaryColor
-
+        # self._editable=False
+        # self.disabled=False
         # Changes|Add more than border color change text color
         # with self.canvas.before:
             # self.border_color = Color(1, 0, .1, 1)  # changes textcolor for some reason
@@ -41,15 +43,15 @@ class CustomTextInput(TextInput):
 
     # def update_border(self, *args):
     #     self.border_rect.rectangle = (self.x, self.y, self.width, self.height)
-class FileReader(MDBoxLayout):
-    def __init__(self, file_path:str, close_btn_callback, **kwargs):
+
+class FileReader(MDBoxLayout,PopupScreen):
+    def __init__(self, file_path:str, **kwargs):
         super().__init__(**kwargs)
         self.file_path = file_path
         self.save_folder = os.path.join(getAppFolder(),'.filereader')
         if not os.path.exists(self.save_folder):
             os.mkdir(self.save_folder)
         self.orientation='vertical'
-        self.close_btn_callback = close_btn_callback
         btns_data=[
             {'icon':'content-paste','function':self.paste_content},
             {'icon': 'content-copy', 'function': self.copy_all_content},
@@ -58,6 +60,7 @@ class FileReader(MDBoxLayout):
         ]
         self.header = HeaderBasic(text=self.file_path,btns=btns_data,back_btn_func=self.close,height=80)
         self.text_box= CustomTextInput(text='Loading...',header_height=self.header.height)
+        self.text_box.readonly = True
         self.add_widget(self.header)
         self.add_widget(self.text_box)
         self.__download_content()
@@ -112,9 +115,6 @@ class FileReader(MDBoxLayout):
     def reset_transition_duration(self):
         self.swiper.transition_duration = 0.2
 
-    def close(self, widget=None):
-        self.parent.remove_widget(self)
-        self.close_btn_callback()
 
     # def select_all_content(self,widget=None):
     #     self.text_box.select_all()

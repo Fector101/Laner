@@ -50,14 +50,16 @@ class WindowManager(MDScreenManager):
         tabs_buttons_list=self.parent.children[1].children
         for each_btn in tabs_buttons_list:
             each_btn.checkWidgetDesign(self.current)
-    def Android_back_click(self, window, key, *largs):
+    def Android_back_click(self, window, key, *args):
         """Handle the Android back button."""
         if key == 27:  # Back button key code
-            if self.current != 'settings' and len(self.current_screen.screen_history):
+            print('escape clicked')
+            if isinstance(self.current_screen,DisplayFolderScreen) and len(self.current_screen.screen_history):
                 # might switch to "if []:" since it works on python but "if len([]):" is more understandable
                 # print(self.current_screen.screen_history)
-                last_dir = self.current_screen.screen_history.pop()
-                self.current_screen.set_folder(last_dir, False)
+                # last_dir = self.current_screen.screen_history.pop()
+                # self.current_screen.set_folder(last_dir, False)
+                self.current_screen.set_last_folder_screen()
                 return True
 
             if len(self.screen_history): # Navigate back to the previous screen
@@ -70,7 +72,7 @@ class WindowManager(MDScreenManager):
                 # Exit the app if no history
                 return False
     
-class MY_MDIcon(MDIcon):
+class MyMDIcon(MDIcon):
     "MDIcon Font size doesn't work unless creating my own class and passing MDIcon in it."
     font_size__ = StringProperty()
 
@@ -132,23 +134,17 @@ class Laner(MDApp):
 
     def toggle_image_viewer(self,urls:list,start_from:str):
         def on_close_pic_viewer():
-            self.bottom_navigation_bar.open()
-            self.my_screen_manager.current_screen.enable_click()
-            
-        layout=PictureViewer(urls,start_from,on_close_pic_viewer)
-        self.my_screen_manager.current_screen.disable_click()
+            pass
+        layout=PictureViewer(urls,start_from,close_btn_callback=on_close_pic_viewer,bottom_navigation_bar=self.bottom_navigation_bar)
         self.my_screen_manager.current_screen.add_widget(layout)
-        self.bottom_navigation_bar.close()
+
 
     def open_file_reader(self, file_path):
         def on_close_file_reader():
-            self.bottom_navigation_bar.open()
-            self.my_screen_manager.current_screen.enable_click()
-
-        layout = FileReader(file_path, on_close_file_reader)
-        self.my_screen_manager.current_screen.disable_click()
+            pass
+        layout = FileReader(file_path, close_btn_callback=on_close_file_reader,bottom_navigation_bar=self.bottom_navigation_bar)
         self.my_screen_manager.current_screen.add_widget(layout)
-        self.bottom_navigation_bar.close()
+
 
     def build(self):
         self.title = 'Laner'
