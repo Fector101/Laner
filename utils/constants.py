@@ -1,4 +1,4 @@
-IMAGE_FORMATS = ('.png', '.jpg', '.jpeg', '.tif', '.bmp', '.gif')
+IMAGE_FORMATS = ('.png', '.jpg', '.jpeg', '.tif', '.bmp', '.gif','.svg')
 PORTS =  (
                     8000, 8080, 9090, 10000,
                     11000, 12000, 13000, 14000, 
