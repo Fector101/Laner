@@ -16,6 +16,7 @@ class PopupScreen:
 
     def close(self,widget=None):
         self.close_btn_callback()
+        self.parent.current_popup=None
         self.parent.enable_click()
         self.parent.remove_widget(self)
         self.bottom_navigation_bar.open()
