@@ -4,10 +4,10 @@ from PyQt5.QtCore import Qt,QEventLoop
 from PyQt5.QtGui import QFont
 from workers.web_socket import WebSocketConnectionHandler
 
-# Add Don't show again for this device and then i settings add said device with a check box to off/on incoming requests
+# Add Don't show again for this device and then i settings add said device with a checkbox to off/on incoming requests
 class ConnectionRequest(QWidget):
-    def __init__(self,handler,message_object={'name':'','request':''}):
-        super().__init__()
+    def __init__(self,handler,message_object={'name':'','request':''},parent=None):
+        super().__init__(parent)
         self.handler: WebSocketConnectionHandler = handler
         device_name = message_object['name']
         # request = message_object['request'] use in upcoming in-app terminal
@@ -112,10 +112,10 @@ class ConnectionRequest(QWidget):
         # Connect buttons
         self.accept_btn.clicked.connect(self.accept_connection)
         self.reject_btn.clicked.connect(self.reject_connection)
-        
         # Window flags to keep on top
         self.setWindowModality(Qt.ApplicationModal)
-        self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
+        self.setWindowFlags(Qt.Window | Qt.WindowStaysOnTopHint)
+        # self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
         self.show()
 
     # def show_request(self, device_name, websocket, event_loop):

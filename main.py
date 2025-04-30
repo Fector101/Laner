@@ -84,11 +84,13 @@ class FileShareApp(QMainWindow):
         os.execv(py, [py, script])
     
         # In your Qt main window class
+
     def show_connection_request(self, device_name, handler):
         """Show connection dialog"""
         print(device_name,handler, ' name nd handler')
         # self.request_connection_popup.show_request(message_object=device_name, websocket=handler.websocket,event_loop=handler.websocket.loop)
-        self.request_connection_popup = ConnectionRequest(message_object=device_name, handler=handler)
+        # self.request_connection_popup = #
+        ConnectionRequest(message_object=device_name, handler=handler,parent=self)
         # self.request_connection_popup.show_request()
         
     def create_system_tray(self):

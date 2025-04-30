@@ -16,9 +16,10 @@ class WebSocketConnectionHandler:
         self.pc_name=getUserPCName()
         self.authenticated = False
         self.response_event = asyncio.Event()
+        self.__username=''
         # TODO Use secret file to store connected users
         self.connected_clients = {}  # {ip: token}
-        
+
     async def handle_connection_request(self, message):
         """Handle WebSocket connection requests"""
         print('****************')
@@ -30,6 +31,7 @@ class WebSocketConnectionHandler:
                 # Password-based authentication flow
                 device_ip = self.websocket.remote_address[0]
                 print(f"Password request from {device_ip}")
+                self.__username = message_dict.get('name','')
                 self.connection_signal.connection_request.emit(message_dict, self)
                 await self.response_event.wait()  # Wait for user decision
                 
@@ -62,19 +64,25 @@ class WebSocketConnectionHandler:
         client_ip = self.websocket.remote_address[0]
         self.connected_clients[client_ip] = token
         self.authenticated = True
-        await self.websocket.send(json.dumps({
-            "status": "yes",
-            "token": token,'name':self.pc_name
-        }))
+        try:
+            await self.websocket.send(json.dumps({
+                "status": "yes",
+                "token": token,'name':self.pc_name
+            }))
+        except websockets.exceptions.ConnectionClosedError:
+            # This happened when phone screen was closed before PC responded to connection request
+            print(f"User: {self.__username} disconnected add this to app console or [Do A popup when user click Accepts]")
         self.response_event.set()
-
     async def reject(self):
         """Reject connection"""
-        await self.websocket.send(json.dumps({
-            "status": "no",'name':self.pc_name
-        }))
+        try:
+            await self.websocket.send(json.dumps({
+                "status": "no",'name':self.pc_name
+            }))
+        except websockets.exceptions.ConnectionClosedError:
+            # This happened when phone screen was closed before PC responded to connection request
+            print(f"User: {self.__username} disconnected add this to app console or [Do A popup when user click Accepts]")
         self.response_event.set()
-
     async def handle_connection(self):
         """Main connection handling loop"""
         try:
