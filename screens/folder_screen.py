@@ -136,7 +136,8 @@ class MyRecycleGridLayout(RecycleGridLayout):
 class DisplayFolderScreen(MDScreen):
     """Screen for displaying folder contents, handling navigation and file upload/download."""
     current_dir = StringProperty('.')
-    
+    # current_dir = StringProperty('/home/fabian/Documents/my-projects-code/mobile-dev')
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.app = MDApp.get_running_app()
@@ -209,6 +210,7 @@ class DisplayFolderScreen(MDScreen):
 
     def set_last_folder_screen(self) -> None:
         """Navigate to the last folder if history exists."""
+        print('self.screen_history ',self.screen_history)
         if self.screen_history:
             if self.current_popup:
                 self.current_popup.close()
