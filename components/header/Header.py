@@ -92,10 +92,10 @@ class Header(MDBoxLayout):
         self.dropDown.dismiss()
 
 class HeaderBasic(MDBoxLayout):
-    """_summary_
+    """Component For Page,Modal,... other component headers
 
     Args:
-        text (str): _description_
+        text (str): header title
         text_halign (str): _description_
         title_color (str): _description_
     """
@@ -103,7 +103,7 @@ class HeaderBasic(MDBoxLayout):
     text_halign=StringProperty()
     title_color=ListProperty([1,1,1,1])
     theme_text_color=StringProperty()
-    def __init__(self,btns,back_btn_func,height=72, **kwargs):
+    def __init__(self,back_btn_func=None,btns=[],height=72, **kwargs):
         super().__init__(**kwargs)
         self.dropDown = None
         self.back_btn_func=back_btn_func
@@ -121,16 +121,18 @@ class HeaderBasic(MDBoxLayout):
             # md_bg_color=[1,0,0,1]
             )
 
-        grey_i= 0.44
-        self.back_btn = HeaderBtn(
-            icon="arrow-left",
-            style= "standard",
-            pos_hint={"center_y": .5},
-            x=sp(10),
-            on_release=self.close,
-            color=[grey_i,grey_i,grey_i,1]
-        )
-        self.add_widget(self.back_btn)
+        if self.back_btn_func:
+            grey_i = 0.44
+            self.back_btn = HeaderBtn(
+                icon="arrow-left",
+                style= "standard",
+                pos_hint={"center_y": .5},
+                x=sp(10),
+                on_release=self.close,
+                color=[grey_i,grey_i,grey_i,1]
+            )
+            self.add_widget(self.back_btn)
+
         self.padding=[sp(10),0,sp(10),0]
         self.spacing=sp(10)
         self.add_widget(self.header_label)

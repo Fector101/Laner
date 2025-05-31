@@ -33,7 +33,7 @@ from utils import Settings,NetworkManager,AsyncRequest,FindHosts
 from android_notify import send_notification,Notification,NotificationStyles
 from kivy.clock import Clock
 
-from components import Header
+from components import Header,HeaderBasic
 from components.templates import CustomDropDown, MDTextButton,MyBtmSheet
 from utils.typing.main import Laner
 from utils.helper import setHiddenFilesDisplay
@@ -139,17 +139,16 @@ class ScanningLayout(MDRelativeLayout,PopupScreen):
         self.md_bg_color =[.12,.12,.12,1] if self.theme_cls.theme_style == "Dark" else [0.98, 0.98, 0.98, 1]
         self.loading_widget=None
         self.change_working_server=change_working_server
-        # Header Text
-        msg = MDLabel(text='Tap Your PC to Request Connection',
-                      # md_bg_color=[1, 0, .5, 1],
-                      pos_hint={'top': 1},
-                      size_hint=[1, None], height=sp(45), padding=[sp(10), 0, 0, 0])
-        msg.md_bg_color =[.15,.15,.15,1] if self.theme_cls.theme_style == "Dark" else  [0.92, 0.92, 0.92, 1]
-
-        self.add_widget(msg)
+        
+        # Header
+        self.header = HeaderBasic(
+            text='Tap Your PC to Request Connection',back_btn_func=self.close,
+            height=70,pos_hint={'top': 1}
+        )
+        self.add_widget(self.header)
 
         # Found Laner-PC's Container
-        self.found_pcs_container = MDBoxLayout(md_bg_color=[1, 1, 0, 1], adaptive_width=True, adaptive_height=True,
+        self.found_pcs_container = MDBoxLayout(md_bg_color=[.41, .41, .4, 1], adaptive_width=True, adaptive_height=True,
                                                pos_hint={'center_x': 0.5, 'center_y': 0.7}, orientation='vertical',
                                                spacing=sp(20), padding=[sp(20)], radius=[sp(10)])
         self.add_widget(self.found_pcs_container)
