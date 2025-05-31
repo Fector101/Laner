@@ -6,8 +6,9 @@ if platform == 'android':
     my_downloads_folder=makeDownloadFolder()
     from utils.permissions import PermissionHandler
     try:
-        PermissionHandler()
-    except:
+        PermissionHandler().requestStorageAccess()
+    except Exception as e:
+        print('My PermissionHandler101: ',e)
         traceback.print_exc()
     # requestMultiplePermissions()
 else:
@@ -24,14 +25,14 @@ class WindowManager(MDScreenManager):
         # self.size_hint_y=None
         self.app:Laner=MDApp.get_running_app()
         self.pos_hint={'top': 1}
-        self.add_widget(DisplayFolderScreen(name='upload',current_dir='Home'))
+        self.add_widget(DisplayFolderScreen(name='upload',current_dir='/home/fabian/Documents/my-projects-code/mobile-dev'))
         self.add_widget(DisplayFolderScreen(name='download',current_dir='.'))
         self.settings=SettingsScreen()
         self.add_widget(self.settings)
         self.add_widget(ConnectScreen())
         self.transition=NoTransition()
-        # self.current='settings'
-        self.current='upload'
+        self.current='settings'
+        # self.current='upload'
         # self.current='connect'
         Window.update_viewport()
         Window.bind(on_keyboard=self.Android_back_click)
@@ -53,7 +54,7 @@ class WindowManager(MDScreenManager):
     def Android_back_click(self, window, key, *args):
         """Handle the Android back button."""
         if key == 27:  # Back button key code
-            if isinstance(self.current_screen,DisplayFolderScreen) and len(self.current_screen.screen_history):
+            if isinstance(self.current_screen,DisplayFolderScreen) and (len(self.current_screen.screen_history) or self.current_screen.current_popup):
                 # might switch to "if []:" since it works on python but "if len([]):" is more understandable
                 # print(self.current_screen.screen_history)
                 # last_dir = self.current_screen.screen_history.pop()

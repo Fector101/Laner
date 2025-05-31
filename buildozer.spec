@@ -4,15 +4,18 @@
 title = Laner
 
 # (str) Package name
+# package.name = antester
 package.name = lan_ft
 
 # (str) Package domain (needed for android/ios packaging)
+# package.domain = org.antester
 package.domain = org.laner
 
 # (str) Source code where the main.py live
 source.dir = .
 
 # (list) Source files to include (let empty to include all the files)
+#101source.include_exts = py,png,jpg,kv,atlas,ttf,json,xml
 source.include_exts = py,png,jpg,kv,atlas,ttf,json
 
 # (list) List of inclusions using pattern matching
@@ -37,7 +40,8 @@ version = 1.0
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,android-notify,materialyoucolor,asynckivy,asyncgui,pyjnius,docutils,netifaces,filetype,requests_toolbelt,websockets
+requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,materialyoucolor,asynckivy,asyncgui,pyjnius,docutils,netifaces,filetype,requests_toolbelt,websockets
+#requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,android-notify,materialyoucolor,asynckivy,asyncgui,pyjnius,docutils,netifaces,filetype,requests_toolbelt,websockets
 # requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,materialyoucolor,asynckivy,asyncgui,pyjnius,docutils,netifaces,filetype,android-notify==1.55,requests_toolbelt
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -201,7 +205,7 @@ android.api = 35
 # 3) A directory, here 'legal_resources' must contain one or more directories, 
 # each of a resource kind:  drawable, xml, etc...
 # android.add_resources = legal_resources
-#android.add_resources =
+#101android.add_resources = ./res
 
 # (list) Gradle dependencies to add
 android.gradle_dependencies = androidx.core:core-ktx:1.15.0, androidx.core:core:1.6.0

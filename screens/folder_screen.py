@@ -210,7 +210,7 @@ class DisplayFolderScreen(MDScreen):
 
     def set_last_folder_screen(self) -> None:
         """Navigate to the last folder if history exists."""
-        print('self.screen_history ',self.screen_history)
+        # print('self.screen_history ',self.screen_history)
         if self.screen_history:
             if self.current_popup:
                 self.current_popup.close()
