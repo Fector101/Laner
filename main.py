@@ -25,7 +25,8 @@ class WindowManager(MDScreenManager):
         # self.size_hint_y=None
         self.app:Laner=MDApp.get_running_app()
         self.pos_hint={'top': 1}
-        self.add_widget(DisplayFolderScreen(name='upload',current_dir='/home/fabian/Documents/my-projects-code/mobile-dev'))
+        self.add_widget(DisplayFolderScreen(name='upload',current_dir='Home'))
+        # self.add_widget(DisplayFolderScreen(name='upload',current_dir='/home/fabian/Documents/my-projects-code/mobile-dev'))
         self.add_widget(DisplayFolderScreen(name='download',current_dir='.'))
         self.settings=SettingsScreen()
         self.add_widget(self.settings)

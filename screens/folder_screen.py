@@ -136,7 +136,6 @@ class MyRecycleGridLayout(RecycleGridLayout):
 class DisplayFolderScreen(MDScreen):
     """Screen for displaying folder contents, handling navigation and file upload/download."""
     current_dir = StringProperty('.')
-    # current_dir = StringProperty('/home/fabian/Documents/my-projects-code/mobile-dev')
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
