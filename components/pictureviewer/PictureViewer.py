@@ -2,6 +2,7 @@ import os
 
 from kivy.lang import Builder
 from kivy.clock import Clock
+from kivy.metrics import sp
 
 from kivymd.uix.floatlayout import MDFloatLayout
 from kivymd.uix.button import MDIconButton
@@ -27,7 +28,12 @@ class PictureViewer(MDFloatLayout,PopupScreen):
         self.swiper:MDSwiper=self.ids.swiper_id
         self.sources = sources
         self.md_bg_color=[0,0,0,1]
-        self.add_widget(MDIconButton(icon='close',pos_hint={'top': .99,'right': .99},on_release=self.close))
+        close_btn=MDIconButton(icon='close',pos_hint={'top': .98,'right': .98},on_release=self.close)
+        close_btn.size_hint=[None,None]
+        close_btn.size=[sp(50),sp(50)]
+        close_btn.theme_bg_color='Custom'
+        # close_btn.md_bg_color=[1,0,0,1]
+        self.add_widget(close_btn)
         self.swiper.transition_duration = 0
         # current_img_index = self.index_of(sources,start_from)
         self.swiper.set_current(start_from)
