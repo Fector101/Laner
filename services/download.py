@@ -1,20 +1,43 @@
-# import os
-# import requests
-# import traceback
-# from android_notify import Notification, NotificationStyles
-# # Notification
-# def download_file(self, file_path,save_path,success,failed=None):
-#     try:
-#         url = f"http://{self.get_server_ip()}:{self.get_port_number()}/{file_path}"
+import random,time, traceback, json
+print('from download------------------****---------------------',random.randint(100,200),'---------------------****---------------------')
+from os import environ
+from jnius import autoclass
 
-#         response = requests.get(url)
-#         file_name = os.path.basename(save_path)
-#         print("This is file name: ", file_name)
-#         print("This is save_path: ", save_path)
-#         with open(save_path, "wb") as file:
-#             file.write(response.content)
-#         self.on_ui_thread(success)
-#     except Exception as e:
-#         print("Error Download Service error-type: ",e)
-#         traceback.print_exc()
-#         self.on_ui_thread(failed)
+ARG =  environ.get('PYTHON_SERVICE_ARGUMENT','')
+print('python Entered Download Service, Args', ARG)
+DATA=json.loads(ARG)
+print('python "I Download" service parsed args ---> ', DATA)
+
+from android_notify import Notification
+PythonService = autoclass('org.kivy.android.PythonService')
+service = PythonService.mService
+# service.setAutoRestartService(True)
+
+def done():
+    print('done downloading')
+
+try:
+    n = Notification(
+        id=101,
+        title='Laner download service',
+        message='Please keep this running to avoid download interruption')
+    n.addButton('Cancel all',done)
+    n.send(persistent=True, close_on_click=False)
+except Exception as e:
+    print("service python error:",e)
+    traceback.print_exc()
+
+try:
+    from utils.requests.async_request import AsyncRequest
+    instance = AsyncRequest(notification_id=random.randint(1000,2000))
+    instance.download_file(file_path=DATA['file_path'], save_path=DATA['save_path'], success=done)
+    # instance.download_file(file_path='/home/fabian/Downloads/Untitled.png',save_path='/storage/emulated/0/Download/Laner/biz.png',success=done)
+    while instance.running:
+        print('this is my download service and its running')
+        time.sleep(3)
+    print('ending my download service')
+    service.stopSelf()
+
+except Exception as e:
+    print("service python error1:", e)
+    traceback.print_exc()
