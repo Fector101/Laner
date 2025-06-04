@@ -1,29 +1,32 @@
 import os
 import shutil
+import time
+
 import requests
 import threading
 import traceback
 
-from kivy.clock import Clock
-from kivy.utils import platform
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 from android_notify import Notification, NotificationStyles
+from android_notify.config import from_service_file, run_on_ui_thread
 from utils.helper import getAppFolder,get_full_class_name,urlSafePath,getFormat
 from utils.config import Settings
 from .networkmanager import NetworkManager
-from components.popup import Snackbar
+
+if not from_service_file():
+    from components.popup import Snackbar
+    from kivy.clock import Clock
+else:
+    def Snackbar(**kwargs):
+        print('A fall back Snackbar async_requests')
+
+    class Clock:
+        def schedule_once(self,callback,secs):
+            print('A fall back Clock async_requests',self)
+
 from utils.constants import IMAGE_FORMATS, PORTS
 Notification.logs = False
 
-if platform == 'android':
-    from android.runnable import run_on_ui_thread # pylint: disable=import-error
-else:
-    def run_on_ui_thread(func):
-        """Fallback for Developing on PC"""
-        def wrapper(*args, **kwargs):
-            # print("Simulating run on UI thread")
-            return func(*args, **kwargs)
-        return wrapper
 
 class ProgressData:
     # Monitor LookAlike
@@ -33,14 +36,17 @@ class ProgressData:
 
 
 class AsyncRequest:
-    
-    def __init__(self,notifications=True):
+    "notification_id is for service file"
+    def __init__(self,notifications=True,notification_id=0):
         self.notifications = notifications
         self.download_notification= None
+        self.notification_id= notification_id
         self.upload_notification= None
         self.percent=0 # Don't share Instances
         self.cancel_download = False
         self.cancel_upload = False
+        self.running=True
+        self.file_name=None
     # requests.get(server,data='to be sent',auth=(username,password))
     def get_server_ip(self) -> str:
         """Return the server IP from settings."""
@@ -140,6 +146,7 @@ class AsyncRequest:
             return
         print('Sent file_name', file_name)
         self.download_notification = Notification(
+                id=self.notification_id,
                 title="Downloaded (0%)",
                 message=file_name,
                 style=NotificationStyles.PROGRESS,
@@ -157,16 +164,21 @@ class AsyncRequest:
             return
         new_percent = int((monitor.bytes_read / monitor.len) * 100)
         if new_percent >= 100:
+            self.running=False
             notification.removeButtons()
-            notification.removeProgressBar(title=f'Completed {type_}')
+            notification.removeProgressBar(title=f'Completed {type_}',message=self.file_name)
         elif new_percent != self.percent:
             # print(f"{type_}ing ({new_percent}%)")
             self.percent=new_percent
             # notification.logs=True
-            notification.updateProgressBar(self.percent,title=f"{type_}ing ({self.percent}%)")
+            notification.message=f" ({DownloadProgress(monitor.bytes_read,monitor.len).format()})"
+            notification.title=f"{self.file_name}"
+            notification.updateProgressBar(self.percent)
         
     def download_file(self, file_path,save_path,success,failed=None):
         file_name = os.path.basename(save_path)
+        self.file_name=file_name
+        print('download_file file_name:',file_name)
         def failed_download_notification(msg='Download Error!'):
             if not self.notifications:
                 return
@@ -175,6 +187,7 @@ class AsyncRequest:
             
         def _download():
             try:
+                start = time.time()
                 url = f"http://{self.get_server_ip()}:{self.get_port_number()}/{file_path}"
                 response = requests.get(url, stream=True,timeout=(2,None))
                 self.send_initial_download_notification(file_name)
@@ -191,6 +204,10 @@ class AsyncRequest:
                                 f.write(chunk)
                                 downloaded += len(chunk)
                                 progress_data = ProgressData(bytes_read=downloaded,len_=total_size)
+                                print(progress_data.bytes_read,'/',progress_data.len)
+                                duration = time.time() - start
+                                print(f"Duration: {duration:.2f} seconds")
+
                                 self.update_progress(progress_data,self.download_notification,type_='Download')
                             else:
                                 # If no content length header, just print downloaded bytes.
@@ -204,6 +221,7 @@ class AsyncRequest:
                         self.successfull_download_notification(save_path)
                         self.on_ui_thread(success,[save_path])
                 elif response.status_code == 404:
+                    failed_download_notification("Server Couldn't find File")
                     print("Server Couldn't find File")
                     # self.on_ui_thread(Snackbar)
                     
@@ -216,6 +234,12 @@ class AsyncRequest:
                 failed_download_notification()
                 traceback.print_exc()
                 self.on_ui_thread(failed)
+            finally:
+                self.running=False
+        # if from_service_file():
+        #     _download()
+        #     print('python using straight function')
+        # else:
         threading.Thread(target=_download).start()
 
     def upload_file(self, file_path, save_path,success,failed=None,file_data=None):
@@ -225,6 +249,7 @@ class AsyncRequest:
             if not self.notifications:
                 return
             self.upload_notification = Notification(
+                id=self.notification_id,
                 title="Uploading (0%)",
                 message=file_basename,
                 style=NotificationStyles.PROGRESS,
@@ -288,8 +313,14 @@ class AsyncRequest:
                     self.on_ui_thread(failed)
                     print("Failed Upload ",e)
                     traceback.print_exc()
+
+            finally:
+                self.running=False
                 
-        threading.Thread(target=__upload).start()
+        if from_service_file():
+            __upload()
+        else:
+            threading.Thread(target=__upload).start()
         
     def auto_connect(self,success,failed=None):
         timeout=0.5
@@ -364,3 +395,73 @@ class AsyncRequest:
                 print('Failed Ping',e)
                 self.on_ui_thread(failed)
         threading.Thread(target=__ping).start()
+
+def format_progress(downloaded_bytes, total_bytes):
+    if total_bytes <= 0:
+        return "0/0 B"
+
+    units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
+    base = 1024
+    index = 0
+
+    # Use total_bytes to determine the best display unit
+    value = float(total_bytes)
+    while value >= base and index < len(units) - 1:
+        value /= base
+        index += 1
+
+    unit = units[index]
+
+    # Convert both downloaded and total to that unit
+    downloaded = downloaded_bytes / (base ** index)
+    total = total_bytes / (base ** index)
+
+    # Round or floor to integers
+    return f"{int(downloaded)}/{int(round(total))} {unit}"
+
+
+
+class DownloadProgress:
+    def __init__(self, downloaded_bytes, total_bytes):
+        if downloaded_bytes < 0 or total_bytes < 0:
+            raise ValueError("Byte values cannot be negative.")
+        self.downloaded = downloaded_bytes
+        self.total = total_bytes
+        self.units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
+        self.base = 1024
+
+    def _format_value(self, byte_val):
+        index = 0
+        value = float(byte_val)
+
+        while value >= self.base and index < len(self.units) - 1:
+            value /= self.base
+            index += 1
+
+        return f"{int(value)} {self.units[index]}"
+
+    def _format_total_fixed_unit(self):
+        index = 0
+        value = float(self.total)
+
+        while value >= self.base and index < len(self.units) - 1:
+            value /= self.base
+            index += 1
+
+        return value, index, self.units[index]
+
+    def format(self):
+        if self.total == 0:
+            return "0 B / 0 B"
+
+        # Get total formatted and its unit index
+        _, total_index, total_unit = self._format_total_fixed_unit()
+
+        # Convert downloaded to appropriate unit for itself
+        downloaded_str = self._format_value(self.downloaded)
+
+        # Convert total to the fixed unit
+        total_val = self.total / (self.base ** total_index)
+        total_str = f"{int(total_val)} {total_unit}"
+
+        return f"{downloaded_str} / {total_str}"
