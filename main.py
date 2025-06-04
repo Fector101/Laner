@@ -90,6 +90,8 @@ class Laner(MDApp):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.nav_layout = None
+        self.my_screen_manager = None
         self.theme_cls.theme_style = self.get_stored_theme()
         self.theme_cls.primary_palette = "White"
 
@@ -145,7 +147,6 @@ class Laner(MDApp):
             pass
         layout = FileReader(file_path, close_btn_callback=on_close_file_reader,bottom_navigation_bar=self.bottom_navigation_bar)
         self.my_screen_manager.current_screen.add_widget(layout)
-
 
     def build(self):
         self.title = 'Laner'
