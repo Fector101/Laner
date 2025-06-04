@@ -1,6 +1,8 @@
 """Folder Screen Widget"""
-
+import json
 import os
+import traceback
+
 import requests
 from kivy.clock import Clock
 from kivy.properties import StringProperty,BooleanProperty
@@ -28,13 +30,16 @@ from components.popup import PopupDialog, Snackbar, PopupScreen
 from components.pictureviewer import SafeAsyncImage # it's been Used in .kv file
 from utils.helper import getHiddenFilesDisplay_State, makeDownloadFolder, getAppFolder, getFormat, getFileName, \
     is_text_by_mime
-from utils import AsyncRequest
+from utils import AsyncRequest, Settings
 from utils.constants import IMAGE_FORMATS
 
 
 if platform == "android":
     from kivymd.toast import toast # pylint: disable=ungrouped-imports
-
+    from jnius import autoclass, cast
+else:
+    def toast(text):
+        print('fallback for android toast101 folder_screen file')
 # Setup paths and load KV file.
 my_downloads_folder = makeDownloadFolder()
 kv_file_path = os.path.join(getAppFolder(), "screens", "folderscreen.kv")
@@ -74,9 +79,9 @@ class MyCard(RecycleDataViewBehavior,RectangularRippleBehavior,ButtonBehavior,MD
             # print(response.json()['data'])
             return response.json()['data']
 
-        except Exception as e:
-            Clock.schedule_once(lambda dt:Snackbar(h1="Dev pinging for thumb valid"))
-            # print(f"isDir method: {e}")
+        except Exception as out_reach_to_server_error:
+            # Clock.schedule_once(lambda dt:Snackbar(h1="Dev pinging for thumb valid"))
+            print(f"isDir method: {out_reach_to_server_error}")
             return False
 
     def on_thumbnail_url(self, instance, value):
@@ -342,6 +347,7 @@ class DisplayFolderScreen(MDScreen):
 
             def success_callBack():
                 FileOperations(path).download_file(save_path=saving_path)
+
             txt='/'.join(my_downloads_folder.split('/')[-2:])
             PopupDialog(
                     failedCallBack=failed_callback,
@@ -352,6 +358,12 @@ class DisplayFolderScreen(MDScreen):
             )
         AsyncRequest().is_file(path,success=success)
 
+    def addToFavourite(self):
+        res=Settings().add_to_list_with_two_keys('bookmark_paths', 'paths', self.app.my_screen_manager.current_screen.current_dir)
+        toast(res['msg'])
+        if self.app.bottom_navigation_bar.bookmark_layout.state:
+            self.app.bottom_navigation_bar.bookmark_layout.refresh()
+
 
 class FileOperations:
 
@@ -359,7 +371,7 @@ class FileOperations:
         self.path = file_path
         self.app = MDApp.get_running_app()
 
-    def download_file(self,save_path: str) -> None:
+    def download_file(self,save_path) -> None:
         """
         Download a file from the given file_path and save it locally.
         Displays a notification when done.
@@ -370,9 +382,32 @@ class FileOperations:
             Snackbar(confirm_txt='Open',h1='Download Successfull')
         def failed():
             Snackbar(confirm_txt='Open',font_size=sp(15),h1="Download Failed try Checking Laner on PC")
-            
-        instance=AsyncRequest()
-        instance.download_file(needed_file,save_path,success,failed)
+
+        def startService():
+            data = {'file_path': needed_file, 'save_path': save_path}
+            STRING_DATA = json.dumps(data)
+            # try:
+            #     # from android import mActivity
+            #     # print(mActivity)
+            #     mActivity = autoclass('org.kivy.android.PythonActivity').mActivity
+            #     context = mActivity.getApplicationContext()
+            #     SERVICE_NAME = str(context.getPackageName()) + '.Service' + 'Download'
+            #     service = autoclass(SERVICE_NAME)
+            #     service.start(mActivity, 'round_music_note_white_24', 'title', 'content', STRING_DATA)
+            # except Exception as e:
+            #     print(f'Download service failed101 {e}')
+            #     traceback.print_exc()
+            try:
+                DownloadService(STRING_DATA)
+            except Exception as e1:
+                print('Second try1:',e1)
+                toast('Downloading From App State')
+                AsyncRequest().download_file(needed_file, save_path, success, failed)
+        if platform == "android":
+            startService()
+        else:
+            instance=AsyncRequest()
+            instance.download_file(needed_file,save_path,success,failed)
 
     def upload_file(self, file_path:str,current_dir:str,callback,file_data=None) -> None:
         """
@@ -387,8 +422,25 @@ class FileOperations:
             callback()
         def fail():
             Snackbar(h1="Failed to Upload File check Laner on PC")
-        
-        AsyncRequest().upload_file(file_path,current_dir,success,fail)
+
+        def startService():
+            try:
+                mActivity = autoclass('org.kivy.android.PythonActivity').mActivity
+                context = mActivity.getApplicationContext()
+                SERVICE_NAME = str(context.getPackageName()) + '.Service' + 'Upload'
+                service = autoclass(SERVICE_NAME)
+                data = {'file_path': file_path, 'save_path': current_dir}
+                STRING_DATA = json.dumps(data)
+                service.start(mActivity, 'small_icon', 'title', 'content', STRING_DATA)
+            except Exception as e:
+                print(f'Upload service failed101 {e}')
+                toast('Uploading From App State')
+                AsyncRequest().upload_file(file_path,current_dir,success,fail)
+
+        if platform == "android":
+            startService()
+        else:
+            AsyncRequest().upload_file(file_path,current_dir,success,fail)
     
     def open_file_viewer(self,current_dir_info):
         if is_text_by_mime(getFileName(self.path)):
@@ -418,3 +470,32 @@ class FileOperations:
 
     def query_open_with(self,widget_at_called=None):
         print('query_open_with')
+
+
+
+class DownloadService:
+    def __init__(self,args):
+        from android import mActivity
+        self.mActivity = mActivity
+        self.args=args
+        self.start_service_if_not_running()
+    def get_service_name(self):
+        context = self.mActivity.getApplicationContext()
+        return str(context.getPackageName()) + '.Service' + 'Download'
+
+    def service_is_running(self):
+        service_name = self.get_service_name()
+        context = self.mActivity.getApplicationContext()
+        manager = cast('android.app.ActivityManager',
+                       self.mActivity.getSystemService(context.ACTIVITY_SERVICE))
+        for service in manager.getRunningServices(100):
+            if service.service.getClassName() == service_name:
+                return True
+        return False
+
+    def start_service_if_not_running(self):
+        if self.service_is_running():
+            return
+        service = autoclass(self.get_service_name())
+        service.start(self.mActivity, 'round_music_note_white_24',
+                      'Music Service', 'Started', self.args)

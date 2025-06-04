@@ -1,4 +1,4 @@
-
+from kivymd.app import MDApp
 from kivymd.uix.button import MDFabButton
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivy.properties import ( ListProperty, StringProperty)
@@ -6,6 +6,7 @@ from kivymd.uix.label import MDLabel
 from kivy.metrics import sp
 from kivymd.uix.menu import MDDropdownMenu
 
+from utils import Settings
 from utils.helper import getFileName
 
 
@@ -36,6 +37,7 @@ class Header(MDBoxLayout):
     theme_text_color=StringProperty()
     def __init__(self,screen, **kwargs):
         super().__init__(**kwargs)
+        self.app=MDApp.get_running_app()
         self.dropDown = None
         self.screen=screen
         self.md_bg_color =[.15,.15,.15,1] if self.theme_cls.theme_style == "Dark" else  [0.92, 0.92, 0.92, 1]
@@ -72,10 +74,11 @@ class Header(MDBoxLayout):
         self.header_label.text='~ '+ text if text == 'Home' else text
     def open_menu(self, item):
         icons=['refresh',
+               'bookmark'
         # 'file','folder'
         ]
-        titles=['Refresh','New file','New folder']
-        functions = [self.refreshBtnClicked,None,None]
+        titles=['Refresh','Add to Favorites','New file','New folder']
+        functions = [self.refreshBtnClicked,self.bookmark_path,None,None]
         menu_items = [
             {
                 "text": titles[i],
@@ -90,6 +93,9 @@ class Header(MDBoxLayout):
     def refreshBtnClicked(self):
         self.screen.set_path_info(from_btn='frm_btn')
         self.dropDown.dismiss()
+    def bookmark_path(self):
+        self.app.my_screen_manager.current_screen.addToFavourite()
+
 
 class HeaderBasic(MDBoxLayout):
     """Component For Page,Modal,... other component headers

@@ -3,11 +3,8 @@ import traceback
 
 from kivy.utils import platform
 from jnius import autoclass, cast
-try:
-    from android.runnable import run_on_ui_thread
-except:
-    from android_notify.an_utils import run_on_ui_thread
-    pass
+
+from android_notify.config import run_on_ui_thread
 
 import os, sys, json, requests, asyncio, threading,time
 from kivy.metrics import sp
@@ -30,7 +27,7 @@ from kivymd.uix.label import MDIcon, MDLabel
 
 from components.loading_layout import LoadingScreen
 from utils import Settings,NetworkManager,AsyncRequest,FindHosts
-from android_notify import send_notification,Notification,NotificationStyles
+from android_notify import Notification
 from kivy.clock import Clock
 
 from components import Header,HeaderBasic
@@ -391,7 +388,44 @@ class SettingsScreen(MDScreen):
         #     traceback.print_exc()
 
         try:
-            show_custom_notification("Hi", " Fabian", "You have 2 new messages")
+            n=Notification(
+                title='Your device will restart in 10 mins to complete important updates',
+                message='Make sure to save your work to avoid losing any unsaved changes',
+                title_color='#FF5722',
+                message_color='#3693e4',
+                logs=True
+            )
+            n.addButton('open app',lambda :print('clicked'))
+            n.setLargeIcon('assets/imgs/profile.jpg')
+            n.setBigPicture('assets/imgs/a.jpg')
+            n.progress_max_value=100
+            n.updateProgressBar(current_value=10,message='super custom',title='custom title')
+            n.send()
+
+            n = Notification(
+                title='Your device will restart in 10 mins to complete important updates',
+                message='Make sure to save your work to avoid losing any unsaved changes',
+                logs=True
+            )
+            n.addButton('open app', lambda: print('clicked'))
+            n.setLargeIcon('assets/imgs/profile.jpg')
+            n.setBigPicture('assets/imgs/a.jpg')
+            n.progress_max_value = 100
+            n.updateProgressBar(current_value=10, message='super custom', title='custom title')
+            n.send()
+
+            n = Notification(
+                title='Your device will restart in 10 mins to complete important updates',
+                message='Make sure to save your work to avoid losing any unsaved changes',
+                title_color='#FF5722',
+                message_color='#3693e4',
+                logs=True
+            )
+            n.addButton('open app', lambda: print('clicked'))
+            n.setLargeIcon('assets/imgs/profile.jpg')
+            n.setBigPicture('assets/imgs/a.jpg')
+            n.send()
+            # show_custom_notification("Hi", " Fabian", "You have 2 new messages")
         except Exception as e:
             print("Color Expectation 2: ",e)
             traceback.print_exc()

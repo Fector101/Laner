@@ -1,13 +1,8 @@
-from kivy.storage.jsonstore import JsonStore
-from typing import Any, Optional
-
-from typing import Optional, List,Union
-import platform
-import subprocess
-import re
-import shutil
-import netifaces
-import socket
+try:
+    from kivy.storage.jsonstore import JsonStore
+except:
+    print("Couldn't get kivy store 101, No Settings will be saved or Used")
+from typing import List,Union,Any
 
 from dataclasses import dataclass
 # Doesn't work adding sets in json
@@ -44,6 +39,9 @@ class Settings:
         },
         'recent_connections': {
             'ips':[]
+        },
+        'bookmark_paths': {
+            'paths':[]
         },
         'pcs':{}
     }
@@ -124,6 +122,7 @@ class Settings:
             self._store.put(category, **current)
         else:
             self._store.put(category, **{key: value})
+
     def set_pc(self,pc_name,value:dict):
         """
         Sets Values for a specific PC,auto adds port to ports Set
@@ -142,6 +141,7 @@ class Settings:
             self._store.put('pcs', **current)
         else:
             self._store.put('pcs',**{pc_name: value})
+
     def get_recent_connections(self) -> List:
         """Returns List of old connections ips
 
@@ -152,7 +152,7 @@ class Settings:
             recent_connections = self._store.get("recent_connections")
             if 'ips' in recent_connections:
                 return recent_connections['ips']
-        
+
     def add_recent_connection(self, ip: str) -> None:
         """Add a new connection to the recent connections list.
 
@@ -175,6 +175,80 @@ class Settings:
             current = self._store.get("recent_connections")
             current['ips'] = list({*current['ips'], ip}) # filter with set then change to list
             self._store.put("recent_connections", **current)
+
+    def get_with_two_keys(self, key=None, sub_key=None) -> List:
+        """ key is main title then sub_key is sub-title
+            e.g. bookmark_paths == main title and paths == sub-title
+        """
+        if key in self._store:
+            key_object = self._store.get(key)
+            if sub_key in key_object:
+                return key_object[sub_key]
+            else:
+                print('get setting error bad sub key:', sub_key)
+        else:
+            print('get setting error bad key:', key)
+
+    def add_to_list_with_two_keys(self, key, sub_key, value):
+        """ key is main title then sub_key is sub-title
+            e.g. bookmark_paths == main title and paths == sub-title
+
+        Returns:
+            Value in store
+        """
+        operation_res={"add_state":False,'msg':'Item not found'}
+
+        if key not in self._store:
+            operation_res['msg'] = 'Failed to add item Main Sub Key - 101'
+            return operation_res
+
+        current = self._store.get(key)
+        if sub_key not in current:
+            operation_res['msg'] = 'Failed to add item Bad Sub Key - 101'
+            return operation_res
+
+        values:list=current[sub_key]
+
+        if value in values:
+            operation_res['msg'] = 'Failed to add item, Already in List'
+            return operation_res
+        else:
+            operation_res['msg'] = 'Successfully added an item'
+            operation_res['add_state']=True
+            values.append(value)
+
+        self._store.put(key=key, **current)
+
+    def remove_frm_list_with_two_keys(self, key, sub_key, value):
+        """ key is main title then sub_key is sub-title
+            e.g. bookmark_paths == main title and paths == sub-title
+
+        Returns:
+            Value in store
+        """
+        operation_res={"delete_state":True,'msg':'Item not found'}
+        if key not in self._store:
+            operation_res['msg'] = 'Failed to remove item Main Sub Key - 101'
+            return operation_res
+
+        current = self._store.get(key)
+        if sub_key not in current:
+            operation_res['msg'] = 'Failed to remove item Bad Sub Key - 101'
+            return operation_res
+
+        values=current[sub_key]
+        if value not in values:
+            print(f'{value} not in list: {values}')
+            operation_res['msg'] = 'Failed to remove item, Item not in list'
+            return operation_res
+
+        values.remove(value)
+        current[sub_key] = values
+        self._store.put(key=key, **current)
+        operation_res['msg'] = 'Removed Item'
+        operation_res['delete_state'] = True
+        return operation_res
+
 
 # # Usage example:
 # settings = Settings()

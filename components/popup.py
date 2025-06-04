@@ -1,10 +1,25 @@
+from kivymd.app import MDApp
+from kivy.core.window import Window
+from kivy.uix.behaviors import ButtonBehavior
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.scrollview import ScrollView
 from kivy.uix.widget import Widget
+from kivymd.uix.list import MDListItem,MDListItemTrailingIcon, MDListItemHeadlineText
+from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDButton, MDButtonText
+# from kivymd.uix.floatlayout import MDFloatLayout
 from kivymd.uix.snackbar import MDSnackbar,MDSnackbarSupportingText,MDSnackbarButtonContainer,MDSnackbarActionButton,MDSnackbarActionButtonText,MDSnackbarCloseButton
 from kivymd.uix.dialog import MDDialog, MDDialogHeadlineText, MDDialogButtonContainer, MDDialogSupportingText,MDDialogContentContainer
-from kivy.properties import StringProperty, ObjectProperty
+from kivy.properties import StringProperty, ObjectProperty, Clock
 from kivymd.uix.widget import MDWidget
 from kivy.metrics import sp
+
+from .templates import MDTextButton
+from utils import Settings
+
+from kivy.utils import platform
+if platform == 'android':
+    from kivymd.toast import toast
 
 
 class PopupScreen:
@@ -134,4 +149,95 @@ class Snackbar(MDWidget):
         )
         self.snackbar.add_widget(buttons_container)
         self.snackbar.open()
-        
+
+class MYMDListItemTrailingIcon(ButtonBehavior,MDListItemTrailingIcon):
+    pass
+
+class BookMarkedFolders(MDBoxLayout):
+    """
+    State attr managed if it's open for other widgets
+    """
+    def __init__(self,width,x,y,**kwargs):
+        super().__init__(**kwargs)
+        self.app=MDApp.get_running_app()
+
+        self.state = False
+        self.orientation='vertical'
+        self.md_bg_color=[.21, 0.21, .31, 1]
+        self.size_hint_x = None
+        self.width = width
+        self.pos = [x, y]
+        self.adaptive_height=True
+        self.max_height = Window.height/2
+        self.refresh()
+
+    def adjust_height(self,children_len):
+
+        if children_len*40 > self.max_height:
+            self.adaptive_height=False
+            self.size_hint_y=None
+            self.height = sp(self.max_height)
+        elif children_len == 0:
+            self.height = 40
+        else:
+            self.adaptive_height = True
+
+
+
+    def refresh(self):
+        self.clear_widgets()
+        marked_folders = Settings().get_with_two_keys(key="bookmark_paths", sub_key='paths') or []
+        each: str
+        layout = GridLayout(cols=1, spacing=1, size_hint_y=None)
+        layout.bind(minimum_height=layout.setter('height'))
+
+        for each in marked_folders:
+            if len(marked_folders) * 40 >= self.max_height:
+                # Make sure the height is such that there is something to scroll.
+                btn = self.button(text=each)
+                layout.add_widget(btn)
+            else:
+                self.add_widget(self.button(each))
+
+        if len(marked_folders) *40 > self.max_height:
+            root = ScrollView(size_hint=(1, None), size=(Window.width, self.max_height))
+            root.add_widget(layout)
+            self.add_widget(root)
+        self.adjust_height(len(marked_folders))
+
+    def on_parent(self,instance,parent):
+        if parent: # when unmounted parent = None
+            self.state= True
+        else:
+            self.state = False
+        self.refresh()
+
+    def button(self,text):
+        icon = MYMDListItemTrailingIcon(
+                icon="trash-can-outline",
+            )
+        icon.on_release=lambda : self.removePathFromBookMarks(text)
+        item = MDListItem(
+
+            MDListItemHeadlineText(
+                text=text,
+                shorten_from='left',
+            ), icon,
+        )
+        item.on_release=lambda :self.openPath(text)
+        return item
+
+    def openPath(self,text):
+        self.app.my_screen_manager.current_screen.set_folder(path=text,add_to_history=True)
+        self.close()
+
+    def removePathFromBookMarks(self,text):
+        res=Settings().remove_frm_list_with_two_keys('bookmark_paths', 'paths', text)
+        toast(res['msg'])
+        self.refresh()
+        # if not Settings().get_with_two_keys(key="bookmark_paths", sub_key='paths'):
+        #     self.close()
+
+    def close(self,widget=None):
+        self.state=False
+        self.parent.remove_widget(self)

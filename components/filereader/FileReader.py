@@ -46,6 +46,7 @@ class CustomTextInput(TextInput):
 class FileReader(MDBoxLayout,PopupScreen):
     def __init__(self, file_path:str, **kwargs):
         super().__init__(**kwargs)
+        self.saved_path = None
         self.file_path = file_path
         self.save_folder = os.path.join(getAppFolder(),'.filereader')
         if not os.path.exists(self.save_folder):
@@ -71,6 +72,7 @@ class FileReader(MDBoxLayout,PopupScreen):
         AsyncRequest(notifications=False).download_file(file_path=urlSafePath(self.file_path),save_path=save_path,success=self.read_content,failed=self.failed_to_download)
 
     def read_content(self, saved_path):
+        self.saved_path=saved_path
         with open(saved_path, "r", encoding="utf-8") as f:
             content = f.read()
         self.text_box.text = content
@@ -114,7 +116,13 @@ class FileReader(MDBoxLayout,PopupScreen):
     def reset_transition_duration(self):
         self.swiper.transition_duration = 0.2
 
-
+    def close(self,**kwargs):
+        try:
+            ...
+            # os.remove(self.saved_path)
+        except Exception as could_not_clear_file_reader_cache_error:
+            print('could_not_clear_file_reader_cache_error'.replace('_',' '),could_not_clear_file_reader_cache_error)
+        super().close()
     # def select_all_content(self,widget=None):
     #     self.text_box.select_all()
 
