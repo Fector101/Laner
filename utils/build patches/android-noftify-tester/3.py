@@ -23,7 +23,7 @@ from android_notify import Notification,NotificationStyles,send_notification,Not
 from typing import Optional
 
 print('deleted channels no: ',Notification.deleteAllChannel())
-print('created on enter channel: ',Notification.createChannel('start_id','start','create when entered app'))
+# print('created on enter channel: ',Notification.createChannel('start_id','start','create when entered app'))
 print('canceled all notify\'s: ',Notification.cancelAll())
 # from utils.helper import makeDownloadFolder
 
@@ -134,8 +134,8 @@ class AndroidNotifyTester:
         notify.send()
     def channel_name(self,channel_name):
         Notification(
-            title=title,
-            message=message,
+            title=self.title,
+            message=self.message,
             channel_name=channel_name
         ).send()
     def appIcon(self,path):
@@ -288,7 +288,6 @@ class Laner(MDApp):
                         title=title,
                         message=message,
                         lines_txt='Line 1\nLine 2\nLine 3',
-                        style='inbox'
                     )
                     notification.send()
                     self.saved_notifications.append(notification)
@@ -298,7 +297,6 @@ class Laner(MDApp):
                         title=title,
                         message=message,
                         lines_txt=inbox_msg.replace('101','\n'),
-                        style='inbox'
                     )
                     notification.send()
                     self.saved_notifications.append(notification)
