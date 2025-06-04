@@ -398,7 +398,7 @@ class FileOperations:
             #     print(f'Download service failed101 {e}')
             #     traceback.print_exc()
             try:
-                DownloadService(STRING_DATA)
+                Service(name='Download',args_str=STRING_DATA)
             except Exception as e1:
                 print('Second try1:',e1)
                 toast('Downloading From App State')
@@ -425,13 +425,14 @@ class FileOperations:
 
         def startService():
             try:
-                mActivity = autoclass('org.kivy.android.PythonActivity').mActivity
-                context = mActivity.getApplicationContext()
-                SERVICE_NAME = str(context.getPackageName()) + '.Service' + 'Upload'
-                service = autoclass(SERVICE_NAME)
+                # mActivity = autoclass('org.kivy.android.PythonActivity').mActivity
+                # context = mActivity.getApplicationContext()
+                # SERVICE_NAME = str(context.getPackageName()) + '.Service' + 'Upload'
+                # service = autoclass(SERVICE_NAME)
                 data = {'file_path': file_path, 'save_path': current_dir}
                 STRING_DATA = json.dumps(data)
-                service.start(mActivity, 'small_icon', 'title', 'content', STRING_DATA)
+                # service.start(mActivity, 'small_icon', 'title', 'content', STRING_DATA)
+                Service(name='Upload',args_str=STRING_DATA)
             except Exception as e:
                 print(f'Upload service failed101 {e}')
                 toast('Uploading From App State')
@@ -473,15 +474,16 @@ class FileOperations:
 
 
 
-class DownloadService:
-    def __init__(self,args):
+class Service:
+    def __init__(self,name,args_str):
         from android import mActivity
         self.mActivity = mActivity
-        self.args=args
+        self.args_str=args_str
+        self.name=name
         self.start_service_if_not_running()
     def get_service_name(self):
         context = self.mActivity.getApplicationContext()
-        return str(context.getPackageName()) + '.Service' + 'Download'
+        return str(context.getPackageName()) + '.Service' + self.name
 
     def service_is_running(self):
         service_name = self.get_service_name()
@@ -497,5 +499,8 @@ class DownloadService:
         if self.service_is_running():
             return
         service = autoclass(self.get_service_name())
-        service.start(self.mActivity, 'round_music_note_white_24',
-                      'Music Service', 'Started', self.args)
+        title=self.name +' Service'
+        msg='Started'
+        arg=self.args_str
+        icon='round_music_note_white_24'
+        service.start(self.mActivity, icon, title, msg, arg)
