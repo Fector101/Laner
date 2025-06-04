@@ -75,22 +75,20 @@ def useUnlimitedBatteryPower():
     else:
         print("Battery optimization is already disabled.")
 
-
-
-     
 def startService():
     try:
         mActivity = autoclass('org.kivy.android.PythonActivity').mActivity
         context =  mActivity.getApplicationContext()
-        SERVICE_NAME = str(context.getPackageName()) + '.Service' + 'Upload'
+        SERVICE_NAME = str(context.getPackageName()) + '.Service' + 'Sendnoti'
         service = autoclass(SERVICE_NAME)
-        service.start(mActivity,'small_icon','title','content','FECTOR101')
+        # service.start(mActivity,'small_icon','title','content','FECTOR101')
+        service.start(mActivity, '')
         print('returned service')
     except Exception as e:
         print(f'Foreground service failed {e}')
 
-if platform == 'android':
-    startService()
+# if platform == 'android':
+    # startService()
 
 
 
