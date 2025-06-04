@@ -1,22 +1,19 @@
-import json,asyncio,websockets,threading
-import traceback
-
-from typing import Any, Optional
-
-from typing import Optional, List,Union
-import platform
-import subprocess
-import re
-import shutil
-import netifaces
-import socket
-
+import json, re, platform
+from typing import Optional, List
+import subprocess, shutil,traceback
+import netifaces, socket
 from dataclasses import dataclass
-from concurrent.futures import ThreadPoolExecutor
-from threading import Thread
-from kivy.clock import Clock
-
+from android_notify.config import from_service_file
 from utils.helper import get_device_name
+
+if from_service_file():
+    if not from_service_file():
+        from kivy.clock import Clock
+    else:
+        class Clock:
+            def schedule_once(self):
+                print('A fall back function async_requests', self)
+
 
 
 @dataclass

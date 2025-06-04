@@ -1,13 +1,36 @@
-import os,sys,platform
-import traceback
-import mimetypes
+import os, platform, traceback, mimetypes
 import urllib.parse
-from kivymd.material_resources import DEVICE_TYPE # if mobile or PC
-from kivy.clock import Clock
 from pathlib import Path
 
 from utils.constants import OTHER_TXT_FORMATS
+from android_notify.config import from_service_file
 
+# import sys
+# DEVICE_TYPE = 'desktop'
+# if sys.platform.startswith('linux'):
+if not from_service_file():
+	from kivymd.toast import toast
+	from kivy.clock import Clock
+	from kivymd.material_resources import DEVICE_TYPE # if mobile or PC
+	from kivy.utils import platform as kivyplatform
+	PythonActivity = autoclass('org.kivy.android.PythonActivity')
+	Context = PythonActivity.mActivity
+else:
+	DEVICE_TYPE = 'mobile'
+	print('no clocks')
+	
+	class Clock:
+		def schedule_once(self):
+			print('A fall back function async_requests',self)
+	
+	def toast(txt):
+		print('service dummy toast txt:',txt)
+
+if DEVICE_TYPE == 'mobile':
+	from jnius import autoclass
+	from android import api_version  # type: ignore
+	
+ 
 THEME_COLOR_TUPLE=(.6, .9, .8, 1)
 
 def getFormat(file_path):
@@ -101,14 +124,6 @@ def get_full_class_name(obj):
 		return obj.__class__.__name__
 	return module + '.' + obj.__class__.__name__
 
-
-
-if DEVICE_TYPE == 'mobile':
-	from kivymd.toast import toast
-	from jnius import autoclass
-	from android import api_version  # type: ignore
-	PythonActivity = autoclass('org.kivy.android.PythonActivity')
-	Context = PythonActivity.mActivity
 
 def getAndroidBounds():
 	# Access the Android Context and WindowManager
@@ -273,7 +288,6 @@ def get_android_device_name():
 		traceback.print_exc()
 	return device_name.strip() if device_name else "Unknown Device"
 
-from kivy.utils import platform as kivyplatform
 def get_device_name():
 	if kivyplatform == 'android':
 		try:

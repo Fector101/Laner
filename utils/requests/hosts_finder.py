@@ -1,12 +1,16 @@
 import json,traceback
-import socket,threading,asyncio
-import websockets
-
+import socket,threading,asyncio,websockets
 from threading import Thread
 from concurrent.futures import ThreadPoolExecutor
-
-from kivy.clock import Clock
+from android_notify.config import from_service_file
 from utils.helper import get_device_name
+
+if not from_service_file():
+    from kivy.clock import Clock
+else:
+    class Clock:
+        def schedule_once(self):
+            print('A fall back function async_requests',self)
 
 
 class FindHosts:
