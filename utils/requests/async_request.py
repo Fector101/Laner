@@ -164,7 +164,6 @@ class AsyncRequest:
             return
         new_percent = int((monitor.bytes_read / monitor.len) * 100)
         if new_percent >= 100:
-            self.running=False
             notification.removeButtons()
             notification.removeProgressBar(title=f'Completed {type_}',message=self.file_name)
         elif new_percent != self.percent:
