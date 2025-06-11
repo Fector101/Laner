@@ -244,7 +244,8 @@ class AsyncRequest:
 
     def upload_file(self, file_path, save_path,success,failed=None,file_data=None):
         file_basename = os.path.basename(file_path)        
-        
+        self.file_name=file_basename
+
         def send_initial_upload_notification():
             if not self.notifications:
                 return
