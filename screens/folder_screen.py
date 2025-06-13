@@ -40,6 +40,7 @@ if platform == "android":
 else:
     def toast(text):
         print('fallback for android toast101 folder_screen file')
+        Snackbar(text)
 # Setup paths and load KV file.
 my_downloads_folder = makeDownloadFolder()
 kv_file_path = os.path.join(getAppFolder(), "screens", "folderscreen.kv")
@@ -237,10 +238,10 @@ class DisplayFolderScreen(MDScreen):
         print("Choosing file...")
 
         def parse_choice(file_paths:list):
-            print(file_paths,'plyer choosen path')
+            print(file_paths,'plyer chosen path')
             if file_paths:
                 selected=file_paths if isinstance(file_paths,str) else file_paths[0]
-                FileOperations(selected).upload_file(selected,self.current_dir,self.set_path_info)
+                FileOperations(selected).upload_file(file_path=selected,current_dir=self.current_dir,callback=self.set_path_info)
         filechooser.open_file(on_selection=parse_choice)
 
     def set_path_info(self, from_btn: bool = False) -> None:
@@ -414,6 +415,8 @@ class FileOperations:
         Upload a file to the server.
         :param file_path: Local file path.
         :param file_data: Optional file-like object.
+        :param current_dir: path
+        :param callback: callable
         """
         
         def success():

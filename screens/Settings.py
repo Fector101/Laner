@@ -559,7 +559,7 @@ class SettingsScreen(MDScreen):
             print("This only works on Android.")
             return
 
-        folder_path = "/storage/emulated/0/MyApp"  # Change this to your folder
+        folder_path = "/storage/emulated/0/Download"  # Change this to your folder
 
         try:
             File = autoclass('java.io.File')

@@ -216,8 +216,8 @@ class Settings:
             operation_res['msg'] = 'Successfully added an item'
             operation_res['add_state']=True
             values.append(value)
-
-        self._store.put(key=key, **current)
+            self._store.put(key=key, **current)
+            return operation_res
 
     def remove_frm_list_with_two_keys(self, key, sub_key, value):
         """ key is main title then sub_key is sub-title
