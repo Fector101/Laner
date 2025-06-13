@@ -182,8 +182,6 @@ class BookMarkedFolders(MDBoxLayout):
         else:
             self.adaptive_height = True
 
-
-
     def refresh(self):
         self.clear_widgets()
         marked_folders = Settings().get_with_two_keys(key="bookmark_paths", sub_key='paths') or []
@@ -228,7 +226,10 @@ class BookMarkedFolders(MDBoxLayout):
         return item
 
     def openPath(self,text):
-        self.app.my_screen_manager.current_screen.set_folder(path=text,add_to_history=True)
+        screen_manager = self.app.my_screen_manager
+        if screen_manager.current != 'upload':
+            screen_manager.change_screen('upload')
+        screen_manager.current_screen.set_folder(path=text,add_to_history=True)
         self.close()
 
     def removePathFromBookMarks(self,text):
