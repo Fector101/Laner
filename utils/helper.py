@@ -3,35 +3,38 @@ import urllib.parse
 from pathlib import Path
 
 from utils.constants import OTHER_TXT_FORMATS
-from android_notify.config import from_service_file
+from android_notify.config import from_service_file,get_python_activity_context
+from jnius import autoclass
 
-# import sys
+import sys
+print('sys.path 101 --->',[ path for path in sys.path],os.path.exists("/system/build.prop"),platform.release(),platform.system())
 # DEVICE_TYPE = 'desktop'
 # if sys.platform.startswith('linux'):
 if not from_service_file():
-	from kivymd.toast import toast
 	from kivy.clock import Clock
 	from kivymd.material_resources import DEVICE_TYPE # if mobile or PC
 	from kivy.utils import platform as kivyplatform
-	PythonActivity = autoclass('org.kivy.android.PythonActivity')
-	Context = PythonActivity.mActivity
+	if kivyplatform == 'android':
+		from kivymd.toast import toast
+		from android import api_version  # type: ignore
+
 else:
 	DEVICE_TYPE = 'mobile'
+	kivyplatform = 'android'
 	print('no clocks')
-	
 	class Clock:
 		def schedule_once(self):
 			print('A fall back function async_requests',self)
-	
+
 	def toast(txt):
 		print('service dummy toast txt:',txt)
-
-if DEVICE_TYPE == 'mobile':
-	from jnius import autoclass
-	from android import api_version  # type: ignore
-	
+	api_version = 101
  
 THEME_COLOR_TUPLE=(.6, .9, .8, 1)
+
+def get_ui_context(): # explicitly getting app context not service
+	PythonActivity = autoclass('org.kivy.android.PythonActivity')
+	return PythonActivity.mActivity
 
 def getFormat(file_path):
 	return os.path.splitext(file_path)[1]
@@ -131,7 +134,7 @@ def getAndroidBounds():
 	DisplayMetrics = autoclass('android.util.DisplayMetrics')
 
 	# Get system service for WindowManager
-	PythonActivity = autoclass('org.kivy.android.PythonActivity')
+	Context = get_ui_context()
 	window_manager = Context.getSystemService(Context.WINDOW_SERVICE)
 
 
@@ -156,6 +159,7 @@ def getAndroidBounds():
 def getViewPortSize():
 	try:
 		# Create a DisplayMetrics instance and populate it
+		Context = get_ui_context()
 		Rect=autoclass('android.graphics.Rect')
 		rect=Rect()
 		Context.window.getDecorView().getWindowVisibleDisplayFrame(rect)
@@ -166,8 +170,9 @@ def getViewPortSize():
 		return [Window.width,Window.height]
 
 def getStatusBarHeight():
-  # Create a DisplayMetrics instance and populate it
+	# Create a DisplayMetrics instance and populate it
 	try:
+		Context = get_ui_context()
 		resources = Context.getResources()
 		resources_id=resources.getIdentifier("status_bar_height", "dimen", "android")
 		height=resources.getDimensionPixelSize(resources_id)
@@ -191,7 +196,7 @@ def requestMultiplePermissions():
 	# except Exception as e:
 	# 	print(f'Foreground service failed {e}')
 
-
+	PythonActivity = autoclass('org.kivy.android.PythonActivity')
 	from android.permissions import request_permissions, Permission,check_permission # type: ignore
 	from android.storage import app_storage_path, primary_external_storage_path # type: ignore
 
