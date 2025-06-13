@@ -1,10 +1,6 @@
-import os
-import shutil
-import time
-
-import requests
-import threading
-import traceback
+import os, time, shutil
+import requests, threading, traceback
+import math
 
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 from android_notify import Notification, NotificationStyles
@@ -21,11 +17,11 @@ else:
         print('A fall back Snackbar async_requests')
 
     class Clock:
-        def schedule_once(self,callback,secs):
+        def schedule_once(self,callback=None,secs=None):
             print('A fall back Clock async_requests',self)
 
 from utils.constants import IMAGE_FORMATS, PORTS
-Notification.logs = False
+Notification.logs = True
 
 
 class ProgressData:
@@ -38,7 +34,7 @@ class ProgressData:
 class AsyncRequest:
     "notification_id is for service file"
     def __init__(self,notifications=True,notification_id=0):
-        self.notifications = notifications
+        self.show_notifications = notifications
         self.download_notification= None
         self.notification_id= notification_id
         self.upload_notification= None
@@ -47,6 +43,7 @@ class AsyncRequest:
         self.cancel_upload = False
         self.running=True
         self.file_name=None
+        self.monitor= ProgressData(0,0) # type hinting
     # requests.get(server,data='to be sent',auth=(username,password))
     def get_server_ip(self) -> str:
         """Return the server IP from settings."""
@@ -76,7 +73,9 @@ class AsyncRequest:
 
     @run_on_ui_thread
     def on_ui_thread(self,fun,args=[]):
-        if not fun:
+        if not fun or from_service_file():
+            if from_service_file():
+                print("Didn't run UI thread fun -AsyncRequest.on_ui_thread")
             return
         try:
             if args:
@@ -84,8 +83,9 @@ class AsyncRequest:
             else:
                 Clock.schedule_once(lambda dt:fun())
         except Exception as e:
-            print('Failed to excute function on ui Thread: ',e)
-    
+            print('Failed to execute function on ui Thread: ',e)
+            traceback.print_exc()
+
     def do_failed(self,failed,args:list=[]):
         print('This is args: ',args)
         if failed:
@@ -129,7 +129,7 @@ class AsyncRequest:
         thread.start()
 
     def successfull_download_notification(self,save_path):
-        if not self.notifications:
+        if not self.show_notifications:
             return
         file_name = os.path.basename(save_path)
         try:
@@ -141,76 +141,91 @@ class AsyncRequest:
         except Exception as e:
             print(e,"Adding Img to Notification")
 
-    def send_initial_download_notification(self,file_name):
-        if not self.notifications:
+    def send_initial_download_notification(self):
+        if not self.show_notifications:
             return
-        print('Sent file_name', file_name)
         self.download_notification = Notification(
                 id=self.notification_id,
-                title="Downloaded (0%)",
-                message=file_name,
-                style=NotificationStyles.PROGRESS,
-                progress_max_value=100,progress_current_value=0.5,
+                title=self.file_name,
+                message='-/-',
+                progress_max_value=100,progress_current_value=0,
                 channel_name='Downloads'
                     # TODO use notification groups
                 )
+        try:
+            self.download_notification.setColor('green')
+        except Exception as e_:
+            print("SetColor error:",e_)
         def cancel_download_method():
             self.cancel_download=True
-        self.download_notification.addButton('Cancel',on_release=cancel_download_method)
+        self.download_notification.addButton('Cancel download',on_release=cancel_download_method)
         self.download_notification.send()
 
-    def update_progress(self,monitor,notification:Notification,type_):
-        if not self.notifications:
+    def update_progress(self,monitor,notification:Notification,type_,callback):
+        if not self.show_notifications:
             return
         new_percent = int((monitor.bytes_read / monitor.len) * 100)
         if new_percent >= 100:
             notification.removeButtons()
-            notification.removeProgressBar(title=f'Completed {type_}',message=self.file_name)
+            notification.removeProgressBar(title=f'Completed {type_}', message=self.file_name, _callback=callback)
         elif new_percent != self.percent:
             # print(f"{type_}ing ({new_percent}%)")
             self.percent=new_percent
             # notification.logs=True
-            notification.message=f" ({DownloadProgress(monitor.bytes_read,monitor.len).format()})"
+            notification.message=f"{DownloadProgress(monitor.bytes_read,monitor.len).format()}"
             notification.title=f"{self.file_name}"
-            notification.updateProgressBar(self.percent)
+            notification.updateProgressBar(self.percent, _callback=callback)
         
     def download_file(self, file_path,save_path,success,failed=None):
         file_name = os.path.basename(save_path)
         self.file_name=file_name
-        print('download_file file_name:',file_name)
+        # print('download_file file_name:',file_name)
         def failed_download_notification(msg='Download Error!'):
-            if not self.notifications:
+            if not self.show_notifications:
                 return
             self.download_notification.removeButtons()
             self.download_notification.removeProgressBar(title=msg)
-            
+
+
         def _download():
             try:
-                start = time.time()
+                # start = time.time()
                 url = f"http://{self.get_server_ip()}:{self.get_port_number()}/{file_path}"
                 response = requests.get(url, stream=True,timeout=(2,None))
-                self.send_initial_download_notification(file_name)
+                self.send_initial_download_notification()
                 if response.status_code == 200:
                     # Get the total file size from the response headers (if available)
                     total_size = int(response.headers.get('Content-Length', 0))
-                    downloaded = 0
+                    self.monitor.len = total_size
+                    if self.show_notifications:
+                        self.download_notification.updateMessage(DownloadProgress(0,total_size).format())
+                    downloaded_size = 0
+                    self.monitor.bytes_read = 0
                     chunk_size = 8192  # Adjust chunk size as needed
+                    start_time = time.time()
+
                     with open(save_path, 'wb') as f:
                         for chunk in response.iter_content(chunk_size=chunk_size):
                             if chunk:  # Filter out keep-alive chunks
                                 if self.cancel_download:
                                     break
                                 f.write(chunk)
-                                downloaded += len(chunk)
-                                progress_data = ProgressData(bytes_read=downloaded,len_=total_size)
-                                print(progress_data.bytes_read,'/',progress_data.len)
-                                duration = time.time() - start
-                                print(f"Duration: {duration:.2f} seconds")
+                                downloaded_size += len(chunk)
+                                self.monitor.bytes_read = downloaded_size
+                                time_left=self.__get_download_speed(start_time)
+                                # print(time_left)
+                                if self.show_notifications:
+                                    progress_data = ProgressData(bytes_read=downloaded_size,len_=total_size)
+                                    self.update_progress(
+                                        progress_data,self.download_notification, type_='Download',
+                                        callback=lambda : self.setDownloadSpeed(time_left)
+                                    )
 
-                                self.update_progress(progress_data,self.download_notification,type_='Download')
+                                # duration = time.time() - start
+                                # print(f"Duration: {duration:.2f} seconds")
                             else:
                                 # If no content length header, just print downloaded bytes.
-                                print(f"Downloaded: {downloaded} bytes")
+                                print(f"Downloaded: {downloaded_size} bytes")
 
 
                     if self.cancel_download:
@@ -227,7 +242,6 @@ class AsyncRequest:
                 else:
                     failed_download_notification()
                     self.on_ui_thread(failed)
-                    
             except Exception as e:
                 print("Failed Download Error type: ",e)
                 failed_download_notification()
@@ -245,37 +259,47 @@ class AsyncRequest:
         file_basename = os.path.basename(file_path)        
         self.file_name=file_basename
 
-        def send_initial_upload_notification():
-            if not self.notifications:
+        def send_initial_upload_notification(file_size):
+            if not self.show_notifications:
                 return
             self.upload_notification = Notification(
                 id=self.notification_id,
-                title="Uploading (0%)",
-                message=file_basename,
+                title=self.file_name,
+                message=DownloadProgress(0,file_size).format(),
                 style=NotificationStyles.PROGRESS,
-                progress_max_value=100,progress_current_value=0.5,
+                progress_max_value=100,progress_current_value=0,
                 channel_name="Uploads"
                 )
             def cancel_upload_method():
                 self.cancel_upload=True
-            self.upload_notification.addButton('Cancel',on_release=cancel_upload_method)
+            self.upload_notification.addButton('Cancel upload',on_release=cancel_upload_method)
             self.upload_notification.send()
         
         def failed_upload_notification(msg='Upload Error!'):
-            if not self.notifications:
+            if not self.show_notifications:
                 return
             self.upload_notification.removeButtons()
             self.upload_notification.removeProgressBar(title=msg)
-            
+
+        start_time=0
         def update_progress(monitor):
-            if not self.notifications:
+            nonlocal start_time
+            if not self.show_notifications:
                 return
             if self.cancel_upload:
                 failed_upload_notification("Upload Cancelled!")
                 Clock.schedule_once(lambda dt: Snackbar(h1="Upload Cancelled"))
                 raise Exception("Upload canceled by user")
-            self.update_progress(monitor,notification=self.upload_notification,type_='Upload')
-        
+
+            time_left = self.__get_download_speed(start_time)  if start_time else ''# need to calculate time
+            # before putting in AN progressbar wait timer
+            self.update_progress(
+                monitor,notification=self.upload_notification,type_='Upload',
+                callback=lambda: self.setDownloadSpeed(time_left)
+            )
+            start_time = time.time()
+
+
         def __upload():
             try:
                 url = f"http://{self.get_server_ip()}:{self.get_port_number()}/api/upload"
@@ -287,13 +311,13 @@ class AsyncRequest:
                         'file': (os.path.basename(file_path), open(file_path, 'rb'), 'application/octet-stream')
                     }
                 )
-                send_initial_upload_notification()
                 # Wrap it in a monitor to get progress updates.
-                monitor = MultipartEncoderMonitor(encoder, update_progress)
+                self.monitor = MultipartEncoderMonitor(encoder, update_progress)
+                send_initial_upload_notification(file_size=self.monitor.len)
 
                 response = requests.post(
-                                        url, data=monitor,
-                                        headers={'Content-Type': monitor.content_type},
+                                        url, data=self.monitor,
+                                        headers={'Content-Type': self.monitor.content_type},
                                         timeout=(2,None)
                                          )
                 
@@ -304,7 +328,7 @@ class AsyncRequest:
                     failed_upload_notification()
                     Clock.schedule_once(lambda dt:Snackbar(h1=f'Upload Failed - Code {response.status_code}'))
                     self.on_ui_thread(failed)
-                if self.notifications:
+                if self.show_notifications:
                     self.upload_notification.removeButtons()
 
             except Exception as e:
@@ -321,7 +345,21 @@ class AsyncRequest:
             __upload()
         else:
             threading.Thread(target=__upload).start()
-        
+
+    def __get_download_speed(self,start_time):
+        elapsed = time.time() - start_time
+        speed = self.monitor.bytes_read / elapsed if elapsed > 0 else 0
+        remaining = self.monitor.len - self.monitor.bytes_read
+        return DownloadProgress.time_left_formatted(remaining, speed)
+
+    def setDownloadSpeed(self,text):
+        if not self.show_notifications:
+            return
+        if self.download_notification:
+            self.download_notification.setSubText(text)
+        elif self.upload_notification:
+            self.upload_notification.setSubText(text)
+
     def auto_connect(self,success,failed=None):
         timeout=0.5
         
@@ -396,6 +434,7 @@ class AsyncRequest:
                 self.on_ui_thread(failed)
         threading.Thread(target=__ping).start()
 
+
 def format_progress(downloaded_bytes, total_bytes):
     if total_bytes <= 0:
         return "0/0 B"
@@ -419,49 +458,75 @@ def format_progress(downloaded_bytes, total_bytes):
     # Round or floor to integers
     return f"{int(downloaded)}/{int(round(total))} {unit}"
 
-
-
 class DownloadProgress:
     def __init__(self, downloaded_bytes, total_bytes):
-        if downloaded_bytes < 0 or total_bytes < 0:
-            raise ValueError("Byte values cannot be negative.")
-        self.downloaded = downloaded_bytes
+        self.downloaded = downloaded_bytes  # Using property setters
         self.total = total_bytes
-        self.units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
+        self._units = ('B', 'KB', 'MB', 'GB', 'TB', 'PB')
         self.base = 1024
 
+    @property
+    def downloaded(self):
+        return self._downloaded
+
+    @downloaded.setter
+    def downloaded(self, value):
+        if value < 0:
+            raise ValueError("Byte values cannot be negative.")
+        self._downloaded = value
+
+    @property
+    def total(self):
+        return self._total
+
+    @total.setter
+    def total(self, value):
+        if value < 0:
+            raise ValueError("Byte values cannot be negative.")
+        self._total = value
+
+    def _unit_index(self, byte_val):
+        if byte_val == 0:
+            return 0
+        index = int(math.log(byte_val, self.base))
+        return min(index, len(self._units) - 1)
+
     def _format_value(self, byte_val):
-        index = 0
-        value = float(byte_val)
-
-        while value >= self.base and index < len(self.units) - 1:
-            value /= self.base
-            index += 1
-
-        return f"{int(value)} {self.units[index]}"
-
-    def _format_total_fixed_unit(self):
-        index = 0
-        value = float(self.total)
-
-        while value >= self.base and index < len(self.units) - 1:
-            value /= self.base
-            index += 1
-
-        return value, index, self.units[index]
+        index = self._unit_index(byte_val)
+        value = byte_val / (self.base ** index)
+        return f"{round(value, 2)} {self._units[index]}"
 
     def format(self):
         if self.total == 0:
             return "0 B / 0 B"
 
-        # Get total formatted and its unit index
-        _, total_index, total_unit = self._format_total_fixed_unit()
+        total_index = self._unit_index(self.total)
+        total_val = self.total / (self.base ** total_index)
+        total_str = f"{round(total_val, 2)} {self._units[total_index]}"
 
-        # Convert downloaded to appropriate unit for itself
         downloaded_str = self._format_value(self.downloaded)
 
-        # Convert total to the fixed unit
-        total_val = self.total / (self.base ** total_index)
-        total_str = f"{int(total_val)} {total_unit}"
-
         return f"{downloaded_str} / {total_str}"
+
+    def __str__(self):
+        return self.format()
+
+    def percentage(self):
+        if self.total == 0:
+            return 0.0
+        return (self.downloaded / self.total) * 100
+
+    @staticmethod
+    def time_left_formatted(remaining, rate):
+        if rate <= 0:
+            return ''
+        seconds = remaining / rate
+        if seconds < 60:
+            secs=int(seconds)
+            return f"{secs} secs left" if secs else ''
+        elif seconds < 3600:
+            return f"{int(seconds / 60)} mins left"
+        elif seconds < 86400:
+            return f"{int(seconds / 3600)} hrs left"
+        else:
+            return f"{int(seconds / 86400)} days left"
