@@ -64,7 +64,8 @@ class NetworkManager:
             elif os_name == 'Windows':
                 return self._get_windows_ip()
             raise OSError("Unsupported operating system")
-        except Exception:
+        except Exception as error_finding_ip:
+            print('error finding ip networkmanager.py:',error_finding_ip)
             return None
 
     def _get_unix_ip(self) -> Optional[str]:
