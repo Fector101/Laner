@@ -2,7 +2,10 @@ import websockets,asyncio,traceback
 from websockets.asyncio.connection import Connection # for type
 import json,secrets
 
-from workers.helper import getUserPCName
+if __name__=='web_socket':
+    from helper import getUserPCName
+else:
+    from workers.helper import getUserPCName
 
 
 # Socket for connection (handling only authns for now)

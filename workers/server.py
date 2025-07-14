@@ -5,7 +5,6 @@ import websockets,asyncio
 from os.path import join as _joinPath
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn
-from .web_socket import WebSocketConnectionHandler
 
 # Worker imports
 if __name__=='__main__':
@@ -16,6 +15,8 @@ if __name__=='__main__':
     )
     from thumbmailGen import generateThumbnails
     from sword import NetworkManager,JPEGWorker
+    from web_socket import WebSocketConnectionHandler
+
 else:
     from workers.helper import (
         gen_unique_filname, getAppFolder, getFileExtension, getHomePath, getdesktopFolder,
@@ -23,6 +24,7 @@ else:
     )
     from workers.thumbmailGen import generateThumbnails
     from workers.sword import NetworkManager,JPEGWorker
+    from workers.web_socket import WebSocketConnectionHandler
     
 # File Type Definitions
 MY_OWNED_ICONS = ['.py', '.js', '.css', '.html', '.json', '.deb', '.md', '.sql', '.java']
@@ -103,7 +105,7 @@ class CustomHandler(SimpleHTTPRequestHandler):
                 folder_path = getdesktopFolder()
                 found_folder=False
                 save_path = None
-                
+                # print("Whole data: ",parts,'\n')
                 for part in parts:
                     # print("This is a part: ",part)
                     if b'name="save_path"' in part and not found_folder:
@@ -153,7 +155,9 @@ class CustomHandler(SimpleHTTPRequestHandler):
                 request_path = self._get_request_body('path')
                 if request_path == 'Home':
                     request_path = getHomePath()
-
+                elif request_path == None: # Checking for None incase i send '' as path in future and not './'
+                    self._send_json_response({'error': "Server didn't recieve any data, i.e no requested_path"}, status=400)
+                    return
                 dir_info = []
                 self.video_paths = []
 
@@ -174,6 +178,7 @@ class CustomHandler(SimpleHTTPRequestHandler):
                     dir_info.append(cur_obj)
 
                 dir_info = sortedDir(dir_info)
+                # print('dta ',dir_info)
                 self._send_json_response({'data': dir_info})
 
                 if self.video_paths:
@@ -202,8 +207,7 @@ class CustomHandler(SimpleHTTPRequestHandler):
                 self._send_json_response({'data': getUserPCName()})
             else:
                 super().do_GET()
-                
-                # self.send_error(404, "Endpoint not found.")
+                # self._send_json_response({'error': "Endpoint not found."}, status=404)
         except Exception as e:
             writeErrorLog('Request Handling Error', traceback.format_exc())
             self._send_json_response({'error': str(e)}, status=400)
@@ -217,17 +221,30 @@ class CustomHandler(SimpleHTTPRequestHandler):
         
     def _get_request_body(self, key):
         """Parses JSON from the request body."""
-        content_length = int(self.headers['Content-Length'])
+        extracted_length = self.headers['Content-Length']
+        if extracted_length == None: # explicty checking None incase maybe it can be 0,test more and remove line
+            return extracted_length
+        content_length = int(extracted_length)
         request_data = self.rfile.read(content_length)
         print('Why',json.loads(request_data).get(key))
         return json.loads(request_data).get(key)
 
+    def _set_cors_headers(self):
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+
     def _send_json_response(self, data, status=200):
         """Sends a JSON response."""
         self.send_response(status)
+        self._set_cors_headers() # <--- For testing from javascript|brower
         self.send_header('Content-Type', 'application/json')
         self.end_headers()
-        self.wfile.write(json.dumps(data).encode('utf-8'))
+        try:
+            self.wfile.write(json.dumps(data).encode('utf-8'))
+        except ConnectionAbortedError as connection_aborted_error:
+            writeErrorLog('Connection was aborted', traceback.format_exc())
+
 
     def _get_file_icon(self, name, path, is_dir, format_):
         """Returns appropriate icon and thumbnail based on file type."""
@@ -255,13 +272,15 @@ class CustomHandler(SimpleHTTPRequestHandler):
 
 # Server Class
 class FileSharingServer:
-    def __init__(self, ip, connection_signal, port=8000, directory="/"):
+    def __init__(self, ip, connection_signal=None, port=8000, directory="/"):
         self.ip = ip
         self.port = port
         self._server = None
         self.directory = directory
         makeFolder(os.path.join(getAppFolder(), 'thumbnails'))
         print(connection_signal)
+        if not connection_signal:
+            print("No 'connection_signal' Running without UI")
         self.connection_signal = connection_signal
         self.loop = None
         self.websocket_port = None
@@ -295,7 +314,7 @@ class FileSharingServer:
     def start(self):
         global SERVER_IP
         SERVER_IP = self.ip or SERVER_IP
-        print(SERVER_IP)
+        # print(SERVER_IP,self.ip)
         os.chdir(self.directory)
 
         # self.server = ThreadingHTTPServer((self.ip, self.port), CustomHandler)
@@ -312,10 +331,11 @@ class FileSharingServer:
                 ]
         # TODO ping Server from PC and Check for Unquie Generated Code from maybe Singleton
         for port in ports:
-            print('Trying ',port)
+            print('Trying ',self.ip,port)
             try:
-                self._server = ThreadingHTTPServer(("", port), CustomHandler)
-                # self._server = ThreadingHTTPServer((self.ip, port), CustomHandler)
+                # self._server = ThreadingHTTPServer(("", port), CustomHandler)
+                # self._server = ThreadingHTTPServer(("0.0.0.0", port), CustomHandler)
+                self._server = ThreadingHTTPServer((self.ip, port), CustomHandler)
                 self.port=port
                 threading.Thread(target=self._server.serve_forever, daemon=True).start()
                 print(f"Server started at http://{SERVER_IP}:{self.port}")

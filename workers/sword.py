@@ -1,13 +1,20 @@
 import json
 import traceback
-from typing import Any, Optional,List,Union
+from typing import Any, Optional,List
 import platform
 import subprocess
 import re
 import shutil
 from pathlib import Path
+# gtkbin = r'C:\Program Files (x86)\GTK2-Runtime\bin'
+
+# add_dll_dir = getattr(os, 'add_dll_directory', None)
+# if callable(add_dll_dir):
+#     add_dll_dir(gtkbin)
+# else:
+#     os.environ['PATH'] = os.pathsep.join((gtkbin, os.environ['PATH']))
 import cairosvg
-import netifaces
+# import netifaces
 from dataclasses import dataclass
 import socket
 import time
@@ -15,7 +22,12 @@ import threading
 import os
 import PIL
 from PIL import Image
-from workers.helper import gen_unique_filname, _joinPath, getAppFolder, getUserPCName
+
+if __name__=='sword':
+    from helper import gen_unique_filname, _joinPath, getAppFolder, getUserPCName
+else:
+    from workers.helper import gen_unique_filname, _joinPath, getAppFolder, getUserPCName
+
 
 
 @dataclass
