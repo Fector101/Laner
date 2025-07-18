@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        
+async function test(){
+    // this line failed const url = `http://${serverIp}:${port}/api/getpathinfo?path=${encodeURIComponent(path)}`;
+    const data = await fetch('http://:8000/ping',{method: 'GET'})
+    const res = await data.json()
+    console.log(res);
+}
+test()
+    </script>
+</body>
+</html>
