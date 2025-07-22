@@ -1,4 +1,4 @@
-import sys, os
+import sys, os, traceback
 from PyQt5.QtWidgets import QApplication, QMainWindow, QSystemTrayIcon, QMenu, QAction, QStackedWidget
 from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtCore import Qt,QThread,pyqtSignal, QObject
@@ -9,8 +9,10 @@ from popups import ConnectionRequest
 from workers.server import FileSharingServer
 from workers.helper import getUserPCName, getAbsPath
 from workers.sword import NetworkManager
+import workers.config # Runs App Configurations and sets global exception handler
 
 DEV=1
+
 
 class WorkerThread(QThread):
     update_signal = pyqtSignal(object)  # Define signal
@@ -20,7 +22,6 @@ class WorkerThread(QThread):
         self.connection_signal = connection_signal
     def run(self):
         try:
-            print(self.connection_signal)
             server = FileSharingServer(port=8000,ip=self.ip, directory= '/', connection_signal=self.connection_signal)
             server.start()
             self.update_signal.emit(server)
