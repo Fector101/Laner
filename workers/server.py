@@ -13,7 +13,9 @@ if __name__=='__main__':
     gen_unique_filname, getAppFolder, getFileExtension, getHomePath, getdesktopFolder,
         makeFolder, removeFirstDot, sortedDir, urlSafePath, getUserPCName
     )
-    from thumbmailGen import generateThumbnails
+    from thumbnails.video import generateThumbnails
+    from thumbnails.executable import extract_exe_icon
+    from thumbnails.image import JPEGWorker
     from sword import NetworkManager,JPEGWorker
     from web_socket import WebSocketConnectionHandler
 
@@ -22,8 +24,10 @@ else:
         gen_unique_filname, getAppFolder, getFileExtension, getHomePath, getdesktopFolder,
         makeFolder, removeFirstDot, sortedDir, urlSafePath, getUserPCName
     )
-    from workers.thumbmailGen import generateThumbnails
-    from workers.sword import NetworkManager,JPEGWorker
+    from workers.thumbnails.video import generateThumbnails
+    from workers.thumbnails.image import JPEGWorker
+    from workers.thumbnails.executable import ExecutableIconExtractor
+    from workers.sword import NetworkManager
     from workers.web_socket import WebSocketConnectionHandler
     
 # File Type Definitions
@@ -49,6 +53,7 @@ SUBTITLE_EXTENSIONS = (
     # Other Subtitle Formats
     ".jss", ".ssa", ".ass", ".usf", ".aqt", ".pjs", ".bas"
 )
+EXECUTABLE_FORMATS = ('.exe', '.msi', '.bat', '.cmd', '.sh', '.run')
 
 SERVER_IP = None
 
@@ -268,6 +273,10 @@ class CustomHandler(SimpleHTTPRequestHandler):
             # return f"http://{SERVER_IP}:8000/{urlSafePath(path)}", ''
             instance = JPEGWorker(path,SERVER_IP)
             return "assets/icons/image.png", instance.getJPEG_URL()
+        elif format_ in EXECUTABLE_FORMATS:
+            instance = ExecutableIconExtractor(path, SERVER_IP, 8000)
+            return "assets/icons/executable.png", instance.exe_icon_url
+            
         return "assets/icons/file.png", ''
 
 # Server Class

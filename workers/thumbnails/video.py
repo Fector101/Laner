@@ -1,7 +1,7 @@
 import cv2,os,shutil
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 
 if __name__ == 'thumbmailGen':
     from helper import gen_unique_filname, getAppFolder
