@@ -3,90 +3,75 @@
 # It uses the icoextract library to handle the extraction.
 # icoextract dependencies: pefile
 """
-import os, traceback,sys
-
-from icoextract import IconExtractor
+import traceback,threading
 from PIL import Image
+from icoextract import IconExtractor
 
 if __name__=='executable' or __name__=='__main__':
-    from testing.helper import gen_unique_filname, getAppFolder,urlSafePath
     from testing.sword import NetworkManager,NetworkConfig
-    from os.path import join as _joinPath
-
+    from base import BaseGen,BaseGenException
 else:
-    from workers.helper import gen_unique_filname, _joinPath, getAppFolder,urlSafePath
     from workers.sword import NetworkManager,NetworkConfig
+    from workers.thumbnails.base import BaseGen,BaseGenException
 
-# Global exception handler to catch all unhandled exceptions
-def global_exception_handler(exc_type, exc_value, exc_traceback):
-    # Default traceback print
-    traceback.print_exception(exc_type, exc_value, exc_traceback)
-    # Custom line after every exception
-    print(f'------------------------{exc_type.__name__} Log end------------------------')
 
-# Set the global exception handler
-sys.excepthook = global_exception_handler
-
-# Custom exception for icon extraction errors
-# This will be raised if the icon extraction fails for any reason
-class IconExtractionError(Exception):
+class IconExtractionError(Exception, BaseGenException):
     """Custom exception for icon extraction errors."""
-    def __init__(self, message,*args):
+    # Custom exception for icon extraction errors
+    # This will be raised if the icon extraction fails for any reason
+    thumbnail_path = ''
+    def __init__(self, message):
+        self.getfailSafeImg()
         super().__init__(message)
         print(f'\n------------------------{self.__class__.__name__} Log start------------------------')
         self.message = message
         # self.args = args # don’t need self.args = args — super().__init__() already stores the message in .args.
 
 
-class ExecutableIconExtractor:
+class ExecutableIconExtractor(BaseGen):
     """Class to handle extraction of icons from executable files."""
+    def __init__(self, exe_path: str, server_ip: str=NetworkConfig.server_ip,port: int=NetworkConfig.port,_thread=True):
+        super().__init__(server_ip=server_ip, server_port=port)
+        self._item_path = exe_path
+        IconExtractionError.thumbnail_path = self.thumbnail_path
+        if _thread:
+            threading.Thread(
+                        target=self.__extract,
+                        daemon=True
+                    ).start()
+        else:
+            self.__extract()
+    @property
+    def item_path(self):
+        """Path to the executable file."""
+        return self._item_path
     
-    
-
-    def __init__(self, exe_path: str, server_ip: str=NetworkConfig.server_ip,port: int=NetworkConfig.port):
-        self.__preview_folder = os.path.join(getAppFolder(), 'preview-imgs')
-        self.__exe_path = exe_path
-        self.__icon_path = self.__get_extracted_icon_path()
-        self.exe_icon_url = f"http://{server_ip}:{port}/{urlSafePath(self.__icon_path)}"
-        self.__extract()
-        
     def __extract(self):
         """Extracts the icon from the executable and saves it as a PNG."""
         try:
-            # test throwing error
-            extractor = IconExtractor(self.__exe_path)
-            
-            # Get the largest available icon (returns BytesIO)
-            icon_data = extractor.get_icon()
-            
-            # Convert BytesIO to PIL Image
-            icon = Image.open(icon_data)
-            
-            # Save as PNG
-            icon.save(self.__icon_path, format='PNG')
-            # print(f"Icon extracted and saved to {self.__icon_path}")
+            extractor = IconExtractor(self.item_path)
+            icon_data = extractor.get_icon() # Get the largest available icon (returns BytesIO)
+
+            icon = Image.open(icon_data) # Convert BytesIO to PIL Image
+            if icon.mode != 'RGBA':
+                icon = icon.convert("RGBA")  # Ensure PNG compatibility
+            icon.save(self.thumbnail_path, format='PNG', optimize=True)
+            # print(f"Icon extracted and saved to {self.thumbnail_path}")
 
         except FileNotFoundError as e:
-            raise IconExtractionError(f"{e}\n---->[Executable file not found: {self.__exe_path}]<----") from None
+            raise IconExtractionError(f"{e}\n---->[Executable file not found: {self.item_path}]<----") from None
         except OSError as e:
             traceback.print_exc()
             raise IconExtractionError(f"Error saving icon: {e}") from None
         except Exception as e:
             print(f"Error extracting icon: {e}")
             traceback.print_exc()
-            raise IconExtractionError(f"Unexpected error: {e}") from None
-
-    def __get_extracted_icon_path(self):
-        """Generates a unique file name for the extracted icon."""
-        new_file_name = gen_unique_filname(self.__exe_path) + '.jpg'
-        new_img_path = _joinPath(self.__preview_folder, new_file_name)
-        return new_img_path
+            raise IconExtractionError(f"Unexpected errorx: {e}\nExe File: {self.item_path}") from None
     
     
 if __name__ == '__main__':
-    exe_path = r"C:\Users\hp\Desktop\Linux\my_code\Laner\workers\thumbnails\laner.exe"
+    exe_path = r"C:\Users\hp\Desktop\Linux\my_code\Laner\workers\thumbnails\laner.exe" # og:6.21kb optimize.png:5.86kb
     server_ip = NetworkManager().get_server_ip()  # Replace with actual server IP if needed
     # print(f"Server IP: {server_ip}")
-    extractor = ExecutableIconExtractor(exe_path, server_ip,8000)
-    # print(extractor.exe_icon_url)
-    print(f"Icon URL: {extractor.exe_icon_url}")
+    extractor = ExecutableIconExtractor(exe_path, server_ip,8000,_thread=False)
+    print(f"Icon URL: {extractor.thumbnail_url}")

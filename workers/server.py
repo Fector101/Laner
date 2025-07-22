@@ -272,10 +272,10 @@ class CustomHandler(SimpleHTTPRequestHandler):
         elif format_ in PICTURE_FORMATS:
             # return f"http://{SERVER_IP}:8000/{urlSafePath(path)}", ''
             instance = JPEGWorker(path,SERVER_IP)
-            return "assets/icons/image.png", instance.getJPEG_URL()
+            return "assets/icons/image.png", instance.thumbnail_url
         elif format_ in EXECUTABLE_FORMATS:
             instance = ExecutableIconExtractor(path, SERVER_IP, 8000)
-            return "assets/icons/executable.png", instance.exe_icon_url
+            return "assets/icons/executable.png", instance.thumbnail_url
             
         return "assets/icons/file.png", ''
 
@@ -287,7 +287,6 @@ class FileSharingServer:
         self._server = None
         self.directory = directory
         makeFolder(os.path.join(getAppFolder(), 'thumbnails'))
-        print(connection_signal)
         if not connection_signal:
             print("No 'connection_signal' Running without UI")
         self.connection_signal = connection_signal

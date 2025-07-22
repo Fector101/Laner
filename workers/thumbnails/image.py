@@ -1,5 +1,4 @@
-import os, traceback, threading
-from pathlib import Path
+import traceback, threading
 import PIL
 from PIL import Image
 try:
@@ -8,72 +7,77 @@ except:
     print('Check cairosvg repo issuses section for how to fix or downloaad and install <link>')
 
 if __name__=='image' or __name__=='__main__':
-    from helper import gen_unique_filname, _joinPath, getAppFolder, getUserPCName
+    from base import BaseGen,BaseGenException
+    from testing.sword import NetworkManager,NetworkConfig
 else:
-    from workers.helper import gen_unique_filname, _joinPath, getAppFolder, getUserPCName
+    from workers.thumbnails.base import BaseGen,BaseGenException
+    from workers.sword import NetworkConfig
 
 
-
-class JPEGWorker:
-        
-    # TODO Make an init file or config file for app for things like this
-    preview_folder = os.path.join(getAppFolder(), 'preview-imgs')
-    def __init__(self,img_path:str,server_ip:str):
+class JPEGWorker(BaseGen,BaseGenException):
+    """Worker class to convert images to JPEG format."""
+    
+    def __init__(self,img_path:str,server_ip:str,_thread=True):
         self.server_ip = server_ip
-        self.img_path = img_path
-
-        os.makedirs(self.preview_folder,exist_ok=True)
-        
-        threading.Thread(
+        self.server_port=NetworkConfig.port
+        self.inputted_img_path = img_path
+        self.__quality = 80
+        if _thread:
+            threading.Thread(
                         target=self.genrateJPEG,
                         daemon=True
                     ).start()
-        
-    def getJPEG_URL(self):
-        """Returns JPG path while waiting for server"""
-        new_file_name = gen_unique_filname(self.img_path) + '.jpg'
-        new_img_path = _joinPath(self.preview_folder,new_file_name)
-        return f"http://{self.server_ip}:8000/{new_img_path}"
-
-    def is_svg(self):
-        return self.img_path.lower().endswith('.svg')
-        # with open("image.svg", "r") as f:
-        #     header = f.read(100).lower()
-        #
-        # if "<svg" in header:
-        #     print("It's an SVG file.")
-    def genrateJPEG(self):
-        # print('gotten img path ',self.img_path)
-        new_file_name = gen_unique_filname(self.img_path) + '.jpg'
-        new_img_path = _joinPath(self.preview_folder,new_file_name)
-        # new_img_url=self.getJPEG_URL() # For debugging image server is path
-
-        try:
-            quality = 90
-            if self.is_svg():
-                converted_svg_file_path = _joinPath(self.preview_folder,Path(self.img_path).stem+'.png')
-                print('converted_svg_file_path: ',converted_svg_file_path)
-                # self.preview_folder, os.path.basename(
-                try:
-                    cairosvg.svg2png(url=self.img_path,write_to=converted_svg_file_path,output_width=1000,output_height=1000)
-                    self.img_path=converted_svg_file_path
-                    quality=100
-                except Exception as e:
-                    print('Failed to convert SVG: ',e)
-
-            im = Image.open(self.img_path)
-            rgb_im = im.convert("RGB")
-            rgb_im.save(new_img_path, quality=quality)
-            # print('new_file_name ',new_file_name)
-            # print('new_img_url ',new_img_url) #For debugging
-        except PIL.UnidentifiedImageError:
-            im = Image.open(_joinPath(getAppFolder(),'assets','imgs','image.png'))
-            rgb_im = im.convert("RGB")
-            rgb_im.save(new_img_path, quality=60)
+        else:
+            self.genrateJPEG()
             
-            print(f'Failed getting JPEG {self.img_path} <-----------------------------------------')
-            return "assets/icons/image.png"
+    @property
+    def item_path(self):
+        """Path to the executable file."""
+        return self.inputted_img_path
+
+    @property
+    def img_format(self):
+        """Returns the image format."""
+        # Overriding super class property
+        return 'jpg'
+    
+    def is_svg(self):
+        return self.inputted_img_path.lower().endswith('.svg')
+
+    def genrateJPEG(self):
+        try:
+            if self.is_svg():
+                self.genPNG_from_SVG()
+                
+            im = Image.open(self.inputted_img_path)
+            rgb_im = im.convert("RGB")
+            rgb_im.save(self.thumbnail_path, format='JPEG', quality=self.__quality)
+
+        except PIL.UnidentifiedImageError:
+            print(f'Failed getting JPEG {self.inputted_img_path} <-----------------------------------------')
+            print('Fail safe image path: ',self.thumbnail_path)
+            self.getfailSafeImg()
         except Exception as e:
             print('Unplanned Error at JPEGWorker Class: ',e)
             traceback.print_exc()
         #TODO Probalbly catch all errors
+
+    def genPNG_from_SVG(self):
+        """Get png for jpg form svg :)
+            Sets `self.inputted_img_path` parameter
+        """
+        self.__quality=100
+        try:
+            cairosvg.svg2png(url=self.inputted_img_path,write_to=self.thumbnail_path,output_width=1000,output_height=1000)
+            self.inputted_img_path=self.thumbnail_path
+        except Exception as e:
+            print('Failed to convert SVG: ',e)
+            self.getfailSafeImg()
+            return
+        
+
+if __name__ == '__main__':
+    server_ip = NetworkManager().get_server_ip()  # Replace with actual server IP if needed
+    img_path=r'C:\Users\hp\Desktop\Linux\my_code\Laner\workers\thumbnails\icon.png' # og: 1.68mb formatted.png:1.68mb, formatted.jpg:379kb
+    r=JPEGWorker(img_path,server_ip,_thread=False)
+    print(r.thumbnail_url)
