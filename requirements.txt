@@ -5,3 +5,5 @@ pillow
 netifaces
 websockets
 cairosvg
+icoextract
+pefile
