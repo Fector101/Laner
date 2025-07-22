@@ -97,8 +97,10 @@ def getAppFolder():
         path__ = os.path.abspath(sys._MEIPASS)
     else:
         # Running from source code
-        function_folder_formatted_to_get_app_folder = os.path.join(os.path.dirname(__file__),'..')
-        path__=os.path.abspath(function_folder_formatted_to_get_app_folder)
+        # function_folder_formatted_to_get_app_folder = os.path.join(os.path.dirname(__file__),'..')
+        # path__=os.path.abspath(function_folder_formatted_to_get_app_folder)
+        venv_root = os.path.abspath(os.path.join(sys.executable, '..', '..','..'))   # Go up one level from sys.executable
+        path__=venv_root
 
     # Normalize path for Wine compatibility
     if is_wine():
