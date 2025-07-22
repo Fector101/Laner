@@ -16,7 +16,7 @@ if __name__=='__main__':
     from thumbnails.video import generateThumbnails
     from thumbnails.executable import extract_exe_icon
     from thumbnails.image import JPEGWorker
-    from sword import NetworkManager,JPEGWorker
+    from sword import NetworkManager,JPEGWorker,NetworkConfig
     from web_socket import WebSocketConnectionHandler
 
 else:
@@ -27,7 +27,7 @@ else:
     from workers.thumbnails.video import generateThumbnails
     from workers.thumbnails.image import JPEGWorker
     from workers.thumbnails.executable import ExecutableIconExtractor
-    from workers.sword import NetworkManager
+    from workers.sword import NetworkManager,NetworkConfig
     from workers.web_socket import WebSocketConnectionHandler
     
 # File Type Definitions
@@ -53,7 +53,7 @@ SUBTITLE_EXTENSIONS = (
     # Other Subtitle Formats
     ".jss", ".ssa", ".ass", ".usf", ".aqt", ".pjs", ".bas"
 )
-EXECUTABLE_FORMATS = ('.exe', '.msi', '.bat', '.cmd', '.sh', '.run')
+EXECUTABLE_FORMATS = ('.exe','.dll','.mun')#, '.msi', '.bat', '.cmd', '.sh', '.run')
 
 SERVER_IP = None
 
@@ -263,19 +263,19 @@ class CustomHandler(SimpleHTTPRequestHandler):
             self.video_paths.append(path)
             thumbnail_path = os.path.join(getAppFolder(),'thumbnails',gen_unique_filname(path)+'.jpg')
             formatted_path_4_url=urlSafePath(removeFirstDot(thumbnail_path))
-            print(f"http://{SERVER_IP}:8000/{formatted_path_4_url}")
-            return "assets/icons/video.png", f"http://{SERVER_IP}:8000/{formatted_path_4_url}"
+            print(f"http://{SERVER_IP}:{NetworkConfig.port}/{formatted_path_4_url}")
+            return "assets/icons/video.png", f"http://{SERVER_IP}:{NetworkConfig.port}/{formatted_path_4_url}"
         elif format_ in SUBTITLE_EXTENSIONS:
             return "assets/icons/subtitle.png", ''
         elif format_ in AUDIO_FORMATS:
             return "assets/icons/audio.png", ''
         elif format_ in PICTURE_FORMATS:
-            # return f"http://{SERVER_IP}:8000/{urlSafePath(path)}", ''
             instance = JPEGWorker(path,SERVER_IP)
             return "assets/icons/image.png", instance.thumbnail_url
         elif format_ in EXECUTABLE_FORMATS:
-            instance = ExecutableIconExtractor(path, SERVER_IP, 8000)
-            return "assets/icons/executable.png", instance.thumbnail_url
+            instance = ExecutableIconExtractor(path, SERVER_IP, NetworkConfig.port)
+            pl_url = (f"http://{SERVER_IP}:{NetworkConfig.port}/{urlSafePath(_joinPath(getAppFolder(),"assets","imgs","executable.png"))}")
+            return pl_url, instance.thumbnail_url
             
         return "assets/icons/file.png", ''
 
