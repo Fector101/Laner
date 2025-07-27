@@ -8,7 +8,7 @@ myenv
 .idea
 __pycache__
 bin
-lab
+/lab
 /thumbnails
 laner-linux
 for-download/

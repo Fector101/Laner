@@ -73,5 +73,5 @@ if __name__ == '__main__':
     exe_path = r"C:\Users\hp\Desktop\Linux\my_code\Laner\workers\thumbnails\laner.exe" # og:6.21kb optimize.png:5.86kb
     server_ip = NetworkManager().get_server_ip()  # Replace with actual server IP if needed
     # print(f"Server IP: {server_ip}")
-    extractor = ExecutableIconExtractor(exe_path, server_ip,8000,_thread=False)
+    extractor = ExecutableIconExtractor(exe_path, server_ip,NetworkConfig.port,_thread=False)
     print(f"Icon URL: {extractor.thumbnail_url}")
