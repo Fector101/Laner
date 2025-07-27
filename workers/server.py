@@ -209,8 +209,11 @@ class CustomHandler(SimpleHTTPRequestHandler):
             else:
                 super().do_GET()
                 # self._send_json_response({'error': "Endpoint not found."}, status=404)
+        except PermissionError as e:
+            writeErrorLog('Permission Error', traceback.format_exc())
+            self._send_json_response({'error': "Permission denied. Please check your access rights."}, status=403)
         except Exception as e:
-            writeErrorLog('Request Handling Error', traceback.format_exc())
+            writeErrorLog('Error Handling for All Requests', traceback.format_exc())
             self._send_json_response({'error': str(e)}, status=400)
 
         self.request_count += 1
