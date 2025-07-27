@@ -14,7 +14,7 @@ if __name__=='__main__':
         makeFolder, removeFirstDot, sortedDir, urlSafePath, getUserPCName
     )
     from thumbnails.video import generateThumbnails
-    from thumbnails.executable import extract_exe_icon
+    from thumbnails.executable import ExecutableIconExtractor
     from thumbnails.image import JPEGWorker
     from sword import NetworkManager,JPEGWorker,NetworkConfig
     from web_socket import WebSocketConnectionHandler
@@ -24,7 +24,7 @@ else:
         gen_unique_filname, getAppFolder, getFileExtension, getHomePath, getdesktopFolder,
         makeFolder, removeFirstDot, sortedDir, urlSafePath, getUserPCName
     )
-    from workers.thumbnails.video import generateThumbnails
+    from workers.thumbnails.video import VideoThumbnailExtractor #, generateThumbnails
     from workers.thumbnails.image import JPEGWorker
     from workers.thumbnails.executable import ExecutableIconExtractor
     from workers.sword import NetworkManager,NetworkConfig
@@ -187,11 +187,7 @@ class CustomHandler(SimpleHTTPRequestHandler):
                 self._send_json_response({'data': dir_info})
 
                 if self.video_paths:
-                    threading.Thread(
-                        target=generateThumbnails,
-                        args=(self.video_paths, os.path.join(getAppFolder(), 'thumbnails'), 1, 10),
-                        daemon=True
-                    ).start()
+                    VideoThumbnailExtractor(self.video_paths, 1, 10).extract()
 
             elif self.path == "/api/isdir":
                 self._send_json_response({'data': os.path.isdir(self.parseMyPath())})
@@ -242,13 +238,13 @@ class CustomHandler(SimpleHTTPRequestHandler):
     def _send_json_response(self, data, status=200):
         """Sends a JSON response."""
         self.send_response(status)
-        self._set_cors_headers() # <--- For testing from javascript|brower
+        # self._set_cors_headers() # <--- For testing from javascript|brower (Don't package with this line, maybe package because of offline website docs)
         self.send_header('Content-Type', 'application/json')
         self.end_headers()
         try:
             self.wfile.write(json.dumps(data).encode('utf-8'))
         except ConnectionAbortedError as connection_aborted_error:
-            writeErrorLog('Connection was aborted', traceback.format_exc())
+            writeErrorLog(f'Connection was aborted: {connection_aborted_error}', traceback.format_exc())
 
 
     def _get_file_icon(self, name, path, is_dir, format_):
@@ -261,10 +257,8 @@ class CustomHandler(SimpleHTTPRequestHandler):
             return "assets/icons/packed.png", ''
         elif format_ in VIDEO_FORMATS:
             self.video_paths.append(path)
-            thumbnail_path = os.path.join(getAppFolder(),'thumbnails',gen_unique_filname(path)+'.jpg')
-            formatted_path_4_url=urlSafePath(removeFirstDot(thumbnail_path))
-            print(f"http://{SERVER_IP}:{NetworkConfig.port}/{formatted_path_4_url}")
-            return "assets/icons/video.png", f"http://{SERVER_IP}:{NetworkConfig.port}/{formatted_path_4_url}"
+            instance = VideoThumbnailExtractor([path],server_ip=SERVER_IP,server_port=NetworkConfig.port)
+            return "assets/icons/video.png", instance.thumbnail_url
         elif format_ in SUBTITLE_EXTENSIONS:
             return "assets/icons/subtitle.png", ''
         elif format_ in AUDIO_FORMATS:

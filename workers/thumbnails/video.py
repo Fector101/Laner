@@ -1,11 +1,15 @@
-import cv2,os,shutil
+import cv2, os, shutil, threading
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from PIL import Image, ImageDraw
 
 if __name__ == 'thumbmailGen':
+    from testing.sword import NetworkManager,NetworkConfig
+    from base import BaseGen,BaseGenException
     from helper import gen_unique_filname, getAppFolder
 else:
+    from workers.sword import NetworkConfig
+    from workers.thumbnails.base import BaseGen,BaseGenException
     from workers.helper import gen_unique_filname, getAppFolder
 
 def add_black_and_white_boxes(image):
@@ -95,6 +99,75 @@ def generateThumbnails(video_paths, output_dir, time=1.0, max_threads=4):
 
     with ThreadPoolExecutor(max_threads) as executor:
         executor.map(process_video, video_paths)
+
+
+class VideoThumbnailExtractor(BaseGen):
+    def __init__(self, video_paths,time=1.0,max_threads=4, server_ip = NetworkConfig.server_ip, server_port = NetworkConfig.port):
+        super().__init__(server_ip, server_port)
+        self.thumbnail_folder = 'thumbnails'
+        self.video_paths = video_paths
+        self.time = time
+        self.max_threads = max_threads
+        self._item_path = video_paths[0] if video_paths else ''  # Set item_path to the first video path
+
+    @property
+    def item_path(self):
+        """Path to the video file."""
+        return self._item_path
+    
+    def extract(self):
+        if self.video_paths:
+            threading.Thread(
+                target=self.__assignThreads,
+                daemon=True
+            ).start()
+
+    def __assignThreads(self):
+        """
+        Generate thumbnails from multiple videos in parallel.
+        """
+        
+        with ThreadPoolExecutor(self.max_threads) as executor:
+            executor.map(self.__generate_thumbnail, self.video_paths)
+
+    def __generate_thumbnail(self, video_path:str):
+        """
+        Generate a thumbnail from a single video.
+
+        :param video_path: Path to the input video.
+        :param time: Time (in seconds) to capture the thumbnail frame.
+        """
+        # important to set before usage of `self.thumbnail_path`
+        #  `self.item_path` helps `self.thumbnail_path` in parent class
+        self._item_path = video_path 
+
+        cap = cv2.VideoCapture(video_path)
+        fps = cap.get(cv2.CAP_PROP_FPS)
+        frame_number = int(self.time * fps)
+        cap.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
+
+        success, frame = cap.read()
+        if success:
+            Path(self.thumbnail_path).parent.mkdir(parents=True, exist_ok=True)
+            
+            # Convert the frame to RGB (required for Pillow)
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            image = Image.fromarray(frame_rgb)
+
+            # Add overlay decorations
+            image_with_overlay = add_black_and_white_boxes(image)
+
+            # Save the thumbnail with decorations
+            image_with_overlay.save(self.thumbnail_path, "JPEG", quality=10)
+            # cv2.imwrite(output_path, frame, [cv2.IMWRITE_JPEG_QUALITY,10])
+            # print(f"Thumbnail saved at {output_path}")
+        else:
+            source_file = os.path.join(getAppFolder(),'assets','imgs','video.png')
+            print(f"Failed to capture frame for {video_path} ---- Using backup Thumbnail {source_file}")
+            shutil.copy(source_file, self.thumbnail_path)
+
+        cap.release()
+
 
 # Example usage
 # if __name__ == "__main__":

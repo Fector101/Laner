@@ -240,6 +240,7 @@ def getUserPCName():
     return pc_name or fallbackPCName()
   
 def urlSafePath(path:str):
+  # TODO combine urlSafePath and removeFirstDot
   path_without_drive=os.path.splitdrive(path)[1]
   # Normalizing Windows Path Forward Slashes for Url '\\' ---> '/'
   normalized_path= path_without_drive.replace('\\','/')

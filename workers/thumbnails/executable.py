@@ -45,6 +45,11 @@ class ExecutableIconExtractor(BaseGen):
     def item_path(self):
         """Path to the executable file."""
         return self._item_path
+    @property
+    def img_format(self):
+        """Returns the image format."""
+        # Overriding super class property
+        return 'png'
     
     def __extract(self):
         """Extracts the icon from the executable and saves it as a PNG."""

@@ -13,7 +13,7 @@ else:
     from workers.thumbnails.base import BaseGen,BaseGenException
     from workers.sword import NetworkConfig
 
-
+# thumbnail_path for BaseGenException is been implemented by BaseGen
 class JPEGWorker(BaseGen,BaseGenException):
     """Worker class to convert images to JPEG format."""
     

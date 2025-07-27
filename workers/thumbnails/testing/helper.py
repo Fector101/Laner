@@ -110,3 +110,12 @@ def urlSafePath(path:str):
   # For URL encoding
   url_safe_path=urllib.parse.quote(normalized_path)
   return url_safe_path
+
+
+
+def removeFirstDot(path:str):
+  if path[0] == '.':
+    return path[1:]
+  else:
+    return path
+  

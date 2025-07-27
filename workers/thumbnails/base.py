@@ -4,14 +4,15 @@ from PIL import Image
 
 
 if __name__=='base' or __name__=='__main__':
-    from testing.helper import gen_unique_filname, getAppFolder, urlSafePath
+    from testing.helper import gen_unique_filname, getAppFolder, urlSafePath,removeFirstDot
     from os.path import join as _joinPath
     from testing.sword import NetworkConfig
 else:
-    from workers.helper import gen_unique_filname, _joinPath, getAppFolder, urlSafePath
+    from workers.helper import gen_unique_filname, _joinPath, getAppFolder, urlSafePath, removeFirstDot
     from workers.sword import NetworkConfig
 
 class BaseGenException(ABC):
+    """Handles Creating Failed Img"""
     @property
     @abstractmethod
     def thumbnail_path(self):
@@ -35,9 +36,14 @@ class BaseGenException(ABC):
             print(f'-------Error from BaseGenException--------')
 
 class BaseGen(ABC):
-    """Base class for thumbnail generation."""
+    """Base class for thumbnail generation.
+
+    Handles creating `thumbnail_url`, `thumbnail_path` and `preview_folder` and returing path
+    """
+    thumbnail_folder = 'preview-imgs'
     def __init__(self, server_ip: str=NetworkConfig.server_ip, server_port: int=NetworkConfig.port):
         """Initializes the BaseGen class."""
+        # No path or specfic argument class recives should be formatted in the init block, Beacuse in VideoGen i change dymically
         self.server_ip = server_ip
         self.server_port = server_port
         self.create_preview_folder()
@@ -53,15 +59,18 @@ class BaseGen(ABC):
     def img_format(self):
         """Returns the image format."""
         # Default image format is PNG, but can be overridden by subclasses.
-        return 'png'
+        return 'jpg'
+    
     @property
     def preview_folder(self):
-        """Returns the path to the preview folder."""
+        """Creates preview folder
+
+        Returns: path to the preview folder."""
         return self.create_preview_folder()
     
     def create_preview_folder(self):
         """Creates a folder for preview images if it doesn't exist."""
-        preview_folder__ = os.path.join(getAppFolder(), 'preview-imgs')
+        preview_folder__ = _joinPath(getAppFolder(), self.thumbnail_folder)
         if not os.path.exists(preview_folder__):
             print('Creating preview folder from thumbnail.base.BaseGen: ', preview_folder__)
             os.makedirs(preview_folder__, exist_ok=True)
@@ -70,13 +79,17 @@ class BaseGen(ABC):
     @property
     def thumbnail_url(self):
         """Returns the URL for the thumbnail image."""
-        return f"http://{self.server_ip}:{self.server_port}/{urlSafePath(self.thumbnail_path)}"
+        return f"http://{self.server_ip}:{self.server_port}/{urlSafePath(removeFirstDot(self.thumbnail_path))}"
     
     @property
     def thumbnail_path(self):
         """Joins preview folder with unique file name for path
         Returns the path to the thumbnail image.
         """
+        if not self.item_path:
+            print(f'No actual value for `self.item_path` in BaseGen, probarly an empty string: {self.item_path}')
+            raise ValueError('No actual value for `self.item_path` in BaseGen')
+
         new_file_name = gen_unique_filname(self.item_path) + '.' + self.img_format
         new_img_path = _joinPath(self.preview_folder, new_file_name)
         return new_img_path
