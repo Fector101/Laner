@@ -3,3 +3,10 @@ add popup for confirming new user
 [about to]Use Plyer to query open pictures in other apps
 [done]Create Two branchs First for (Linux|Macos|Windows) second for Android
 Make Code Cleaner
+
+
+------------------------
+In Mobile
+1. When user deletes folder on PC and is still in folder they cant go back,
+ instead of listening and remove user from folder just make it possible to go back
+ [Important this breaks app, it stops all movement out of folder in said screen]
