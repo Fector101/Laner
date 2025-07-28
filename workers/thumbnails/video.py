@@ -102,13 +102,16 @@ def generateThumbnails(video_paths, output_dir, time=1.0, max_threads=4):
 
 
 class VideoThumbnailExtractor(BaseGen):
-    def __init__(self, video_paths,time=1.0,max_threads=4, server_ip = NetworkConfig.server_ip, server_port = NetworkConfig.port):
+    def __init__(self, video_paths:str|list[str],time=1.0,max_threads=4, server_ip = NetworkConfig.server_ip, server_port = NetworkConfig.port):
+        """
+        video_paths can be list of video paths or a video path to get thumbnail_url
+        """
         super().__init__(server_ip, server_port)
         self.thumbnail_folder = 'thumbnails'
         self.video_paths = video_paths
         self.time = time
         self.max_threads = max_threads
-        self._item_path = video_paths[0] if video_paths else ''  # Set item_path to the first video path
+        self._item_path = video_paths if isinstance(video_paths,str) else ''  # Set item_path to path if only trying to gen thumbnail_url
 
     @property
     def item_path(self):

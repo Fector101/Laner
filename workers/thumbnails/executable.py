@@ -1,7 +1,7 @@
 """
-# This script extracts the icon from an executable file (EXE) and saves it as a PNG image.
-# It uses the icoextract library to handle the extraction.
-# icoextract dependencies: pefile
+This script extracts the icon from an executable file (EXE) and saves it as a PNG image.  
+It uses the icoextract library to handle the extraction.  
+icoextract dependencies: pefile
 """
 import traceback,threading
 from PIL import Image
