@@ -13,6 +13,7 @@ bin
 laner-linux
 for-download/
 *errors.txt
+/.docs-covers
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

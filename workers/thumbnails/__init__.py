@@ -7,11 +7,15 @@ else:
     from workers.helper import getAppFolder, urlSafePath, _joinPath, getFileExtension
     from workers.sword import NetworkConfig
 
+from .base import use_pc_for_static
 from .video import VideoThumbnailExtractor #, generateThumbnails
 from .image import JPEGWorker
 from .executable import ExecutableIconExtractor
-        
+from .document import DocumentIconExtractor
+
+
 # File Type Definitions
+# WARNING If tuple contains only one item ` '' in tuple ` will return `True`
 MY_OWNED_ICONS = ['.py', '.js', '.css', '.html', '.json', '.deb', '.md', '.sql', '.java']
 ZIP_FORMATS = ['.zip', '.7z', '.tar', '.bzip2', '.gzip', '.xz', '.lz4', '.zstd', '.bz2', '.gz']
 VIDEO_FORMATS = ('.mkv', '.mp4', '.avi', '.mov')
@@ -35,6 +39,9 @@ SUBTITLE_EXTENSIONS = (
     ".jss", ".ssa", ".ass", ".usf", ".aqt", ".pjs", ".bas"
 )
 EXECUTABLE_FORMATS = ('.exe','.dll','.mun')#, '.msi', '.bat', '.cmd', '.sh', '.run')
+DOCUMENT_EXTENSIONS = (".pdf",'.docx')#,".doc",".docx",".ppt",".pptx",".xls",".xlsx",".odt",".ods",".odp",".rtf",".csv",".tsv")
+
+
 
 # icon can be a placeholder while thumbnail is been genrated or owned icons
 def get_icon_for_file(path,video_paths:list=[]) -> tuple[str, str]:
@@ -53,7 +60,7 @@ def get_icon_for_file(path,video_paths:list=[]) -> tuple[str, str]:
         return ("assets/icons/packed.png", '')
     elif ext in VIDEO_FORMATS:
         video_paths.append(path)
-        instance = VideoThumbnailExtractor([path],server_ip=NetworkConfig.server_ip,server_port=NetworkConfig.port)
+        instance = VideoThumbnailExtractor(path,server_ip=NetworkConfig.server_ip,server_port=NetworkConfig.port)
         return ("assets/icons/video.png", instance.thumbnail_url)
     elif ext in SUBTITLE_EXTENSIONS:
         return ("assets/icons/subtitle.png", '')
@@ -64,7 +71,10 @@ def get_icon_for_file(path,video_paths:list=[]) -> tuple[str, str]:
         return ("assets/icons/image.png", instance.thumbnail_url)
     elif ext in EXECUTABLE_FORMATS:
         instance = ExecutableIconExtractor(path, NetworkConfig.server_ip, NetworkConfig.port)
-        pl_url = (f"http://{NetworkConfig.server_ip}:{NetworkConfig.port}/{urlSafePath(_joinPath(getAppFolder(),"assets","imgs","executable.png"))}")
-        return (pl_url, instance.thumbnail_url)
-        
+        return (use_pc_for_static("executable.png"), instance.thumbnail_url)
+    elif ext in DOCUMENT_EXTENSIONS:
+        instance = DocumentIconExtractor(doc_path=path, server_ip=NetworkConfig.server_ip, server_port=NetworkConfig.port)
+        instance.documents_collection = path
+        return (instance.pc_static_img, instance.thumbnail_url)
     return ("assets/icons/file.png", '')
+

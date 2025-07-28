@@ -181,6 +181,7 @@ def gen_unique_filname(file_path:str):
   return unique_name
 
 def removeFirstDot(path:str):
+  """Removes first dot safely"""
   if path[0] == '.':
     return path[1:]
   else:

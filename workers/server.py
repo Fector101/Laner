@@ -15,6 +15,7 @@ if __name__=='__main__':
     )
     from thumbnails import get_icon_for_file
     from thumbnails.video import VideoThumbnailExtractor #,generateThumbnails
+    from thumbnails.document import DocumentIconExtractor
     from sword import NetworkManager, NetworkConfig
     from web_socket import WebSocketConnectionHandler
 
@@ -23,7 +24,7 @@ else:
          getAppFolder, getHomePath, getdesktopFolder,
         makeFolder, sortedDir, getUserPCName
     )
-    from workers.thumbnails import get_icon_for_file,VideoThumbnailExtractor
+    from workers.thumbnails import get_icon_for_file,VideoThumbnailExtractor,DocumentIconExtractor
     from workers.sword import NetworkManager, NetworkConfig
     from workers.web_socket import WebSocketConnectionHandler
 
@@ -92,7 +93,7 @@ class CustomHandler(SimpleHTTPRequestHandler):
                             .decode()
                             .strip()
                         )
-                        print("Folder to save upload ----- ", folder_path)
+                        print("Folder to save upload -----> ", folder_path,'<-----')
                         os.makedirs(folder_path, exist_ok=True)
                     
                     if b'filename=' in part:
@@ -103,7 +104,7 @@ class CustomHandler(SimpleHTTPRequestHandler):
                             .split(b'"')[0]
                             .decode()
                         )
-                        print("Uploaded File name: ----- ", filename)
+                        print("Uploaded File name: -----> ", filename,'<-----')
                         
                         save_path = os.path.join(folder_path, filename)
                         
@@ -154,9 +155,11 @@ class CustomHandler(SimpleHTTPRequestHandler):
                 dir_info = sortedDir(dir_info)
                 # print('dta ',dir_info)
                 self._send_json_response({'data': dir_info})
-
+                print('responding back....')
                 if self.video_paths:
                     VideoThumbnailExtractor(self.video_paths, 1, 10).extract()
+                if DocumentIconExtractor.documents_collection:
+                    DocumentIconExtractor().extract()
 
             elif self.path == "/api/isdir":
                 self._send_json_response({'data': os.path.isdir(self.parseMyPath())})

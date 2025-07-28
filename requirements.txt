@@ -7,3 +7,5 @@ websockets
 cairosvg
 icoextract
 pefile
+pymupdf
+python-docx

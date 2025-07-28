@@ -10,8 +10,14 @@ else:
     from workers.helper import gen_unique_filname, _joinPath, getAppFolder, urlSafePath, removeFirstDot
     from workers.sword import NetworkConfig
 
+def use_pc_for_static(img_file_name):
+    return f"http://{NetworkConfig.server_ip}:{NetworkConfig.port}/{urlSafePath(_joinPath(getAppFolder(),"assets","imgs",img_file_name))}"
+
 class BaseGenException(ABC):
-    """Handles Creating Failed Img"""
+    """Handles Creating Failed Img  
+    Needs `thumbnail_path`
+    Handles creating Fail safe img 
+    """
     @property
     @abstractmethod
     def thumbnail_path(self):
@@ -24,20 +30,31 @@ class BaseGenException(ABC):
         # The Placeholder image is used when the original image cannot be processed.
         # And is gotten from the assets folder.
         # if not self.main_to_display_path:
-        try:
-            img = Image.open(_joinPath(getAppFolder(),'assets','imgs','image.png'))
-            if img.mode != 'RGBA':
-                img = img.convert("RGBA")
-            img.save(self.thumbnail_path, quality=60)
-            
-        except Exception as e:
-            print('Error getting fall back:',e)
-            print(f'-------Error from BaseGenException--------')
+        getfailSafeImg(self.thumbnail_path,'BaseGenException')
+
+
+def getfailSafeImg(thumbnail_path,_abs_class,default_img_name='image.png'):
+    """Returns a fail-safe image Path."""
+    # The Placeholder image is used when the original image cannot be processed.
+    # And is gotten from the assets folder.
+    # if not self.main_to_display_path:
+    try:
+        if os.path.exists(thumbnail_path):
+            return
+        img = Image.open(_joinPath(getAppFolder(),'assets','imgs',default_img_name))
+        if img.mode != 'RGBA':
+            img = img.convert("RGBA")
+        img.save(thumbnail_path, quality=60)
+        
+    except Exception as e:
+        print('Error getting fall back:',e)
+        print(f'-------Error from {_abs_class}--------')
 
 class BaseGen(ABC):
-    """Base class for thumbnail generation.
-
-    Handles creating `thumbnail_url`, `thumbnail_path` and `preview_folder` and returing path
+    """Base class for thumbnail generation.  
+    Needs `item_path`  
+    Handles creating `thumbnail_url`, `thumbnail_path`  
+    also `preview_folder` if need be and returing path
     """
     thumbnail_folder = 'preview-imgs'
     def __init__(self, server_ip: str=NetworkConfig.server_ip, server_port: int=NetworkConfig.port):
@@ -85,10 +102,42 @@ class BaseGen(ABC):
         """Joins preview folder with unique file name for path
         Returns the path to the thumbnail image.
         """
-        if not self.item_path:
-            print(f'No actual value for `self.item_path` in BaseGen, probarly an empty string: {self.item_path}')
-            raise ValueError('No actual value for `self.item_path` in BaseGen')
+        return thumbnail_path_logic(self.item_path,self.img_format,self.preview_folder,_abs_class='BaseGen')#new_img_path
 
-        new_file_name = gen_unique_filname(self.item_path) + '.' + self.img_format
-        new_img_path = _joinPath(self.preview_folder, new_file_name)
-        return new_img_path
+def thumbnail_path_logic(file_full_path,img_format,preview_folder,_abs_class):
+    if not file_full_path:
+        print(f'No actual value for `self.item_path` in {_abs_class}, probarly an empty string: {file_full_path}')
+        raise ValueError('No actual value for `self.item_path` in BaseGen')
+
+    new_file_name = gen_unique_filname(file_full_path) + '.' + img_format
+    return _joinPath(preview_folder, new_file_name)
+
+class DocExtractorABS(ABC):
+    """ Requires `extract`, `default_img_name` and `thumbnail_path`
+    Adds Order to Document Extactors and also 
+    
+    """
+    @abstractmethod
+    def extract(self,item_path,thumbnail_path):
+        """Does extraction."""
+        # Children classes must implement this property.
+        pass
+
+    @property
+    @abstractmethod
+    def default_img_name(self):
+        return 'image.png'
+    
+    @property
+    def thumbnail_path(self):
+        """Path to the thumbnail being processed."""
+        pass
+
+    def getfailSafeImg(self):
+        """Returns a fail-safe image Path."""
+        # The Placeholder image is used when the original image cannot be processed.
+        # And is gotten from the assets folder.
+        # if not self.main_to_display_path:
+        getfailSafeImg(self.thumbnail_path,'DocExtractorABS',self.default_img_name)
+
+
