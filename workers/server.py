@@ -10,7 +10,7 @@ from socketserver import ThreadingMixIn
 if __name__=='__main__':
     # For Tests
     from helper import (
-    getAppFolder, getFileExtension, getHomePath, getdesktopFolder,
+    getAppFolder, getHomePath, getdesktopFolder,
         makeFolder, sortedDir, getUserPCName
     )
     from thumbnails import get_icon_for_file
@@ -20,7 +20,7 @@ if __name__=='__main__':
 
 else:
     from workers.helper import (
-         getAppFolder, getFileExtension, getHomePath, getdesktopFolder,
+         getAppFolder, getHomePath, getdesktopFolder,
         makeFolder, sortedDir, getUserPCName
     )
     from workers.thumbnails import get_icon_for_file,VideoThumbnailExtractor

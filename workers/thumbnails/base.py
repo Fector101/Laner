@@ -4,8 +4,7 @@ from PIL import Image
 
 
 if __name__=='base' or __name__=='__main__':
-    from testing.helper import gen_unique_filname, getAppFolder, urlSafePath,removeFirstDot
-    from os.path import join as _joinPath
+    from testing.helper import gen_unique_filname, getAppFolder, urlSafePath,removeFirstDot,_joinPath
     from testing.sword import NetworkConfig
 else:
     from workers.helper import gen_unique_filname, _joinPath, getAppFolder, urlSafePath, removeFirstDot

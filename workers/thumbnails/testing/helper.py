@@ -1,5 +1,6 @@
 import urllib.parse
 import hashlib,os,sys,platform,socket
+from os.path import join as _joinPath
 
 def gen_unique_filname(file_path:str):
   hash_obj=hashlib.sha256(file_path.encode('utf-8'))
@@ -119,3 +120,6 @@ def removeFirstDot(path:str):
   else:
     return path
   
+
+def getFileExtension(file_path:str):
+  return os.path.splitext(os.path.basename(file_path))[1]

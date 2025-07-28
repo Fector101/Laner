@@ -1,18 +1,15 @@
 import os
 if __name__=='__main__':
     # For Tests
-    from helper import getAppFolder, urlSafePath,_joinPath,getFileExtension
-    from thumbnails.video import VideoThumbnailExtractor
-    from thumbnails.executable import ExecutableIconExtractor
-    from thumbnails.image import JPEGWorker
-    from sword import NetworkConfig
-
+    from testing.sword import NetworkConfig
+    from testing.helper import getAppFolder, urlSafePath,_joinPath, getFileExtension
 else:
-    from workers.helper import getAppFolder, urlSafePath, _joinPath,getFileExtension
-    from .video import VideoThumbnailExtractor #, generateThumbnails
-    from .image import JPEGWorker
-    from .executable import ExecutableIconExtractor
+    from workers.helper import getAppFolder, urlSafePath, _joinPath, getFileExtension
     from workers.sword import NetworkConfig
+
+from .video import VideoThumbnailExtractor #, generateThumbnails
+from .image import JPEGWorker
+from .executable import ExecutableIconExtractor
         
 # File Type Definitions
 MY_OWNED_ICONS = ['.py', '.js', '.css', '.html', '.json', '.deb', '.md', '.sql', '.java']
@@ -39,7 +36,7 @@ SUBTITLE_EXTENSIONS = (
 )
 EXECUTABLE_FORMATS = ('.exe','.dll','.mun')#, '.msi', '.bat', '.cmd', '.sh', '.run')
 
-
+# icon can be a placeholder while thumbnail is been genrated or owned icons
 def get_icon_for_file(path,video_paths:list=[]) -> tuple[str, str]:
     """Returns appropriate icon and thumbnail based on file type.
     And adds more paths to video_paths if need be
