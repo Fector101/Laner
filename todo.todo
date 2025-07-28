@@ -10,3 +10,20 @@ In Mobile
 1. When user deletes folder on PC and is still in folder they cant go back,
  instead of listening and remove user from folder just make it possible to go back
  [Important this breaks app, it stops all movement out of folder in said screen]
+
+2. When uploading file from Laner editor folder_path to save it not sent
+Error:
+```py
+Doing Post
+Folder to save upload ----->
+File Upload Error: [WinError 3] The system cannot find the path specified: ''
+====== File Upload Error LOG ====
+Traceback (most recent call last):
+  File "C:\Users\hp\Desktop\Linux\my_code\Laner\workers\server.py", line 96, in do_POST
+    os.makedirs(folder_path, exist_ok=True)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen os>", line 227, in makedirs
+FileNotFoundError: [WinError 3] The system cannot find the path specified: ''
+```
+
+3. Add toggle button for using service or in-app downloads/uploads
