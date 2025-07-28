@@ -10,50 +10,22 @@ from socketserver import ThreadingMixIn
 if __name__=='__main__':
     # For Tests
     from helper import (
-    gen_unique_filname, getAppFolder, getFileExtension, getHomePath, getdesktopFolder,
-        makeFolder, removeFirstDot, sortedDir, urlSafePath, getUserPCName
+    getAppFolder, getFileExtension, getHomePath, getdesktopFolder,
+        makeFolder, sortedDir, getUserPCName
     )
-    from thumbnails.video import generateThumbnails
-    from thumbnails.executable import ExecutableIconExtractor
-    from thumbnails.image import JPEGWorker
-    from sword import NetworkManager,JPEGWorker,NetworkConfig
+    from thumbnails import get_icon_for_file
+    from thumbnails.video import VideoThumbnailExtractor #,generateThumbnails
+    from sword import NetworkManager, NetworkConfig
     from web_socket import WebSocketConnectionHandler
 
 else:
     from workers.helper import (
-        gen_unique_filname, getAppFolder, getFileExtension, getHomePath, getdesktopFolder,
-        makeFolder, removeFirstDot, sortedDir, urlSafePath, getUserPCName
+         getAppFolder, getFileExtension, getHomePath, getdesktopFolder,
+        makeFolder, sortedDir, getUserPCName
     )
-    from workers.thumbnails.video import VideoThumbnailExtractor #, generateThumbnails
-    from workers.thumbnails.image import JPEGWorker
-    from workers.thumbnails.executable import ExecutableIconExtractor
-    from workers.sword import NetworkManager,NetworkConfig
+    from workers.thumbnails import get_icon_for_file,VideoThumbnailExtractor
+    from workers.sword import NetworkManager, NetworkConfig
     from workers.web_socket import WebSocketConnectionHandler
-    
-# File Type Definitions
-MY_OWNED_ICONS = ['.py', '.js', '.css', '.html', '.json', '.deb', '.md', '.sql', '.java']
-ZIP_FORMATS = ['.zip', '.7z', '.tar', '.bzip2', '.gzip', '.xz', '.lz4', '.zstd', '.bz2', '.gz']
-VIDEO_FORMATS = ('.mkv', '.mp4', '.avi', '.mov')
-AUDIO_FORMATS = ('.mp3', '.wav', '.aac', '.ogg', '.m4a', '.flac', '.wma', '.aiff', '.opus')
-PICTURE_FORMATS = ('.png', '.jpg', '.jpeg', '.tif', '.bmp', '.gif','.svg','.ico')
-SPECIAL_FOLDERS = ['home', 'pictures', 'templates', 'videos', 'documents', 'music', 'favorites', 'share', 'downloads']
-SUBTITLE_EXTENSIONS = (
-    # Plain Text Subtitle Formats
-    ".srt", ".sub", ".sbv", ".smi", ".rt", ".ttml", ".xml", ".vtt", ".lrc", ".stl",
-
-    # Image-Based Subtitle Formats
-    ".sub", ".idx", ".sup", ".pgs",
-
-    # Proprietary / Professional Formats
-    ".stl", ".cap", ".890", ".pac", ".dci", ".xml", ".fab",
-
-    # Subtitles for Closed Captions
-    ".scc", ".mcc", ".dfxp", ".imsc",
-
-    # Other Subtitle Formats
-    ".jss", ".ssa", ".ass", ".usf", ".aqt", ".pjs", ".bas"
-)
-EXECUTABLE_FORMATS = ('.exe','.dll','.mun')#, '.msi', '.bat', '.cmd', '.sh', '.run')
 
 SERVER_IP = None
 
@@ -168,14 +140,11 @@ class CustomHandler(SimpleHTTPRequestHandler):
 
                 for each in os.listdir(request_path):
                     each_path = os.path.join(request_path, each)
-                    is_dir = os.path.isdir(each_path)
-                    format_ = getFileExtension(each).lower()
-                    img_source, thumbnail_url = self._get_file_icon(each, each_path, is_dir, format_)
-
+                    img_source, thumbnail_url = get_icon_for_file(each_path,video_paths=self.video_paths)
                     cur_obj = {
                         'text': each,
                         'path': each_path,
-                        'is_dir': is_dir,
+                        'is_dir': os.path.isdir(each_path),
                         'icon': img_source,
                         'thumbnail_url': thumbnail_url,
                         'validated_path': False
@@ -250,32 +219,6 @@ class CustomHandler(SimpleHTTPRequestHandler):
             writeErrorLog(f'Connection was aborted: {connection_aborted_error}', traceback.format_exc())
 
 
-    def _get_file_icon(self, name, path, is_dir, format_):
-        """Returns appropriate icon and thumbnail based on file type."""
-        if is_dir:
-            return f"assets/icons/folders/{name.lower()}.png" if name.lower() in SPECIAL_FOLDERS else "assets/icons/folders/folder.png", ''
-        elif format_ in MY_OWNED_ICONS:
-            return f"assets/icons/{format_[1:]}.png", ''
-        elif format_ in ZIP_FORMATS:
-            return "assets/icons/packed.png", ''
-        elif format_ in VIDEO_FORMATS:
-            self.video_paths.append(path)
-            instance = VideoThumbnailExtractor([path],server_ip=SERVER_IP,server_port=NetworkConfig.port)
-            return "assets/icons/video.png", instance.thumbnail_url
-        elif format_ in SUBTITLE_EXTENSIONS:
-            return "assets/icons/subtitle.png", ''
-        elif format_ in AUDIO_FORMATS:
-            return "assets/icons/audio.png", ''
-        elif format_ in PICTURE_FORMATS:
-            instance = JPEGWorker(path,SERVER_IP)
-            return "assets/icons/image.png", instance.thumbnail_url
-        elif format_ in EXECUTABLE_FORMATS:
-            instance = ExecutableIconExtractor(path, SERVER_IP, NetworkConfig.port)
-            pl_url = (f"http://{SERVER_IP}:{NetworkConfig.port}/{urlSafePath(_joinPath(getAppFolder(),"assets","imgs","executable.png"))}")
-            return pl_url, instance.thumbnail_url
-            
-        return "assets/icons/file.png", ''
-
 # Server Class
 class FileSharingServer:
     def __init__(self, ip, connection_signal=None, port=8000, directory="/"):
@@ -318,7 +261,8 @@ class FileSharingServer:
 
     def start(self):
         global SERVER_IP
-        SERVER_IP = self.ip or SERVER_IP
+        NetworkConfig.server_ip = SERVER_IP = self.ip or SERVER_IP
+
         # print(SERVER_IP,self.ip)
         os.chdir(self.directory)
 
