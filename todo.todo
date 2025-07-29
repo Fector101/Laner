@@ -27,3 +27,14 @@ FileNotFoundError: [WinError 3] The system cannot find the path specified: ''
 ```
 
 3. Add toggle button for using service or in-app downloads/uploads
+
+
+Add and use ctrl+c to end app in dev
+design icon like pdf.png with python
+
+if __name__ == "__main__":
+    print("Running as a script")
+elif __package__ == "" or __package__ is None:
+    print("Running as a standalone file (not in a package)")
+else:
+    print(f"Running as part of package: {__package__}")
