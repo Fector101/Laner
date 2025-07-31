@@ -5,6 +5,7 @@ import websockets,asyncio
 from os.path import join as _joinPath
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn
+from urllib.parse import urlparse, parse_qs
 
 # Worker imports
 if __name__=='__main__':
@@ -14,17 +15,16 @@ if __name__=='__main__':
         makeFolder, sortedDir, getUserPCName
     )
     from thumbnails import get_icon_for_file
-    from thumbnails.video import VideoThumbnailExtractor #,generateThumbnails
-    from thumbnails.document import DocumentIconExtractor
+    from thumbnails.video import VideoThumbnailExtractor
     from sword import NetworkManager, NetworkConfig
     from web_socket import WebSocketConnectionHandler
-
+    import config
 else:
     from workers.helper import (
          getAppFolder, getHomePath, getdesktopFolder,
         makeFolder, sortedDir, getUserPCName
     )
-    from workers.thumbnails import get_icon_for_file,VideoThumbnailExtractor,DocumentIconExtractor
+    from workers.thumbnails import get_icon_for_file,VideoThumbnailExtractor
     from workers.sword import NetworkManager, NetworkConfig
     from workers.web_socket import WebSocketConnectionHandler
 
@@ -58,6 +58,11 @@ class CustomHandler(SimpleHTTPRequestHandler):
     video_paths = []
     request_count = 0
     
+    def _get_path_from_url(self):
+        query = urlparse(self.path).query
+        params = parse_qs(query)
+        path_list = params.get("path")
+        return path_list[0] if path_list else None
 
     def do_POST(self):
         """Handle POST requests for file uploads."""
@@ -133,33 +138,54 @@ class CustomHandler(SimpleHTTPRequestHandler):
                 request_path = self._get_request_body('path')
                 if request_path == 'Home':
                     request_path = getHomePath()
-                elif request_path == None: # Checking for None incase i send '' as path in future and not './'
-                    self._send_json_response({'error': "Server didn't recieve any data, i.e no requested_path"}, status=400)
+                elif request_path is None: # Checking for None incase i send '' as path in future and not './'
+                    self._send_json_response({'error': "Server didn't receive any data, i.e no requested_path"}, status=400)
                     return
                 dir_info = []
                 self.video_paths = []
 
-                for each in os.listdir(request_path):
-                    each_path = os.path.join(request_path, each)
-                    img_source, thumbnail_url = get_icon_for_file(each_path,video_paths=self.video_paths)
-                    cur_obj = {
-                        'text': each,
-                        'path': each_path,
-                        'is_dir': os.path.isdir(each_path),
-                        'icon': img_source,
-                        'thumbnail_url': thumbnail_url,
-                        'validated_path': False
-                    }
-                    dir_info.append(cur_obj)
+                # for each in os.listdir(request_path):
+                #     each_path = os.path.join(request_path, each)
+                #     is_dir=os.path.isdir(each_path)
+                #     img_source, thumbnail_url = get_icon_for_file(each_path,name=each,video_paths=self.video_paths,is_dir=is_dir)
+                #     cur_obj = {
+                #         'text': each,
+                #         'path': each_path,
+                #         'is_dir': is_dir,
+                #         'icon': img_source,
+                #         'thumbnail_url': thumbnail_url,
+                #         'validated_path': False
+                #     }
+                #     dir_info.append(cur_obj)
 
-                dir_info = sortedDir(dir_info)
+                    # Using scandir() instead of listdir() + isdir()
+                with os.scandir(request_path) as entries:
+                    for entry in entries:
+                        try:
+                            is_dir=entry.is_dir()
+                            name=entry.name
+                            img_source, thumbnail_url = get_icon_for_file(entry.path,name=name,video_paths=self.video_paths,is_dir=is_dir)
+
+                            cur_obj = {
+                                'text': name,
+                                'path': entry.path,
+                                'is_dir': is_dir,  # Much faster than os.path.isdir() which slowed doen server
+                                'validated_path': False,  # I Can't remember why i added this deepseek changed it to True Since we're reading directly from filesystem
+                                'icon': img_source,
+                                'thumbnail_url': thumbnail_url,
+                            }
+                            dir_info.append(cur_obj)
+
+                        except OSError as e:
+                            print(f"Error processing {entry.path}: {e}")
+                            continue
+
+                # dir_info = sortedDir(dir_info)
                 # print('dta ',dir_info)
                 self._send_json_response({'data': dir_info})
                 print('responding back....')
                 if self.video_paths:
                     VideoThumbnailExtractor(self.video_paths, 1, 10).extract()
-                if DocumentIconExtractor.documents_collection:
-                    DocumentIconExtractor().extract()
 
             elif self.path == "/api/isdir":
                 self._send_json_response({'data': os.path.isdir(self.parseMyPath())})
@@ -171,7 +197,7 @@ class CustomHandler(SimpleHTTPRequestHandler):
                     drive=os.path.splitdrive(file_abspath)[0]
                     real_file_path= _joinPath(drive,request_path)
                     is_file=os.path.isfile(real_file_path)
-                    print("Windows test 101: ",real_file_path)
+                    print("Check of existence: ",real_file_path)
                     
                 self._send_json_response({'data': is_file})
                 
@@ -198,11 +224,12 @@ class CustomHandler(SimpleHTTPRequestHandler):
     def _get_request_body(self, key):
         """Parses JSON from the request body."""
         extracted_length = self.headers['Content-Length']
-        if extracted_length == None: # explicty checking None incase maybe it can be 0,test more and remove line
+        if extracted_length is None: # explicty checking None incase maybe it can be 0,test more and remove line
             return extracted_length
         content_length = int(extracted_length)
         request_data = self.rfile.read(content_length)
-        print('Why',json.loads(request_data).get(key))
+        # print('request_data',request_data)
+        # print('Why',json.loads(request_data).get(key))
         return json.loads(request_data).get(key)
 
     def _set_cors_headers(self):
@@ -290,7 +317,6 @@ class FileSharingServer:
                 self._server = ThreadingHTTPServer((self.ip, port), CustomHandler)
                 self.port=port
                 threading.Thread(target=self._server.serve_forever, daemon=True).start()
-                print(f"Server started at http://{SERVER_IP}:{self.port}")
                 break  # Exit the loop if the server starts successfully
             except OSError as e:
                 print(f"Port {port} is unavailable, trying the next one...")
@@ -300,10 +326,13 @@ class FileSharingServer:
                 print(f"Error: {e}")
                 writeErrorLog(f'{e} -- Port :{port}',traceback.format_exc())
         # Start WebSocket server in event loop
-        self.ws_thread = threading.Thread(target=self.run_websocket_server)
-        self.ws_thread.daemon = True
-        self.ws_thread.start()
-        print('Ended trying',port)
+        if __name__ != '__main__':
+            self.ws_thread = threading.Thread(target=self.run_websocket_server)
+            self.ws_thread.daemon = True
+            self.ws_thread.start()
+        else:
+            print("Running server.file without GUI, Didn't start the websocket server, To Maybe save Battery")
+        print(f"Server started at http://{SERVER_IP}:{self.port}")
 
     def stop(self):
         # Stop HTTP server
@@ -330,7 +359,7 @@ class FileSharingServer:
         self.loop.run_until_complete(self.start_websocket_server())
         self.loop.run_forever()
 
-print(__name__,'==','__main__')
+# print(__name__,'==','__main__')
 if __name__ == "__main__":
     # Specify the port and directory
     port = 8000
