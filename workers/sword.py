@@ -12,7 +12,7 @@ import time
 try:
     import netifaces
 except:
-    print('Running without netifaces...')
+    print('Running Program without netifaces install...')
 
 if __name__=='sword' or __name__=='__main__':
     from helper import getUserPCName
@@ -25,7 +25,7 @@ else:
 class NetworkConfig:
     """Store network configuration settings"""
     server_ip: str = ""
-    port: str = "8000"
+    port: int = 8000
 
 class NetworkManager:
     """Manage network settings and IP detection"""
@@ -47,6 +47,7 @@ class NetworkManager:
 
     def get_server_ip(self) -> str:
         """Get current server IP address"""
+        # self._get_system_ip() is been called in init block
         return self.config.server_ip
 
     def set_port(self, port: str) -> None:
