@@ -6,9 +6,9 @@ try:
 except:
     print('Check cairosvg repo issuses section for how to fix or downloaad and install <link>')
 
-if __name__=='image' or __name__=='__main__':
-    from base import BaseGen,BaseGenException
-    from testing.sword import NetworkManager,NetworkConfig
+if __name__ in ['thumbnails.image','image','__main__']:
+    from .base import BaseGen,BaseGenException
+    from .testing.sword import NetworkManager,NetworkConfig
 else:
     from workers.thumbnails.base import BaseGen,BaseGenException
     from workers.sword import NetworkConfig

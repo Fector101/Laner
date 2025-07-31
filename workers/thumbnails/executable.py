@@ -7,9 +7,9 @@ import traceback,threading
 from PIL import Image
 from icoextract import IconExtractor
 
-if __name__=='executable' or __name__=='__main__':
-    from testing.sword import NetworkManager,NetworkConfig
-    from base import BaseGen,BaseGenException
+if __name__ in ['thumbnails.executable','executable','__main__']:
+    from .testing.sword import NetworkManager,NetworkConfig
+    from .base import BaseGen,BaseGenException
 else:
     from workers.sword import NetworkManager,NetworkConfig
     from workers.thumbnails.base import BaseGen,BaseGenException

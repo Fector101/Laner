@@ -3,10 +3,10 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from PIL import Image, ImageDraw
 
-if __name__ == 'thumbmailGen':
-    from testing.sword import NetworkManager,NetworkConfig
-    from base import BaseGen,BaseGenException
-    from helper import gen_unique_filname, getAppFolder
+if __name__ == 'thumbnails.video':
+    from .testing.sword import NetworkManager,NetworkConfig
+    from .base import BaseGen,BaseGenException
+    from .testing.helper import gen_unique_filname, getAppFolder
 else:
     from workers.sword import NetworkConfig
     from workers.thumbnails.base import BaseGen,BaseGenException
