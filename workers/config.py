@@ -1,5 +1,25 @@
 import sys, traceback, os
-from workers.helper import getAppFolder
+
+if __name__ == 'config':
+    from helper import getAppFolder
+else:
+    from workers.helper import getAppFolder
+
+import builtins
+import inspect
+import os
+
+def custom_print(*args, **kwargs):
+    frame = inspect.currentframe().f_back
+    filename = os.path.basename(frame.f_code.co_filename)
+    builtins._print(f"[{filename}]", *args, **kwargs)
+
+# Backup original
+builtins._print = builtins.print
+builtins.print = custom_print
+
+# Now all prints will include file name
+print("This will include the filename.")
 
 def create_preview_folder():
     """Creates a folder for preview images if it doesn't exist."""
