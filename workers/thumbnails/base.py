@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
 import os
+from typing import LiteralString
 from PIL import Image
 
-
-if __name__=='base' or __name__=='__main__':
-    from testing.helper import gen_unique_filname, getAppFolder, urlSafePath,removeFirstDot,_joinPath
-    from testing.sword import NetworkConfig
+if __name__ in ['thumbnails.base','base','__main__']:
+    from .testing.helper import gen_unique_filname, getAppFolder, urlSafePath,removeFirstDot,_joinPath
+    from .testing.sword import NetworkConfig
 else:
     from workers.helper import gen_unique_filname, _joinPath, getAppFolder, urlSafePath, removeFirstDot
     from workers.sword import NetworkConfig
@@ -98,7 +98,7 @@ class BaseGen(ABC):
         return f"http://{self.server_ip}:{self.server_port}/{urlSafePath(removeFirstDot(self.thumbnail_path))}"
     
     @property
-    def thumbnail_path(self):
+    def thumbnail_path(self) -> LiteralString | str | bytes:
         """Joins preview folder with unique file name for path
         Returns the path to the thumbnail image.
         """
@@ -118,7 +118,7 @@ class DocExtractorABS(ABC):
     
     """
     @abstractmethod
-    def extract(self,item_path,thumbnail_path):
+    def extract(self,item_path,thumbnail_path,config):
         """Does extraction."""
         # Children classes must implement this property.
         pass
