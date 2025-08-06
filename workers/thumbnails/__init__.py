@@ -17,7 +17,12 @@ DOCUMENT_ICON_AVAILABLE = False
 
 try:
     from .base import use_pc_for_static
-    from .video import VideoThumbnailExtractor
+    try:
+        from .video import VideoThumbnailExtractor
+    except Exception as e:
+        print("No Video Thumbnail Generator Error:", e)
+        VideoThumbnailExtractor=None
+
     VIDEO_THUMBNAILER_AVAILABLE = True
     from .image import JPEGWorker
     JPEG_WORKER_AVAILABLE = True
