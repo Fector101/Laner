@@ -15,7 +15,11 @@ if __name__=='__main__':
         makeFolder, sortedDir, getUserPCName
     )
     from thumbnails import get_icon_for_file
-    from thumbnails.video import VideoThumbnailExtractor
+    try:
+        from thumbnails.video import VideoThumbnailExtractor
+    except Exception as e:
+        print("No Video Thumbnail Generator Error:", e)
+        VideoThumbnailExtractor=None
     from sword import NetworkManager, NetworkConfig
     from web_socket import WebSocketConnectionHandler
     import config
@@ -184,7 +188,7 @@ class CustomHandler(SimpleHTTPRequestHandler):
                 # print('dta ',dir_info)
                 self._send_json_response({'data': dir_info})
                 print('responding back....')
-                if self.video_paths:
+                if VideoThumbnailExtractor and self.video_paths:
                     VideoThumbnailExtractor(self.video_paths, 1, 10).extract()
 
             elif self.path == "/api/isdir":
