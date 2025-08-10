@@ -2,6 +2,16 @@
 
 A Mobile/Desktop app mainly for Accessing PC files on Phone.
 
+-----
+## How to Run
+- Laner PC doesn't need any dependencies to run you can `cd workers` then `python server.py`
+
+-Or For **GUI** `pip install PyQT5` then `python main.py`
+
+-or For **all features** `python install -r requirements.txt` then `python main.py`
+
+-----
+
 ## Debugging
 ## General
 - Errors.txt For all error logs
