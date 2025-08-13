@@ -14,7 +14,11 @@ if __name__=='__main__':
     getAppFolder, getHomePath, getdesktopFolder,
         makeFolder, sortedDir, getUserPCName
     )
-    from thumbnails import get_icon_for_file, VideoThumbnailExtractor
+    from thumbnails import get_icon_for_file
+    try:
+        from thumbnails.video import VideoThumbnailExtractor
+    except Exception as e:
+        print("Exception while importing VideoThumbnailExtractor",e)
     from sword import NetworkManager, NetworkConfig
     from web_socket import WebSocketConnectionHandler
     import config
