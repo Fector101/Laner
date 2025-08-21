@@ -1,4 +1,10 @@
-import cv2, os, shutil, threading
+import os, shutil, threading
+try:
+    import cv2
+except ImportError:
+    print("-- run pip install opencv-python-headless")
+except Exception:
+    print("Exception occurred while importing cv2 e:",e)
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from PIL import Image, ImageDraw
