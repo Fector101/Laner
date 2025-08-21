@@ -3,8 +3,9 @@ import PIL
 from PIL import Image
 try:
     import cairosvg
-except:
-    print('Check cairosvg repo issuses section for how to fix or downloaad and install <link>')
+except ImportError:
+    print("-- run pip install cairosvg")
+    #print('Check cairosvg repo issuses section for how to fix or downloaad and install <link>')
 
 if __name__ in ['thumbnails.image','image','__main__']:
     from .base import BaseGen,BaseGenException
