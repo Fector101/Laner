@@ -5,8 +5,10 @@ icoextract dependencies: pefile
 """
 import traceback,threading
 from PIL import Image
-from icoextract import IconExtractor
-
+try:
+    from icoextract import IconExtractor
+except ImportError:
+    print("-- run pip install icoextract")
 if __name__ in ['thumbnails.executable','executable','__main__']:
     from .testing.sword import NetworkManager,NetworkConfig
     from .base import BaseGen,BaseGenException
