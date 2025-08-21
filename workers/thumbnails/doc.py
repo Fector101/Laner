@@ -1,10 +1,21 @@
 # from typing import LiteralString
 # -> LiteralString | str | bytes
+try:
+    import psutil
+except ImportError:
+    print("-- run pip install psutil fitz docx")
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from PIL import Image
-import os, threading, io, traceback, time, psutil, queue
-import fitz  # PyMuPDF
-from docx import Document
+import os, threading, io, traceback, time, queue
+try:
+    import fitz  # PyMuPDF
+except ImportError:
+    pass
+try:
+    from docx import Document
+except ImportError:
+    pass
+    
 from PIL import ImageDraw, ImageFont
 from typing import Dict, List, Optional, Type
 
