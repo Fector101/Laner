@@ -1,7 +1,17 @@
+if __name__=='__main__':
+    import config
+
+
 import sys,os,tempfile
 import json,threading,traceback
-from websockets import ServerConnection # for type
-import websockets,asyncio
+try:
+    from websockets import ServerConnection # for type
+    import websockets
+except ImportError:
+        print("-- run pip install websockets")
+except Exception as e:
+    print("Exeception accorded during import of websockets")    
+import asyncio
 from os.path import join as _joinPath
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn
@@ -20,7 +30,10 @@ if __name__=='__main__':
     except Exception as e:
         print("Exception while importing VideoThumbnailExtractor",e)
     from sword import NetworkManager, NetworkConfig
-    from web_socket import WebSocketConnectionHandler
+    try:
+        from web_socket import WebSocketConnectionHandler
+    except Exception as e:
+        pass
     import config
 else:
     from workers.helper import (
@@ -29,8 +42,10 @@ else:
     )
     from workers.thumbnails import get_icon_for_file,VideoThumbnailExtractor
     from workers.sword import NetworkManager, NetworkConfig
-    from workers.web_socket import WebSocketConnectionHandler
-
+    try:
+        from workers.web_socket import WebSocketConnectionHandler
+    except Exception as e:
+        pass   
 SERVER_IP = None
 
 
