@@ -1,182 +1,395 @@
-import json
-import traceback
-from typing import Optional,List
-import platform
-import subprocess
-import re
-import shutil
-from dataclasses import dataclass
-import socket
-import time
-
+import sys,os,tempfile
+import json,threading,traceback
 try:
-    import netifaces
-except:
-    print('Running Program without netifaces install...')
+    from websockets import ServerConnection # for type
+    import websockets
+except Exception as e:
+        print("Exception run pip install websockets, e:",e)
+        
+import asyncio
+from os.path import join as _joinPath
+from http.server import SimpleHTTPRequestHandler, HTTPServer
+from socketserver import ThreadingMixIn
+from urllib.parse import urlparse, parse_qs
 
-if __name__=='sword' or __name__=='__main__':
-    from helper import getUserPCName
+# Worker imports
+if __name__=='__main__':
+    # For Tests
+    from helper import (
+    getAppFolder, getHomePath, getdesktopFolder,
+        makeFolder, sortedDir, getUserPCName
+    )
+    from thumbnails import get_icon_for_file
+    try:
+        from thumbnails.video import VideoThumbnailExtractor
+    except Exception as e:
+        print("Exception while importing VideoThumbnailExtractor",e)
+    from sword import NetworkManager, NetworkConfig
+    try:
+        from web_socket import WebSocketConnectionHandler
+    except Exception as e:
+        pass
+    import config
 else:
-    from workers.helper import getUserPCName
+    from workers.helper import (
+         getAppFolder, getHomePath, getdesktopFolder,
+        makeFolder, sortedDir, getUserPCName
+    )
+    from workers.thumbnails import get_icon_for_file,VideoThumbnailExtractor
+    from workers.sword import NetworkManager, NetworkConfig
+    try:
+        from workers.web_socket import WebSocketConnectionHandler
+    except Exception as e:
+        pass   
+SERVER_IP = None
 
 
+# Utility Functions
+def writeErrorLog(title, value):
+    """Logs errors to a file."""
+    error_log_path = os.path.join(getAppFolder(), 'errors.txt')
+    with open(error_log_path, 'a') as log_file:
+        log_file.write(f'====== {title} LOG ====\n{value}\n\n')
+        print(f'====== {title} LOG ====\n{value}\n\n')
 
-@dataclass
-class NetworkConfig:
-    """Store network configuration settings"""
-    server_ip: str = ""
-    port: int = 8000
 
-class NetworkManager:
-    """Manage network settings and IP detection"""
-    _instance = None
-    keep_broadcasting = True
+# Handle stderr when compiled to a single file
+if sys.stderr is None:
+    sys.stderr = open(os.path.join(getAppFolder(), 'errors.log'), 'at')
+
+
+# Threaded HTTP Server
+class ThreadingHTTPServer(ThreadingMixIn, HTTPServer):
+    """Threaded HTTP Server for handling multiple requests simultaneously."""
+
+def do_lag():
+    print('Doing Lag.......')
+    import time
+    time.sleep(90*60)
+# Custom HTTP Handler
+class CustomHandler(SimpleHTTPRequestHandler):
+    video_paths = []
+    request_count = 0
     
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super(NetworkManager, cls).__new__(cls)
-        return cls._instance
-    
-    def __init__(self):
-        self.config = NetworkConfig()
-        self.config.server_ip = self._get_system_ip()
+    def _get_path_from_url(self):
+        query = urlparse(self.path).query
+        params = parse_qs(query)
+        path_list = params.get("path")
+        return path_list[0] if path_list else None
 
-    def set_server_ip(self, ip: str) -> None:
-        """Set server IP address"""
-        self.config.server_ip = ip
-
-    def get_server_ip(self) -> str:
-        """Get current server IP address"""
-        # self._get_system_ip() is been called in init block
-        return self.config.server_ip
-
-    def set_port(self, port: str) -> None:
-        """Set server port"""
-        self.config.port = port
-
-    def get_port(self) -> str:
-        """Get current server port"""
-        return self.config.port
-
-    def _get_system_ip(self) -> Optional[str]:
-        """Get system IP address using available methods"""
-        os_name = platform.system()
-        
-        # Try primary method
-        ip = self._get_ip_from_commands(os_name)
-        if ip:
-            return ip
-        print("Dev using netifaces")
-        # Fallback to netifaces
-        return self._get_ip_from_netifaces()
-
-    def _get_ip_from_commands(self, os_name: str) -> Optional[str]:
-        """Get IP using system commands"""
-        try:
-            if os_name in ('Linux', 'Darwin'):
-                return self._get_unix_ip()
-            elif os_name == 'Windows':
-                return self._get_windows_ip()
-            raise OSError("Unsupported operating system")
-        except Exception:
-            return None
-
-    def _get_unix_ip(self) -> Optional[str]:
-        """Get IP on Unix-like systems"""
-        command = ['ifconfig'] if shutil.which('ifconfig') else ['ip', 'addr']
-        pattern = re.compile(r'inet\s([\d.]+)')
-        
-        result = subprocess.run(command, capture_output=True, text=True)
-        ips = [ip for ip in pattern.findall(result.stdout) 
-               if not ip.startswith('127.')]
-               
-        return self._select_best_ip(ips)
-
-    def _get_windows_ip(self) -> Optional[str]:
-        """Get IP on Windows systems"""
-        result = subprocess.run(['ipconfig'], capture_output=True, text=True, shell=True,creationflags=subprocess.CREATE_NO_WINDOW)
-        pattern = re.compile(r'IPv4.*?:\s*([\d.]+)')
-        
-        ips = [ip for ip in pattern.findall(result.stdout) 
-               if not ip.startswith('127.')]
-               
-        return self._select_best_ip(ips)
-
-    def _get_ip_from_netifaces(self) -> Optional[str]:
-        """Fallback method using netifaces"""
-        try:
-            for iface in netifaces.interfaces():
-                # Prioritize wireless/ethernet
-                print('Dev see face',iface)
-                if iface.startswith(('wl', 'en')):
-                    ip = self._get_interface_ip(iface)
-                    if ip:
-                        return ip
-                        
-            # Try other interfaces
-            print('Trying Something apart from Wireless')
-            return None
-            # for iface in netifaces.interfaces():
-            #     ip = self._get_interface_ip(iface)
-            #     if ip:
-            #         return ip
+    def do_POST(self):
+        """Handle POST requests for file uploads."""
+        print("Doing Post")
+        if self.path == "/api/upload":
+            try:
+                # Get content length and read raw data
+                content_length = int(self.headers.get('Content-Length', 0))
+                
+                # Extract boundary from Content-Type
+                content_type = self.headers.get('Content-Type')
+                if not content_type or 'boundary=' not in content_type:
+                    raise ValueError("Content-Type header is missing or invalid.")
+                
+                boundary = content_type.split('=')[1].encode()
+                if not boundary:
+                    self._send_json_response({'error': "Bad Request: Missing boundary 101"}, status=400)
+                    return
+                
+                data = self.rfile.read(content_length)                
+                parts = data.split(b'--' + boundary)
+                
+                folder_path = getdesktopFolder()
+                found_folder=False
+                save_path = None
+                # print("Whole data: ",parts,'\n')
+                for part in parts:
+                    # print("This is a part: ",part)
+                    if b'name="save_path"' in part and not found_folder:
+                        found_folder=True
+                        folder_path = (
+                            part.split(b'\r\n')[3]  # More precise splitting
+                            .decode()
+                            .strip()
+                        )
+                        print("Folder to save upload -----> ", folder_path,'<-----')
+                        os.makedirs(folder_path, exist_ok=True)
                     
-        except Exception:
-            print("Dev neatifaces main failed")
-            return None
+                    if b'filename=' in part:
+                        # Extract filename
+                        headers, file_content = part.split(b'\r\n\r\n', 1)
+                        filename = (
+                            headers.split(b'filename="')[1]
+                            .split(b'"')[0]
+                            .decode()
+                        )
+                        print("Uploaded File name: -----> ", filename,'<-----')
+                        
+                        save_path = os.path.join(folder_path, filename)
+                        
+                        # Remove any trailing boundary markers
+                        file_content = file_content.rstrip(b'\r\n--')
+                        # Write file safely
+                        with open(save_path, 'wb') as f:
+                            f.write(file_content)
+                
+                if save_path:
+                    print("File Upload Successful:", save_path)
+                    self._send_json_response({'message': 'File uploaded successfully'})
+                else:
+                    self._send_json_response({'error': "No file content found in the uploaded data."}, status=400)
+                    # raise ValueError("No file content found in the uploaded data.")
+            
+            except Exception as e:
+                print("File Upload Error:", e)
+                writeErrorLog('File Upload Error', traceback.format_exc())
+                self._send_json_response({'error': str(e)}, status=400)
 
-    def _get_interface_ip(self, iface: str) -> Optional[str]:
-        """Get IP from specific interface"""
-        addrs = netifaces.ifaddresses(iface)
-        if netifaces.AF_INET in addrs:
-            # print(addrs,'\n',netifaces.AF_INET,'\n','addrs netfaces')
-            for addr in addrs[netifaces.AF_INET]:
-                ip = addr['addr']
-                if ip and not ip.startswith('127.'):
-                    return ip
-        return None
-
-    def _select_best_ip(self, ips: List[str]) -> Optional[str]:
-        """Select best IP from list"""
-        if not ips:
-            return None
-        # Prefer 192.168.x.x addresses
-        for ip in ips:
-            if ip.startswith('192.168.'):
-                return ip
-        return ips[0]
-
-    def setSERVER_IP(self, value: str) -> None:
-        """Set server IP address (public method)"""
-        self.set_server_ip(value)
-
-    def getSERVER_IP(self) -> str:
-        """Get current server IP address (public method)"""
-        return self.get_server_ip()
-    
-    def broadcast_ip(self,port,websocket_port):
-        server_ip = self._get_system_ip()
-        msg=json.dumps({'ip':server_ip,'name':getUserPCName(),'websocket_port':websocket_port})
-        # message = f"SERVER_IP:{server_ip}"
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-
-        print(f"Broadcasting server IP: {server_ip} on port {port}")
+    def do_GET(self):
+        """Handle GET requests for various API endpoints."""
         try:
-            while True:
-                sock.sendto(msg.encode(), ('<broadcast>', port))
-                # sock.sendto(message.encode(), ('<broadcast>', port))
-                time.sleep(.08)  # Broadcast every second
-        except Exception as e:
-            print(f"Broadcasting error: {e}")
-            traceback.print_exc()
-        finally:
-            sock.close()
-            print('Ended BroadCast !!!')
+            if self.path == "/api/getpathinfo":
+                request_path = self._get_request_body('path')
+                if request_path == 'Home':
+                    request_path = getHomePath()
+                elif request_path is None: # Checking for None incase i send '' as path in future and not './'
+                    self._send_json_response({'error': "Server didn't receive any data, i.e no requested_path"}, status=400)
+                    return
+                dir_info = []
+                self.video_paths = []
 
-# Create singleton instance
-# # Usage example:
-# network = NetworkManager()
-# ip = network.getSERVER_IP()
-# network.setSERVER_IP('')
-# ip = network.getSERVER_IP()
+                # for each in os.listdir(request_path):
+                #     each_path = os.path.join(request_path, each)
+                #     is_dir=os.path.isdir(each_path)
+                #     img_source, thumbnail_url = get_icon_for_file(each_path,name=each,video_paths=self.video_paths,is_dir=is_dir)
+                #     cur_obj = {
+                #         'text': each,
+                #         'path': each_path,
+                #         'is_dir': is_dir,
+                #         'icon': img_source,
+                #         'thumbnail_url': thumbnail_url,
+                #         'validated_path': False
+                #     }
+                #     dir_info.append(cur_obj)
+
+                    # Using scandir() instead of listdir() + isdir()
+                with os.scandir(request_path) as entries:
+                    for entry in entries:
+                        try:
+                            is_dir=entry.is_dir()
+                            name=entry.name
+                            img_source, thumbnail_url = get_icon_for_file(entry.path,name=name,video_paths=self.video_paths,is_dir=is_dir)
+
+                            cur_obj = {
+                                'text': name,
+                                'path': entry.path,
+                                'is_dir': is_dir,  # Much faster than os.path.isdir() which slowed doen server
+                                'validated_path': False,  # I Can't remember why i added this deepseek changed it to True Since we're reading directly from filesystem
+                                'icon': img_source,
+                                'thumbnail_url': thumbnail_url,
+                            }
+                            dir_info.append(cur_obj)
+
+                        except OSError as e:
+                            print(f"Error processing {entry.path}: {e}")
+                            continue
+
+                # dir_info = sortedDir(dir_info)
+                # print('dta ',dir_info)
+                self._send_json_response({'data': dir_info})
+                print('responding back....')
+                if VideoThumbnailExtractor and self.video_paths:
+                    VideoThumbnailExtractor(self.video_paths, 1, 10).extract()
+
+            elif self.path == "/api/isdir":
+                self._send_json_response({'data': os.path.isdir(self.parseMyPath())})
+            elif self.path == "/api/isfile":
+                request_path = self._get_request_body('path')
+                is_file=os.path.isfile(request_path)
+                if not is_file:
+                    file_abspath=os.path.abspath(request_path)
+                    drive=os.path.splitdrive(file_abspath)[0]
+                    real_file_path= _joinPath(drive,request_path)
+                    is_file=os.path.isfile(real_file_path)
+                    print("Check of existence: ",real_file_path)
+                    
+                self._send_json_response({'data': is_file})
+                
+            elif self.path == "/ping":
+                NetworkManager().keep_broadcasting=False
+                self._send_json_response({'data': getUserPCName()})
+            else:
+                super().do_GET()
+                # self._send_json_response({'error': "Endpoint not found."}, status=404)
+        except PermissionError as e:
+            writeErrorLog('Permission Error', traceback.format_exc())
+            self._send_json_response({'error': "Permission denied. Please check your access rights."}, status=403)
+        except Exception as e:
+            writeErrorLog('Error Handling for All Requests', traceback.format_exc())
+            self._send_json_response({'error': str(e)}, status=400)
+
+        self.request_count += 1
+
+    def parseMyPath(self):
+        """ Takes unreal_path from app and format to real path eg Home --> ~ Home :) TODO Remove this"""
+        app_requested_path=self._get_request_body('path')
+        return getHomePath() if app_requested_path == 'Home' else app_requested_path
+        
+    def _get_request_body(self, key):
+        """Parses JSON from the request body."""
+        extracted_length = self.headers['Content-Length']
+        if extracted_length is None: # explicty checking None incase maybe it can be 0,test more and remove line
+            return extracted_length
+        content_length = int(extracted_length)
+        request_data = self.rfile.read(content_length)
+        # print('request_data',request_data)
+        # print('Why',json.loads(request_data).get(key))
+        return json.loads(request_data).get(key)
+
+    def _set_cors_headers(self):
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+
+    def _send_json_response(self, data, status=200):
+        """Sends a JSON response."""
+        self.send_response(status)
+        # self._set_cors_headers() # <--- For testing from javascript|brower (Don't package with this line, maybe package because of offline website docs)
+        self.send_header('Content-Type', 'application/json')
+        self.end_headers()
+        try:
+            self.wfile.write(json.dumps(data).encode('utf-8'))
+        except ConnectionAbortedError as connection_aborted_error:
+            writeErrorLog(f'Connection was aborted: {connection_aborted_error}', traceback.format_exc())
+
+
+# Server Class
+class FileSharingServer:
+    def __init__(self, ip, connection_signal=None, port=8000, directory="/"):
+        self.ip = ip
+        self.port = port
+        self._server = None
+        self.directory = directory
+        makeFolder(os.path.join(getAppFolder(), 'thumbnails'))
+        if not connection_signal:
+            print("No 'connection_signal' Running without UI")
+        self.connection_signal = connection_signal
+        self.loop = None
+        self.websocket_port = None
+        self.websocket_server = None
+        self.ws_thread=None
+
+    async def websocket_handler(self, websocket):
+        """Handle new WebSocket connections"""
+        handler = WebSocketConnectionHandler(
+            websocket=websocket,
+            connection_signal=self.connection_signal,
+            ip=self.ip,
+            main_server_port=self.port
+        )
+        await handler.handle_connection()  # Make sure to await the connection handler        
+
+    # Modify the WebSocket server setup in the FileSharingServer class
+    async def start_websocket_server(self):
+        # Create a wrapper function to properly bind the instance method
+        async def handler(websocket):
+            await self.websocket_handler(websocket)
+
+        self.websocket_port=self.port + 1
+        self.websocket_server = await websockets.serve(
+            handler,
+            self.ip,
+            self.websocket_port
+        )
+        print(f"WebSocket server started at ws://{self.ip}:{self.port+1}")
+
+    def start(self):
+        global SERVER_IP
+        NetworkConfig.server_ip = SERVER_IP = self.ip or SERVER_IP
+
+        # print(SERVER_IP,self.ip)
+        os.chdir(self.directory)
+
+        # self.server = ThreadingHTTPServer((self.ip, self.port), CustomHandler)
+        # threading.Thread(target=self.server.serve_forever, daemon=True).start()
+        # print(f"Server started at http://{SERVER_IP}:{self.port}")
+
+        self._server =None
+        
+        ports =  [
+                    8000, 8080, 9090, 10000, 11000, 12000, 13000, 14000, 
+                    15000, 16000, 17000, 18000, 19000,
+                    20000, 22000, 23000, 24000, 26000,
+                    27000, 28000, 29000, 30000
+                ]
+        # TODO ping Server from PC and Check for Unquie Generated Code from maybe Singleton
+        for port in ports:
+            print('Trying ',self.ip,port)
+            try:
+                # self._server = ThreadingHTTPServer(("", port), CustomHandler)
+                # self._server = ThreadingHTTPServer(("0.0.0.0", port), CustomHandler)
+                self._server = ThreadingHTTPServer((self.ip, port), CustomHandler)
+                self.port=port
+                threading.Thread(target=self._server.serve_forever, daemon=True).start()
+                break  # Exit the loop if the server starts successfully
+            except OSError as e:
+                print(f"Port {port} is unavailable, trying the next one...")
+                writeErrorLog(f'{e} -- Port :{port}',traceback.format_exc())
+                traceback.print_exc()
+            except Exception as e:
+                print(f"Error: {e}")
+                writeErrorLog(f'{e} -- Port :{port}',traceback.format_exc())
+        # Start WebSocket server in event loop
+        if __name__ != '__main__':
+            self.ws_thread = threading.Thread(target=self.run_websocket_server)
+            self.ws_thread.daemon = True
+            self.ws_thread.start()
+        else:
+            print("Running server.file without GUI, Didn't start the websocket server, To Maybe save Battery")
+        print(f"Server started at http://{SERVER_IP}:{self.port}")
+
+    def stop(self):
+        # Stop HTTP server
+        if self._server:
+            self._server.shutdown()
+            self._server.server_close()
+
+        # Stop WebSocket server
+        if self.loop:
+            # Schedule the server closure and loop stop
+            async def close_server_and_stop_loop():
+                if self.websocket_server:
+                    self.websocket_server.close()
+                    await self.websocket_server.wait_closed()
+                    print("WebSocket server stopped")
+                self.loop.stop()  # Stop the loop only after server is closed
+
+            # Schedule the entire shutdown sequence
+            self.loop.call_soon_threadsafe( lambda: asyncio.create_task(close_server_and_stop_loop()) )
+        print("Server stopped.")
+    def run_websocket_server(self):
+        self.loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(self.loop)
+        self.loop.run_until_complete(self.start_websocket_server())
+        self.loop.run_forever()
+
+# print(__name__,'==','__main__')
+if __name__ == "__main__":
+    # Specify the port and directory
+    port = 8000
+    directory = "/"
+
+    # Initialize the server
+    server = FileSharingServer(port=port,directory=directory,ip=NetworkManager().get_server_ip())
+
+    try:
+        # Start the server
+        server.start()
+
+        # Keep the program running until interrupted
+        print("Press Ctrl+C to stop the server.")
+        while True:
+            pass
+    except KeyboardInterrupt:
+        # Stop the server on Ctrl+C
+        print("\nStopping the server...")
+        server.stop()
