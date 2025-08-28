@@ -4,8 +4,8 @@ from typing import LiteralString
 from PIL import Image
 
 if __name__ in ['thumbnails.base','base','__main__']:
-    from .testing.helper import gen_unique_filname, getAppFolder, urlSafePath,removeFirstDot,_joinPath
-    from .testing.sword import NetworkConfig
+    from testing.helper import gen_unique_filname, getAppFolder, urlSafePath,removeFirstDot,_joinPath
+    from testing.sword import NetworkConfig
 else:
     from workers.helper import gen_unique_filname, _joinPath, getAppFolder, urlSafePath, removeFirstDot
     from workers.sword import NetworkConfig
@@ -41,9 +41,11 @@ def getfailSafeImg(thumbnail_path,_abs_class,default_img_name='image.png'):
     try:
         if os.path.exists(thumbnail_path):
             return
+        if thumbnail_path.endswith('.jpg'):
+            default_img_name='image.jpg'
+            print('entered')
         img = Image.open(_joinPath(getAppFolder(),'assets','imgs',default_img_name))
-        if img.mode != 'RGBA':
-            img = img.convert("RGBA")
+        
         img.save(thumbnail_path, quality=60)
         
     except Exception as e:
