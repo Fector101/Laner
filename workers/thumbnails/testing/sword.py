@@ -11,8 +11,11 @@ import time
 
 try:
     import netifaces
-except:
-    print('Running without netifaces...')
+except ImportError:
+    print('-- run pip install netifaces')
+except Exception as e:
+    print("Exeception accorded during import of netifaces")
+
 
 from .helper import getUserPCName
 
@@ -58,7 +61,7 @@ class NetworkManager:
         os_name = platform.system()
         
         # Try primary method
-        ip = self._get_ip_from_commands(os_name)
+        ip = self._get_ip_from_commands(os_name) or self._get_local_ip()
         if ip:
             return ip
         print("Dev using netifaces")
@@ -169,6 +172,19 @@ class NetworkManager:
             sock.close()
             print('Ended BroadCast !!!')
 
+
+    def _get_local_ip(self):
+    # First attempt using hostname
+        ip = socket.gethostbyname(socket.gethostname())
+        if ip == "127.0.0.1":  
+        # If it only returns localhost, try socket connect method
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            try:
+                s.connect(("8.8.8.8", 80))  # Google DNS
+                ip = s.getsockname()[0]
+            finally:
+                s.close()
+        return ip
 # Create singleton instance
 # # Usage example:
 # network = NetworkManager()
