@@ -1,13 +1,25 @@
 import os, shutil, threading
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
+Image= ImageDraw= cv2 = None
 try:
     import cv2
 except ImportError:
     print("-- run pip install opencv-python-headless")
-except Exception:
-    print("Exception occurred while importing cv2 e:",e)
-from concurrent.futures import ThreadPoolExecutor
-from pathlib import Path
-from PIL import Image, ImageDraw
+    VideoThumbnailExtractor = None
+except Exception as e:
+    print("Exception occurred while importing cv2 e:", e)
+
+try:
+    from PIL import Image, ImageDraw
+except ImportError:
+    print("-- run pip install pillow")
+    VideoThumbnailExtractor = None
+except Exception as e:
+    print("Exception occurred while importing PIL e:", e)
+
+if not cv2 or not Image:
+    raise ImportError('video.py missing pillow and opencv-python-headless')
 
 if __name__ == 'thumbnails.video':
     from .testing.sword import NetworkManager,NetworkConfig
