@@ -11,8 +11,10 @@ import time
 
 try:
     import netifaces
-except:
-    print('Running Program without netifaces install...')
+except ImportError:
+    print('-- run pip install netifaces')
+except Exception as e:
+    print("Exeception accorded during import of netifaces")
 
 if __name__=='sword' or __name__=='__main__':
     from helper import getUserPCName
@@ -186,15 +188,17 @@ class NetworkManager:
             try:
                 s.connect(("8.8.8.8", 80))  # Google DNS
                 ip = s.getsockname()[0]
+            except OSError:
+                pass
             finally:
                 s.close()
         return ip
 
 # Create singleton instance
 # # Usage example:
-network = NetworkManager()
-ip = network.getSERVER_IP()
-print(ip)
+# network = NetworkManager()
+# ip = network.getSERVER_IP()
+# print(ip)
 
 # network.setSERVER_IP('')
 # ip = network.getSERVER_IP()
