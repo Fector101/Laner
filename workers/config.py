@@ -19,7 +19,7 @@ builtins._print = builtins.print
 builtins.print = custom_print
 
 # Now all prints will include file name
-print("This will include the filename.")
+# print("This will include the filename.")
 
 def create_preview_folder():
     """Creates a folder for preview images if it doesn't exist."""
