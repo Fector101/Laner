@@ -4,11 +4,24 @@ It uses the icoextract library to handle the extraction.
 icoextract dependencies: pefile
 """
 import traceback,threading
-from PIL import Image
+
+Image=IconExtractor=None
+try:
+    from PIL import Image
+except ImportError:
+    print("-- run pip install pillow")
+
 try:
     from icoextract import IconExtractor
 except ImportError:
     print("-- run pip install icoextract")
+
+if not Image:
+    raise ImportError('executable.py missing pillow')
+
+if not IconExtractor:
+    raise ImportError('executable.py missing icoextract')
+
 if __name__ in ['thumbnails.executable','executable','__main__']:
     from .testing.sword import NetworkManager,NetworkConfig
     from .base import BaseGen,BaseGenException
