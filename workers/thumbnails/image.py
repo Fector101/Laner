@@ -1,15 +1,33 @@
 import traceback, threading
-import PIL
-from PIL import Image
+
+
+Image=cairosvg=None
 try:
     import cairosvg
 except ImportError:
+    print('No svg previews')
     print("-- run pip install cairosvg")
     #print('Check cairosvg repo issuses section for how to fix or downloaad and install <link>')
+except Exception as e:
+    print("SVG Preview Issue Visit page https://github.com/Kozea/CairoSVG/issues/388")
+    print('In dev mode for SVG Preview download: https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases/download/2022-01-04/gtk3-runtime-3.24.31-2022-01-04-ts-win64.exe')
+
+try:
+    import PIL
+    from PIL import Image
+except ImportError:
+    print("-- run pip install pillow")
+except Exception as e:
+    print("Exception occurred while import from pillow", e)
+
+
+if not Image:
+    raise ImportError('image.py missing pillow')
+
 
 if __name__ in ['thumbnails.image','image','__main__']:
-    from .base import BaseGen,BaseGenException
-    from .testing.sword import NetworkManager,NetworkConfig
+    from base import BaseGen,BaseGenException
+    from testing.sword import NetworkManager,NetworkConfig
 else:
     from workers.thumbnails.base import BaseGen,BaseGenException
     from workers.sword import NetworkConfig
@@ -69,6 +87,9 @@ class JPEGWorker(BaseGen,BaseGenException):
         """
         self.__quality=100
         try:
+            if not cairosvg:
+                self.getfailSafeImg()
+                return
             cairosvg.svg2png(url=self.inputted_img_path,write_to=self.thumbnail_path,output_width=1000,output_height=1000)
             self.inputted_img_path=self.thumbnail_path
         except Exception as e:
@@ -79,6 +100,6 @@ class JPEGWorker(BaseGen,BaseGenException):
 
 if __name__ == '__main__':
     server_ip = NetworkManager().get_server_ip()  # Replace with actual server IP if needed
-    img_path=r'C:\Users\hp\Desktop\Linux\my_code\Laner\workers\thumbnails\icon.png' # og: 1.68mb formatted.png:1.68mb, formatted.jpg:379kb
+    img_path=r'C:\Users\Blossom Restore\Downloads\Laner-desktop\assets\imgs\image.png' # og: 1.68mb formatted.png:1.68mb, formatted.jpg:379kb
     r=JPEGWorker(img_path,server_ip,_thread=False)
     print(r.thumbnail_url)
