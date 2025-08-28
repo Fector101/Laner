@@ -10,32 +10,35 @@ else:
     from workers.sword import NetworkConfig
 
 # Thumbnailer availability flags
-VIDEO_THUMBNAILER_AVAILABLE = False
-JPEG_WORKER_AVAILABLE = False
-EXECUTABLE_ICON_AVAILABLE = False
-DOCUMENT_ICON_AVAILABLE = False
 
+VideoThumbnailExtractor=use_pc_for_static=JPEGWorker=ExecutableIconExtractor=DocumentIconExtractor=None
+try:
+    from .video import VideoThumbnailExtractor
+except Exception as e:
+    pass
 try:
     from .base import use_pc_for_static
-    try:
-        from .video import VideoThumbnailExtractor
-    except Exception as e:
-        print("No Video Thumbnail Generator Error:", e)
-        VideoThumbnailExtractor=None
-
-    VIDEO_THUMBNAILER_AVAILABLE = True
-    from .image import JPEGWorker
-    JPEG_WORKER_AVAILABLE = True
-    from .executable import ExecutableIconExtractor
-    EXECUTABLE_ICON_AVAILABLE = True
+except Exception as e:
+    pass
+try:
     from .doc import DocumentIconExtractor
-    DOCUMENT_ICON_AVAILABLE = True
+except Exception as e:
+    pass
+
+try:
+    from .executable import ExecutableIconExtractor
+except Exception as e:
+    pass
+
+try:
+    from .image import JPEGWorker
 except Exception as e:
     print("Failed getting a thumbnailer error:", e)
 
+# print(use_pc_for_static,VideoThumbnailExtractor,JPEGWorker,ExecutableIconExtractor,DocumentIconExtractor)
 # File Type Definitions
 MY_OWNED_ICONS = ('.py', '.js', '.css', '.html', '.json', '.deb', '.md', '.sql', '.java')
-ZIP_FORMATS = ('.zip', '.7z', '.tar', '.bzip2', '.gzip', '.xz', '.lz4', '.zstd', '.bz2', '.gz')
+ZIP_FORMATS = ("rar",'.zip', '.7z', '.tar', '.bzip2', '.gzip', '.xz', '.lz4', '.zstd', '.bz2', '.gz')
 VIDEO_FORMATS = ('.mkv', '.mp4', '.avi', '.mov')
 AUDIO_FORMATS = ('.mp3', '.wav', '.aac', '.ogg', '.m4a', '.flac', '.wma', '.aiff', '.opus')
 PICTURE_FORMATS = ('.png', '.jpg', '.jpeg', '.tif', '.bmp', '.gif', '.svg', '.ico')
@@ -86,7 +89,7 @@ def get_icon_for_file(path, is_dir, name, video_paths=None) -> tuple[str, str]:
 
     if ext in VIDEO_FORMATS:
         video_paths.append(path)
-        if VIDEO_THUMBNAILER_AVAILABLE:
+        if VideoThumbnailExtractor:
             try:
                 instance = VideoThumbnailExtractor(
                     path,
@@ -105,7 +108,7 @@ def get_icon_for_file(path, is_dir, name, video_paths=None) -> tuple[str, str]:
         return "assets/icons/audio.png", ''
 
     if ext in PICTURE_FORMATS:
-        if JPEG_WORKER_AVAILABLE:
+        if JPEGWorker:
             try:
                 instance = JPEGWorker(path, NetworkConfig.server_ip)
                 return "assets/icons/image.png", instance.thumbnail_url
@@ -114,7 +117,7 @@ def get_icon_for_file(path, is_dir, name, video_paths=None) -> tuple[str, str]:
         return "assets/icons/image.png", ''
 
     if ext in EXECUTABLE_FORMATS:
-        if EXECUTABLE_ICON_AVAILABLE:
+        if ExecutableIconExtractor:
             try:
                 instance = ExecutableIconExtractor(
                     path,
@@ -127,10 +130,14 @@ def get_icon_for_file(path, is_dir, name, video_paths=None) -> tuple[str, str]:
         return "assets/icons/file.png", ''
 
     if ext in DOCUMENT_EXTENSIONS:
-        if ext == '.pdf' and DOCUMENT_ICON_AVAILABLE:
+        if ext == '.pdf' and DocumentIconExtractor:
             try:
-                extractor = DocumentIconExtractor()
+                extractor = DocumentIconExtractor(
+                    server_ip=NetworkConfig.server_ip,
+                    server_port=NetworkConfig.port
+                )
                 extractor.add_document(path)
+                print('pppp',extractor.thumbnail_url)
                 return extractor.pc_static_img, extractor.thumbnail_url
             except Exception as e:
                 print(f"PDF icon error: {e}")
