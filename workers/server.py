@@ -1,3 +1,5 @@
+import urllib.parse
+
 if __name__=='__main__':
     import config
 
@@ -29,6 +31,7 @@ if __name__=='__main__':
         from thumbnails.video import VideoThumbnailExtractor
     except Exception as e:
         print("Exception while importing VideoThumbnailExtractor",e)
+        VideoThumbnailExtractor=False
     from sword import NetworkManager, NetworkConfig
     try:
         from web_socket import WebSocketConnectionHandler
@@ -209,7 +212,7 @@ class CustomHandler(SimpleHTTPRequestHandler):
                 self._send_json_response({'data': os.path.isdir(self.parseMyPath())})
             elif self.path == "/api/isfile":
                 request_path = self._get_request_body('path')
-                is_file=os.path.isfile(request_path)
+                is_file=os.path.isfile(request_path) or os.path.isfile('/'+urllib.parse.unquote(request_path))
                 if not is_file:
                     file_abspath=os.path.abspath(request_path)
                     drive=os.path.splitdrive(file_abspath)[0]
