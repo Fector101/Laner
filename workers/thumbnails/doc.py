@@ -15,7 +15,7 @@ try:
     from docx import Document
 except ImportError:
     pass
-    
+
 from PIL import ImageDraw, ImageFont
 from typing import Dict, List, Optional, Type
 
