@@ -148,7 +148,7 @@ class NetworkManager:
         for ip in ips:
             if ip.startswith('192.168.'):
                 return ip
-        return ips[0]
+        return ips[-1] if len(ips) > 1 else ips[0] # for when linux subsystem or vpn is running and command get a lot of ip addresses
 
     def setSERVER_IP(self, value: str) -> None:
         """Set server IP address (public method)"""
