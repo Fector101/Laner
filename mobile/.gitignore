@@ -13,7 +13,6 @@ thumbnails
 laner-linux
 /*.json
 auto_stuff.sh
-plyer
 _main.py
 android_notify
 .filereader
