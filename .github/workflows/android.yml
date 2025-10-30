@@ -1,54 +1,25 @@
-name: Build Android Debug APK
-
-on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
+name: Build
+on: [push, pull_request]
 
 jobs:
-  build:
+  # Build job. Builds app for Android with Buildozer
+  build-android:
+    name: Build for Android
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: mobile
-
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.10"
+      - name: Build with Buildozer
+        uses: ArtemSBulgakov/buildozer-action@v1
+        id: buildozer
+        with:
+          workdir: mobile
+          buildozer_version: stable
 
-    - name: Install dependencies
-      run: |
-        sudo apt update
-        sudo apt install -y git zip unzip openjdk-17-jdk
-        pip install --upgrade pip setuptools wheel buildozer cython
-
-    - name: First run to install SDK
-      run: |
-        echo "Triggering initial Buildozer setup..."
-        buildozer android debug || true
-
-    - name: Accept Android SDK licenses
-      run: |
-        echo "Accepting Android SDK licenses..."
-        SDK_DIR=$HOME/.buildozer/android/platform/android-sdk
-        yes | $SDK_DIR/cmdline-tools/latest/bin/sdkmanager --licenses
-      env:
-        JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
-
-    - name: Build Debug APK
-      run: |
-        buildozer android debug
-      env:
-        JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
-
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: app-debug
-        path: mobile/bin/*.apk
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: package
+          path: ${{ steps.buildozer.outputs.filename }}
