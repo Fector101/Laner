@@ -28,13 +28,18 @@ jobs:
         sudo apt install -y git zip unzip openjdk-17-jdk
         pip install --upgrade pip setuptools wheel buildozer cython
 
-    - name: Pre-accept Android SDK licenses
+    - name: First run to install SDK
       run: |
-        mkdir -p ~/.android
-        echo "### Accepting Android SDK licenses ###"
-        yes | sdkmanager --licenses || true
-        echo "### Updating SDK tools ###"
-        sdkmanager --update || true
+        echo "Triggering initial Buildozer setup..."
+        buildozer android debug || true
+
+    - name: Accept Android SDK licenses
+      run: |
+        echo "Accepting Android SDK licenses..."
+        SDK_DIR=$HOME/.buildozer/android/platform/android-sdk
+        yes | $SDK_DIR/cmdline-tools/latest/bin/sdkmanager --licenses
+      env:
+        JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
 
     - name: Build Debug APK
       run: |
