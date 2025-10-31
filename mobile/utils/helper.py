@@ -319,3 +319,26 @@ def is_text_by_mime(filepath:str):
 	is_text_type = (mime is not None and mime.startswith('text')) or Path(filepath).suffix in OTHER_TXT_FORMATS
 	print(mime,is_text_type)
 	return is_text_type
+
+def get_destination_folder_for_file(filename):
+    # Define file type categories
+    categories = {
+        "Documents": [".pdf", ".docx", ".txt", ".pptx", ".xlsx", ".csv"],
+        "Images": [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg"],
+        "Videos": [".mp4", ".mkv", ".mov", ".avi", ".flv"],
+        "Music": [".mp3", ".wav", ".aac", ".flac"],
+        "Archives": [".zip", ".rar", ".tar", ".gz"],
+        "Scripts": [".py", ".js", ".html", ".css", ".sh", ".bat"],
+        "Subtitles": [".srt", ".vtt", ".sub", ".ass"]
+    }
+
+    # Get file extension (in lowercase)
+    ext = os.path.splitext(filename)[1].lower()
+
+    # Find matching category
+    for folder, extensions in categories.items():
+        if ext in extensions:
+            return folder
+
+    # Default if no match
+    return "Others"

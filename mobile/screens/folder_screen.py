@@ -29,7 +29,7 @@ from components.header import Header
 from components.popup import PopupDialog, Snackbar, PopupScreen
 from components.pictureviewer import SafeAsyncImage # it's been Used in .kv file
 from utils.helper import getHiddenFilesDisplay_State, makeDownloadFolder, getAppFolder, getFormat, getFileName, \
-    is_text_by_mime
+    is_text_by_mime,get_destination_folder_for_file
 from utils import AsyncRequest, Settings
 from utils.constants import IMAGE_FORMATS
 
@@ -341,7 +341,9 @@ class DisplayFolderScreen(MDScreen):
         """
         print('frm dialog')
         file_name = getFileName(path)
-        saving_path = os.path.join(my_downloads_folder, file_name)
+        target_folder = get_destination_folder_for_file(file_name)
+        # put this line in FileOperations Class
+        saving_path = os.path.join(my_downloads_folder,target_folder, file_name)
         def success(url):
             def failed_callback():
                 pass
