@@ -8,16 +8,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Cache .buildozer
-        uses: actions/cache@v4
+
+      # used to cache dependencies with a timeout
+      - name: Get Date
+        id: get-date
+        run: |
+          echo "::set-output name=date::$(/bin/date -u "+%Y%m%d")"
+        shell: bash
+
+      - name: Cache Buildozer global directory
+        uses: actions/cache@v2
         with:
-          path: |
-            ~/.buildozer
-            ~/.android
-            ~/.gradle
-          key: buildozer-${{ runner.os }}-${{ hashFiles('mobile/buildozer.spec') }}
-          restore-keys: |
-            buildozer-${{ runner.os }}-
+          path: .buildozer_global
+          key: buildozer-global-${{ hashFiles('mobile/buildozer.spec') }} # Replace with your path
+
+      - uses: actions/cache@v2
+        with:
+          path: .buildozer
+          key: ${{ runner.os }}-${{ steps.get-date.outputs.date }}-${{ hashFiles('mobile/buildozer.spec') }}
 
       - name: Build with Buildozer
         uses: n8marti/buildozer-action@fix-user-doesnt-exist
