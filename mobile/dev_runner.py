@@ -21,7 +21,7 @@ class ReloadHandler(FileSystemEventHandler):
             self.restart_app()
 
 if __name__ == '__main__':
-    path = '.'  # your project directory
+    path = '.'  # your project director
     handler = ReloadHandler(start_app=True)
     observer = Observer()
     observer.schedule(handler, path=path, recursive=True)
