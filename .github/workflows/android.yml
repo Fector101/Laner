@@ -1,5 +1,7 @@
 name: Build
-on: [published]
+on:
+  release:
+    types: [published]
 
 jobs:
   build-android:
