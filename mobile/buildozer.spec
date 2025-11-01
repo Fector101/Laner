@@ -188,7 +188,7 @@ android.extra_manifest_application_entry = %(source.dir)s/xml/receivers.xml
 
 # (list) List of Java files to add to the android project (can be java or a
 # directory containing the files)
-#android.add_src = src
+android.add_src = src
 
 # (list) Android AAR archives to add
 #android.add_aars =
