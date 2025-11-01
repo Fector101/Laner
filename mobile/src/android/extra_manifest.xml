@@ -1,0 +1,4 @@
+<receiver android:name="org.laner.Action1"
+          android:enabled="true"
+      android:exported="false">
+</receiver>
