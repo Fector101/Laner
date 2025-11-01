@@ -1,16 +1,20 @@
 package org.laner.lan_ft;
-import android.widget.Toast;
-//The package name of your android app
-
 import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.widget.Toast;
+import android.util.Log;
 
-public class Action1 extends BroadcastReceiver{
+public class Action1 extends BroadcastReceiver {
 
+    private static final String TAG = "Action1";
 
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        // Show a short popup on the screen
+        Toast.makeText(context, "Action1 triggered!", Toast.LENGTH_SHORT).show();
 
-  @Override
-  public void onReceive(Context context, Intent intent) {
-    Toast.makeText(context, "Action1 triggered!", Toast.LENGTH_SHORT).show();
-      // Code to execute once the button has been pressed
+        // Log a message to Logcat
+        Log.d(TAG, "BroadcastReceiver received an intent!");
     }
 }
