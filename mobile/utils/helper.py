@@ -364,6 +364,8 @@ def test101():
     NotificationCompat = autoclass("androidx.core.app.NotificationCompat")
     NotificationCompatBuilder = autoclass("androidx.core.app.NotificationCompat$Builder")
     NotificationManagerCompat = autoclass("androidx.core.app.NotificationManagerCompat")
+    NotificationCompatActionBuilder = autoclass("androidx.core.app.NotificationCompat$Action$Builder")
+
     func_from = getattr(NotificationManagerCompat, "from")
     Intent = autoclass("android.content.Intent")
     PendingIntent = autoclass("android.app.PendingIntent")
@@ -411,7 +413,7 @@ def test101():
         context, id, intent, PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE
     )
 
-    action1_button = NotificationCompat.Action.Builder(
+    action1_button = NotificationCompatActionBuilder(
         id, "Action 1", pendingintent
     ).build()
     builder.addAction(action1_button)
