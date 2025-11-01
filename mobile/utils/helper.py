@@ -412,7 +412,7 @@ def test101():
     pendingintent = PendingIntent.getBroadcast(
         context, id, intent, PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE
     )
-title = cast("java.lang.CharSequence", AndroidString("Action 1"))
+    title = cast("java.lang.CharSequence", AndroidString("Action 1"))
 		
     action1_button = NotificationCompatActionBuilder(
         id, title, pendingintent
