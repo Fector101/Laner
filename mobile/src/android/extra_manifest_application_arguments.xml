@@ -1,4 +1,4 @@
-<receiver android:name="org.laner.lan_ft.Action1"
-          android:enabled="true"
-      android:exported="false">
-</receiver>
+<receiver
+    android:name="org.laner.lan_ft.Action1"
+    android:enabled="true"
+    android:exported="false" />
