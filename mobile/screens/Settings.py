@@ -33,7 +33,7 @@ from kivy.clock import Clock
 from components import Header,HeaderBasic
 from components.templates import CustomDropDown, MDTextButton,MyBtmSheet
 from utils.typing.main import Laner
-from utils.helper import setHiddenFilesDisplay
+from utils.helper import setHiddenFilesDisplay,test101
 from utils.constants import PORTS
 from components.popup import Snackbar, PopupScreen
 
@@ -381,6 +381,10 @@ class SettingsScreen(MDScreen):
         self.app.get_running_app().toggle_theme()
 
     def clear_cache(self, instance):
+        try:
+            test101()
+        except Exception as e:
+            Notification(title="Error", message=str(e))
         # try:
         #     show_custom_layout_notification()
         # except Exception as e:
