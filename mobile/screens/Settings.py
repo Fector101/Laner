@@ -384,7 +384,7 @@ class SettingsScreen(MDScreen):
         try:
             test101()
         except Exception as e:
-            Notification(title="Error", message=str(e)).send()
+            Notification(title="Error", body=str(e)).send()
         # try:
         #     show_custom_layout_notification()
         # except Exception as e:
