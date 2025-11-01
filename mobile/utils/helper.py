@@ -408,7 +408,7 @@ def test101():
     # Intent for action button
     intent = Intent(context, action1)
     pendingintent = PendingIntent.getBroadcast(
-        context, id, intent, PendingIntent.FLAG_CANCEL_CURRENT
+        context, id, intent, PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE
     )
 
     action1_button = NotificationCompat.Action.Builder(
