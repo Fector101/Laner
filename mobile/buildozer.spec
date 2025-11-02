@@ -160,20 +160,6 @@ android.api = 35
 # use that parameter to provide a filename from where to load your custom XML arguments:
 #android.extra_manifest_application_arguments = src/android/extra_manifest_application_arguments.xml
 
-
-
-
-android.add_libs_arm64_v8a = %(source.dir)s/libs/libs_arm64_v8a/*.*
-android.add_libs_armeabi_v7a = %(source.dir)s/libs/libs_armeabi-v7a/*.*
-
-android.extra_manifest_application_entry = %(source.dir)s/xml/receivers.xml
-
-
-
-
-
-
-
 # (str) Full name including package path of the Java class that implements Python Service
 # use that parameter to set custom Java class which extends PythonService
 #android.service_class_name = org.kivy.android.PythonService
