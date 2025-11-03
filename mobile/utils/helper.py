@@ -92,25 +92,34 @@ def wine_path_to_unix(win_path):
 	return os.path.normpath(unix_path)
   
   
-def makeFolder(my_folder:str):
-	if is_wine():
-		my_folder = my_folder.replace('\\','/')
 
-	if not os.path.exists(my_folder):
-		os.makedirs(my_folder)
+def makeFolder(my_folder: str):
+    """Safely creates a folder if it doesn't exist."""
+    # Normalize path for Wine (Windows-on-Linux)
+    if is_wine():
+        my_folder = my_folder.replace('\\', '/')
+
+   
+    if not os.path.exists(my_folder):
+        try:
+            os.makedirs(my_folder)
+        except Exception as e:
+            print(f"Error creating folder '{my_folder}': {e}")
+    return my_folder
+
 
 def makeDownloadFolder():
-	"""Makes downlod folder and returns path
-	"""
-	from kivy.utils import platform
+    """Creates (if needed) and returns the Laner download folder path."""
+    from kivy.utils import platform
 
-	folder_path = os.getcwd()
-	if platform == 'android':
-		from android.storage import app_storage_path, primary_external_storage_path # type: ignore
-		folder_path=os.path.join(primary_external_storage_path(),'Download','Laner')
-		makeFolder(folder_path)
+    if platform == 'android':
+        from android.storage import primary_external_storage_path  # type: ignore
+        folder_path = os.path.join(primary_external_storage_path(), 'Download', 'Laner')
+    else:
+        folder_path = os.path.join(os.getcwd(), 'Download', 'Laner')
 
-	return folder_path
+    makeFolder(folder_path)
+    return folder_path
 
 
 SHOW_HIDDEN_FILES=False
@@ -321,7 +330,11 @@ def is_text_by_mime(filepath:str):
 	return is_text_type
 
 def get_destination_folder_for_file(filename):
-    # Define file type categories
+    """
+    Determines the appropriate subfolder for the file based on its extension.
+    Automatically creates the folder if it doesn't exist.
+    Returns the absolute folder path.
+    """
     categories = {
         "Documents": [".pdf", ".docx", ".txt", ".pptx", ".xlsx", ".csv"],
         "Images": [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg"],
@@ -332,18 +345,20 @@ def get_destination_folder_for_file(filename):
         "Subtitles": [".srt", ".vtt", ".sub", ".ass"]
     }
 
-    # Get file extension (in lowercase)
     ext = os.path.splitext(filename)[1].lower()
+    base_path = makeDownloadFolder()
 
-    # Find matching category
+    # Find the matching category folder
     for folder, extensions in categories.items():
         if ext in extensions:
-            return folder
+            folder_path = os.path.join(base_path, folder)
+            makeFolder(folder_path)
+            return folder_path
 
     # Default if no match
-    return "Others"
-
-
+    folder_path = os.path.join(base_path, "Others")
+    makeFolder(folder_path)
+    return folder_path
 
 def test101():
     from jnius import autoclass, cast
