@@ -4,7 +4,12 @@ import traceback
 from kivy.utils import platform
 from jnius import autoclass, cast
 
-from android_notify.config import run_on_ui_thread
+try:
+    from android_notify.config import run_on_ui_thread
+    from android_notify import Notification
+except Exception as e:
+    print("failed at sending....")
+
 
 import os, sys, json, requests, asyncio, threading,time
 from kivy.metrics import sp
@@ -27,7 +32,7 @@ from kivymd.uix.label import MDIcon, MDLabel
 
 from components.loading_layout import LoadingScreen
 from utils import Settings,NetworkManager,AsyncRequest,FindHosts
-from android_notify import Notification
+
 from kivy.clock import Clock
 
 from components import Header,HeaderBasic
@@ -381,6 +386,20 @@ class SettingsScreen(MDScreen):
         self.app.get_running_app().toggle_theme()
 
     def clear_cache(self, instance):
+        try:
+            notification = Notification(
+                title="Test Notification",
+                message="This is a test message."
+                )
+            notification.addLine("Line 1: Test data")
+            notification.addLine("Line 2: More test data")
+            notification.addLine("Line 3: Placeholder info")
+            notification.send()
+        except Exception as e:
+            print("failed at sending....")
+            traceback.print_exc()
+        finally:
+            return
         try:
             test101()
         except Exception as e:
