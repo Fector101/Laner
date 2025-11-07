@@ -398,8 +398,7 @@ class SettingsScreen(MDScreen):
         except Exception as e:
             print("failed at sending....")
             traceback.print_exc()
-        finally:
-            return
+        
         try:
             test101()
         except Exception as e:
