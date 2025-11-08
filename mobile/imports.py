@@ -2,7 +2,7 @@
 # Start logging
 #start_logging()
 import os,traceback
-from utils.helper import log_error_to_file
+from utils.helper import log_error_to_file, makeDownloadFolder
 try:
     from android_notify.config import AndroidNotifyLogger
 
