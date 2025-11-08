@@ -438,3 +438,27 @@ def test101():
     compatmanager = func_from(context)
     compatmanager.notify(notification_id, builder.build())
     
+
+import datetime
+
+def log_error_to_file(error_traceback, file_name='error_log'):
+    # Create "errors" folder inside the download folder
+    error_folder_path = os.path.join(makeDownloadFolder(), "errors")
+    makeFolder(error_folder_path)
+
+    # Append .txt to the file name
+    log_file_path = os.path.join(error_folder_path, f"{file_name}.txt")
+
+    # Ensure the file exists before appending
+    if not os.path.exists(log_file_path):
+        with open(log_file_path, 'w', encoding='utf-8') as file:
+            file.write('')  # Just to create the file
+
+    # Create timestamp
+    timestamp = datetime.datetime.now().strftime("[%Y-%m-%d %H:%M:%S]")
+
+    # Append error with timestamp and separator
+    with open(log_file_path, 'a', encoding='utf-8') as file:
+        file.write(f"{timestamp}\n")
+        file.write(f"{error_traceback.strip()}\n")
+        file.write('-' * 60 + '\n')

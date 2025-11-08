@@ -3,15 +3,9 @@ import traceback
 
 from kivy.utils import platform
 from jnius import autoclass, cast
-
-try:
-    from android_notify.config import run_on_ui_thread
-    from android_notify import Notification
-except Exception as e:
-    print("failed at sending....")
-
-
 import os, sys, json, requests, asyncio, threading,time
+
+
 from kivy.metrics import sp
 # from kivy.uix.scatterlayout import ScatterLayout
 
@@ -38,9 +32,20 @@ from kivy.clock import Clock
 from components import Header,HeaderBasic
 from components.templates import CustomDropDown, MDTextButton,MyBtmSheet
 from utils.typing.main import Laner
-from utils.helper import setHiddenFilesDisplay,test101
+from utils.helper import setHiddenFilesDisplay,test101,log_error_to_file
 from utils.constants import PORTS
 from components.popup import Snackbar, PopupScreen
+
+
+try:
+    from android_notify.config import run_on_ui_thread
+    from android_notify import Notification
+except Exception as e:
+    print("failed at import....")
+    error_traceback = traceback.format_exc()
+    log_error_to_file(error_traceback)
+    
+
 
 class MySwitch(MDBoxLayout):
     text=StringProperty()
@@ -397,7 +402,9 @@ class SettingsScreen(MDScreen):
             notification.send()
         except Exception as e:
             print("failed at sending1....")
-            traceback.print_exc()
+            
+            error_traceback = traceback.format_exc()
+            log_error_to_file(error_traceback)
         finally:
             return
         try:
