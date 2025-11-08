@@ -1,3 +1,7 @@
+#from utils.log_redirect import start_logging
+# Start logging
+#start_logging()
+
 from kivy.uix.filechooser import FileChooserListView
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
@@ -86,6 +90,15 @@ def startService():
         print('returned service')
     except Exception as e:
         print(f'Foreground service failed {e}')
+
+
+
+from android_notify.config import AndroidNotifyLogger
+
+# User sets full path
+logger = AndroidNotifyLogger()
+logger.setup(makeDownloadFolder(),"errors","android_notify_log.txt")
+
 
 # if platform == 'android':
     # startService()
