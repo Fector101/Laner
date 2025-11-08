@@ -1,7 +1,7 @@
 #from utils.log_redirect import start_logging
 # Start logging
 #start_logging()
-
+import os
 from kivy.uix.filechooser import FileChooserListView
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
@@ -97,7 +97,8 @@ try:
 
 # User sets full path
     logger = AndroidNotifyLogger()
-    logger.setup(makeDownloadFolder(),"errors","android_notify_log.txt")
+    error_file_path=os.path.join(makeDownloadFolder(),"errors","android_notify_log.txt")
+    logger.setup(error_file_path)
 
 except Exception as e:
     print("failed at import....")
