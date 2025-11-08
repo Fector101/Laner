@@ -5,6 +5,7 @@ import os
 import traceback
 def failed():
     from utils.helper import log_error_to_file, makeDownloadFolder
+    print("failed...")
     return
 
     try:
