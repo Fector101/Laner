@@ -2,6 +2,22 @@
 # Start logging
 #start_logging()
 import os
+
+try:
+    from android_notify.config import AndroidNotifyLogger
+
+# User sets full path
+    logger = AndroidNotifyLogger()
+    error_file_path=os.path.join(makeDownloadFolder(),"errors","android_notify_log.txt")
+    logger.setup(error_file_path)
+
+except Exception as e:
+    print("failed at import....")
+    error_traceback = traceback.format_exc()
+    log_error_to_file(error_traceback)
+    
+
+
 from kivy.uix.filechooser import FileChooserListView
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
@@ -92,18 +108,6 @@ def startService():
         print(f'Foreground service failed {e}')
 
 
-try:
-    from android_notify.config import AndroidNotifyLogger
-
-# User sets full path
-    logger = AndroidNotifyLogger()
-    error_file_path=os.path.join(makeDownloadFolder(),"errors","android_notify_log.txt")
-    logger.setup(error_file_path)
-
-except Exception as e:
-    print("failed at import....")
-    error_traceback = traceback.format_exc()
-    log_error_to_file(error_traceback)
 # if platform == 'android':
     # startService()
 
