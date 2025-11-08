@@ -24,7 +24,7 @@ def failed():
     finally:
         log_error_to_file("import block executed")
 
-failed()
+#failed()
 
 from kivy.uix.filechooser import FileChooserListView
 from kivy.uix.floatlayout import FloatLayout
