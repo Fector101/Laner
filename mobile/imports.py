@@ -3,23 +3,24 @@
 #start_logging()
 import os
 import traceback
-from utils.helper import log_error_to_file, makeDownloadFolder
-
-try:
-    from android_notify.config import AndroidNotifyLogger
-
-    # User sets full path
-    logger = AndroidNotifyLogger()
-    error_file_path = os.path.join(makeDownloadFolder(), "errors", "android_notify_log.txt")
-    logger.setup(error_file_path)
-
-except Exception:
-    print("failed at import....")
-    error_traceback = traceback.format_exc()
-    log_error_to_file(error_traceback)
+def failed():
+    from utils.helper import log_error_to_file, makeDownloadFolder
     
-finally:
-    log_error_to_file("import block executed")
+    try:
+        from android_notify.config import AndroidNotifyLogger
+    
+        # User sets full path
+        logger = AndroidNotifyLogger()
+        error_file_path = os.path.join(makeDownloadFolder(), "errors", "android_notify_log.txt")
+        logger.setup(error_file_path)
+    
+    except Exception:
+        print("failed at import....")
+        error_traceback = traceback.format_exc()
+        log_error_to_file(error_traceback)
+        
+    finally:
+        log_error_to_file("import block executed")
 
 from kivy.uix.filechooser import FileChooserListView
 from kivy.uix.floatlayout import FloatLayout
@@ -51,7 +52,7 @@ from utils.helper import (
     THEME_COLOR_TUPLE, makeDownloadFolder,
     setHiddenFilesDisplay, getAndroidBounds,
     getViewPortSize,
-    getStatusBarHeight,requestMultiplePermissions,log_error_to_file
+    getStatusBarHeight,requestMultiplePermissions
     )
 
 from utils import Settings
