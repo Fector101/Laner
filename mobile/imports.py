@@ -1,22 +1,25 @@
 #from utils.log_redirect import start_logging
 # Start logging
 #start_logging()
-import os,traceback
+import os
+import traceback
 from utils.helper import log_error_to_file, makeDownloadFolder
+
 try:
     from android_notify.config import AndroidNotifyLogger
 
-# User sets full path
+    # User sets full path
     logger = AndroidNotifyLogger()
-    error_file_path=os.path.join(makeDownloadFolder(),"errors","android_notify_log.txt")
+    error_file_path = os.path.join(makeDownloadFolder(), "errors", "android_notify_log.txt")
     logger.setup(error_file_path)
 
-except Exception as e:
+except Exception:
     print("failed at import....")
     error_traceback = traceback.format_exc()
     log_error_to_file(error_traceback)
     
-
+finally:
+    log_error_to_file("import block executed")
 
 from kivy.uix.filechooser import FileChooserListView
 from kivy.uix.floatlayout import FloatLayout
