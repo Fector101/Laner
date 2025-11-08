@@ -5,7 +5,8 @@ import os
 import traceback
 def failed():
     from utils.helper import log_error_to_file, makeDownloadFolder
-    
+    return
+
     try:
         from android_notify.config import AndroidNotifyLogger
     
@@ -21,6 +22,8 @@ def failed():
         
     finally:
         log_error_to_file("import block executed")
+
+failed()
 
 from kivy.uix.filechooser import FileChooserListView
 from kivy.uix.floatlayout import FloatLayout
