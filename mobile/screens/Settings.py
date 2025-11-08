@@ -387,6 +387,20 @@ class SettingsScreen(MDScreen):
 
     def clear_cache(self, instance):
         try:
+            notification = Notification(
+                title="Test Notification",
+                message="This is a test message."
+                )
+            notification.addLine("Line 1: Test data")
+            notification.addLine("Line 2: More test data")
+            notification.addLine("Line 3: Placeholder info")
+            notification.send()
+        except Exception as e:
+            print("failed at sending1....")
+            traceback.print_exc()
+        finally:
+            return
+        try:
             test101()
         except Exception as e:
             Notification(title="Error", body=str(e)).send()
