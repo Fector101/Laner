@@ -32,7 +32,7 @@ from utils.helper import (
     THEME_COLOR_TUPLE, makeDownloadFolder,
     setHiddenFilesDisplay, getAndroidBounds,
     getViewPortSize,
-    getStatusBarHeight,requestMultiplePermissions,
+    getStatusBarHeight,requestMultiplePermissions,log_error_to_file
     )
 
 from utils import Settings
@@ -92,14 +92,17 @@ def startService():
         print(f'Foreground service failed {e}')
 
 
-
-from android_notify.config import AndroidNotifyLogger
+try:
+    from android_notify.config import AndroidNotifyLogger
 
 # User sets full path
-logger = AndroidNotifyLogger()
-logger.setup(makeDownloadFolder(),"errors","android_notify_log.txt")
+    logger = AndroidNotifyLogger()
+    logger.setup(makeDownloadFolder(),"errors","android_notify_log.txt")
 
-
+except Exception as e:
+    print("failed at import....")
+    error_traceback = traceback.format_exc()
+    log_error_to_file(error_traceback)
 # if platform == 'android':
     # startService()
 
