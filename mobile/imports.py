@@ -7,7 +7,7 @@ try:
 except Exception as e:
     from utils.helper import log_error_to_file
     error_traceback = traceback.format_exc()
-            log_error_to_file(error_traceback)
+    log_error_to_file(error_traceback)
 
 
 from kivy.uix.filechooser import FileChooserListView
