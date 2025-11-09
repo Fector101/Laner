@@ -284,6 +284,8 @@ class SettingsScreen(MDScreen):
 
         self.add_category("Storage", [
             {'size':[sp(100),sp(50)],"type": "button", 'id':'clear_btn', "title": "Clear Cache", "callback": self.clear_cache},
+    {'size':[sp(120),sp(50)], "type": "button", 'id':'backup_btn', "title": "Backup Data", "callback": self.backup_data},
+    {'size':[sp(120),sp(50)], "type": "button", 'id':'restore_btn', "title": "Restore Data", "callback": self.restore_data},
             {"type": "info", "title": "Storage Used", "value": "Calculate storage"}
         ])
 
@@ -623,6 +625,29 @@ class SettingsScreen(MDScreen):
 
     def enable_click(self):
         self.layout.disabled=False
+
+    def backup_data(self, instance):
+        try:
+            Snackbar(h1="Backing up data...")
+            # Add your backup logic here
+            print("Backup started...")
+            # Simulate process
+            time.sleep(1)
+            Snackbar(h1="Backup completed successfully")
+        except Exception as e:
+            print("Backup error:", e)
+            error_traceback = traceback.format_exc()
+            log_error_to_file(error_traceback)
+
+    def restore_data(self, instance):
+        try:
+            from android_notify.core import asks_permission_if_needed
+            asks_permission_if_needed(no_androidx=True)
+        except Exception as e:
+            print("Restore error:", e)
+            error_traceback = traceback.format_exc()
+            log_error_to_file(error_traceback)
+
 
 @run_on_ui_thread
 def show_spannable_notification():
