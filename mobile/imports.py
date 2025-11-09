@@ -1,15 +1,4 @@
 import os, traceback
-
-# Start logging
-try:
-    from utils.log_redirect import start_logging
-    start_logging()
-except Exception as e:
-    from utils.helper import log_error_to_file
-    error_traceback = traceback.format_exc()
-    log_error_to_file(error_traceback)
-
-
 from kivy.uix.filechooser import FileChooserListView
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
@@ -42,6 +31,15 @@ from utils.helper import (
     getViewPortSize,
     getStatusBarHeight,requestMultiplePermissions
     )
+
+# Start logging
+try:
+    from utils.log_redirect import start_logging
+    start_logging()
+except Exception as e:
+    from utils.helper import log_error_to_file
+    error_traceback = traceback.format_exc()
+    log_error_to_file(error_traceback)
 
 from utils import Settings
 from screens import DisplayFolderScreen, ConnectScreen,SettingsScreen
