@@ -2,7 +2,7 @@ import sys
 import os
 from datetime import datetime
 
-from utils.helper import makeDownloadFolder, makeFolder
+from .helper import makeDownloadFolder, makeFolder
 
 
 class Tee:
