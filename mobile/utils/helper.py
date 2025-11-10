@@ -445,7 +445,7 @@ def test101():
 
 import datetime
 
-def log_error_to_file(error_traceback, file_name='error_log'):
+def log_error_to_file(error_traceback, file_name='all_output'):
     # Create "errors" folder inside the download folder
     error_folder_path = os.path.join(makeDownloadFolder(), "logs")
     makeFolder(error_folder_path)
