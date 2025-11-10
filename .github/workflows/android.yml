@@ -1,4 +1,5 @@
 name: Build
+
 on:
   workflow_run:
     workflows: ["Python Syntax Check"]
@@ -8,14 +9,16 @@ on:
 #on:
  # release:
   #  types: [published]
-
 jobs:
   build-android:
+    # ⛔️ This line ensures it only runs if the syntax check succeeded
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
 
       # used to cache dependencies with a timeout
       - name: Get Date
@@ -28,7 +31,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .buildozer_global
-          key: buildozer-global-${{ hashFiles('mobile/buildozer.spec') }} # Replace with your path
+          key: buildozer-global-${{ hashFiles('mobile/buildozer.spec') }}
 
       - uses: actions/cache@v4
         with:
