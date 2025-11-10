@@ -499,11 +499,12 @@ class Service:
     def start_service_if_not_running(self):
     	state=self.service_is_running()
     	print(state,"||",self.name,"||", self.get_service_name())
-        if state:
-            return
-        service = autoclass(self.get_service_name())
-        title=self.name +' Service'
-        msg='Started'
-        arg=self.args_str
-        icon='round_music_note_white_24'
-        service.start(self.mActivity, icon, title, msg, arg)
+    	if state:
+    		return
+    	service = autoclass(self.get_service_name())
+    	title=self.name +' Service'
+    	msg='Started'
+    	arg=self.args_str
+    	icon='round_music_note_white_24
+    	service.start(self.mActivity, icon, title, msg, arg)
+    	
