@@ -1,5 +1,6 @@
 import os
 import threading
+import time
 import requests
 from pythonosc import dispatcher, osc_server, udp_client
 from android_notify import Notification
@@ -9,7 +10,7 @@ APP_PORT = 5007
 APP_IP = "127.0.0.1"
 
 client = udp_client.SimpleUDPClient(APP_IP, APP_PORT)
-Notification(title="entered").send()
+
 
 class DownloadTask(threading.Thread):
     def __init__(self, url, dest, task_id):
@@ -20,59 +21,95 @@ class DownloadTask(threading.Thread):
         self._paused = threading.Event()
         self._cancelled = threading.Event()
         self._paused.clear()
+        self._cancelled.clear()
+
+        # Initialize Android notification
+        self.notification = Notification(
+            title="Downloading...",
+            message="0% downloaded",
+            progress_current_value=0,
+            progress_max_value=100
+        )
+        self.notification.send()
 
     def run(self):
         try:
-            # Check if resuming
             downloaded = 0
             if os.path.exists(self.dest):
                 downloaded = os.path.getsize(self.dest)
 
-            headers = {"Range": f"bytes={downloaded}-"} if downloaded > 0 else {}
+            headers = {}
+            if downloaded > 0:
+                headers["Range"] = f"bytes={downloaded}-"
+            headers["User-Agent"] = "LanerDownloader/1.0 (+https://github.com/Fector101)"
 
-            with requests.get(self.url, stream=True, headers=headers) as r:
-                if r.status_code not in (200, 206):
-                    raise Exception(f"Server doesn't support resume (status {r.status_code})")
+            for attempt in range(3):  # retry a few times
+                try:
+                    with requests.get(self.url, headers=headers, stream=True, timeout=(10, 30)) as r:
+                        if r.status_code not in (200, 206):
+                            if downloaded > 0 and r.status_code == 200:
+                                # Server doesn't support resume
+                                downloaded = 0
+                            else:
+                                raise Exception(f"HTTP {r.status_code}")
 
-                total = int(r.headers.get("content-length", 0)) + downloaded
-                mode = "ab" if downloaded > 0 else "wb"
+                        total = int(r.headers.get("content-length", 0)) + downloaded
+                        mode = "ab" if downloaded > 0 else "wb"
 
-                with open(self.dest, mode) as f:
-                    for chunk in r.iter_content(1024 * 64):
-                        if self._cancelled.is_set():
-                            break
-                        while self._paused.is_set():
-                            threading.Event().wait(0.2)
-                        if chunk:
-                            f.write(chunk)
-                            downloaded += len(chunk)
-                            progress = int((downloaded / total) * 100)
-                            client.send_message("/download/progress", [self.task_id, progress])
+                        with open(self.dest, mode) as f:
+                            for chunk in r.iter_content(1024 * 64):
+                                if self._cancelled.is_set():
+                                    raise Exception("Download cancelled")
+                                while self._paused.is_set():
+                                    time.sleep(0.3)
+                                if not chunk:
+                                    continue
+                                f.write(chunk)
+                                downloaded += len(chunk)
+                                progress = int((downloaded / total) * 100)
+                                message = f"{downloaded//1024}KB/{total//1024}KB"
+                                self.notification.updateProgressBar(
+                                    current_value=progress,
+                                    message=message,
+                                    title=f"Downloading... {progress}%"
+                                )
+                                client.send_message("/download/progress", [self.task_id, progress])
 
-                if not self._cancelled.is_set():
-                    if downloaded >= total:
-                        client.send_message("/download/complete", [self.task_id, self.dest])
-                    else:
-                        client.send_message("/download/paused", [self.task_id, downloaded])
+                        if downloaded >= total:
+                            self.notification.removeProgressBar("Download Complete", show_on_update=True)
+                            client.send_message("/download/complete", [self.task_id, self.dest])
+                        else:
+                            client.send_message("/download/paused", [self.task_id, downloaded])
+                        break
+                except requests.exceptions.ConnectionError:
+                    if attempt == 2:
+                        raise
+                    time.sleep(2)
         except Exception as e:
+            self.notification.removeProgressBar(f"Failed: {e}", show_on_update=True)
             client.send_message("/download/error", [self.task_id, str(e)])
 
     def pause(self):
         self._paused.set()
+        self.notification.removeProgressBar("Paused", show_on_update=True)
 
     def resume(self):
         if self._paused.is_set():
             self._paused.clear()
-            # restart thread if needed
-            if not self.is_alive():
-                self.run_in_thread()
+            self.notification = Notification(
+                title="Resuming Download...",
+                message="Resuming...",
+                progress_current_value=0,
+                progress_max_value=100
+            )
+            self.notification.send()
+            t = threading.Thread(target=self.run)
+            t.start()
 
     def cancel(self):
         self._cancelled.set()
-
-    def run_in_thread(self):
-        t = threading.Thread(target=self.run)
-        t.start()
+        self.notification.removeProgressBar("Cancelled", show_on_update=True)
+        client.send_message("/download/cancelled", [self.task_id])
 
 
 class DownloadManager:
@@ -94,26 +131,19 @@ class DownloadManager:
 
     def resume(self, task_id):
         if task_id in self.tasks:
-            task = self.tasks[task_id]
-            if not task.is_alive():
-                new_task = DownloadTask(task.url, task.dest, task.task_id)
-                self.tasks[task_id] = new_task
-                new_task.start()
-            else:
-                task.resume()
+            self.tasks[task_id].resume()
             client.send_message("/download/resumed", [task_id])
 
     def cancel(self, task_id):
         if task_id in self.tasks:
             self.tasks[task_id].cancel()
-            client.send_message("/download/cancelled", [task_id])
             del self.tasks[task_id]
 
 
 manager = DownloadManager()
 
 
-# OSC command handlers
+# OSC handlers
 def osc_start(addr, url, dest, task_id):
     manager.start(url, dest, task_id)
 
