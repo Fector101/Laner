@@ -483,8 +483,9 @@ class Service:
 
     def service_is_running(self):
         service_name = self.get_service_name()
-        thing=self.mActivity.getSystemService(context.ACTIVITY_SERVICE)
         context = self.mActivity.getApplicationContext()
+        thing=self.mActivity.getSystemService(context.ACTIVITY_SERVICE)
+        
         manager = cast('android.app.ActivityManager',thing)
         for service in manager.getRunningServices(100):
         	found_service=service.service.getClassName()
