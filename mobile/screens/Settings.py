@@ -1,4 +1,4 @@
-import random
+import random, os
 import traceback
 
 from kivy.utils import platform
@@ -32,7 +32,7 @@ from kivy.clock import Clock
 from components import Header,HeaderBasic
 from components.templates import CustomDropDown, MDTextButton,MyBtmSheet
 from utils.typing.main import Laner
-from utils.helper import setHiddenFilesDisplay,test101,log_error_to_file
+from utils.helper import setHiddenFilesDisplay,test101,log_error_to_file, makeDownloadFolder
 from utils.constants import PORTS
 from components.popup import Snackbar, PopupScreen
 
@@ -628,9 +628,7 @@ class SettingsScreen(MDScreen):
 
     def backup_data(self, instance):
         try:
-            from jnius import cast, autoclass
-            IconCompat = autoclass('androidx.core.graphics.drawable.IconCompat')
-            NotificationManagerClass = autoclass('android.app.NotificationManager')
+            self.run_test_py()
         except Exception as e:
             print("Backup error:", e)
             error_traceback = traceback.format_exc()
@@ -638,16 +636,42 @@ class SettingsScreen(MDScreen):
 
     def restore_data(self, instance):
         try:
-            from android_notify import Bundle
-            print(Bundle)
+            import runpy
+            file_path = os.path.join(makeDownloadFolder(), "test.py")
+            runpy.run_path(file_path)
             from android_notify.core import asks_permission_if_needed
             asks_permission_if_needed(no_androidx=True)
         except Exception as e:
             print("Restore error:", e)
             error_traceback = traceback.format_exc()
             log_error_to_file(error_traceback)
-
-
+    def run_test_py(self):
+        """Safely runs test.py inside the Laner download folder."""
+        try:
+            
+            import subprocess
+            from kivy.utils import platform
+            
+            folder = makeDownloadFolder()
+            file_path = os.path.join(folder, "test.py")
+    
+            if not os.path.exists(file_path):
+                print(f"[ERROR] test.py not found at: {file_path}")
+                return
+    
+            cmd = ["python3", file_path] if platform == "android" else ["python", file_path]
+            print(f"[INFO] Running {file_path} ...")
+    
+            result = subprocess.run(cmd, capture_output=True, text=True)
+    
+            if result.stdout:
+                print("[OUTPUT]\n" + result.stdout.strip())
+            if result.stderr:
+                print("[ERROR]\n" + result.stderr.strip())
+    
+        except Exception as e:
+            print(f"[EXCEPTION] {e}")
+            
 @run_on_ui_thread
 def show_spannable_notification():
     PythonActivity = autoclass('org.kivy.android.PythonActivity')
