@@ -836,3 +836,4 @@ def show_custom_notification(title1, title2, message):
 
     # notificationLayoutExpanded = RemoteViews(package_name, big)
     # builder.setCustomBigContentView(notificationLayoutExpanded)
+
