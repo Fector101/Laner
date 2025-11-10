@@ -40,7 +40,7 @@ version = 1.0
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,materialyoucolor,asynckivy,asyncgui,pyjnius,docutils,netifaces,filetype,requests_toolbelt,websockets, https://github.com/Fector101/android_notify/archive/without-androidx.zip
+requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,materialyoucolor,asynckivy,asyncgui,pyjnius,docutils,netifaces,filetype,requests_toolbelt,websockets, https://github.com/Fector101/android_notify/archive/without-androidx.zip,python-osc
 
 #requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,android-notify,materialyoucolor,asynckivy,asyncgui,pyjnius,docutils,netifaces,filetype,requests_toolbelt,websockets
 # (str) Custom source folders for requirements
