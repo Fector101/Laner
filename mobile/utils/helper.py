@@ -505,6 +505,6 @@ class Service:
     	title=self.name +' Service'
     	msg='Started'
     	arg=self.args_str
-    	icon='round_music_note_white_24
+    	icon='round_music_note_white_24'
     	service.start(self.mActivity, icon, title, msg, arg)
     	
