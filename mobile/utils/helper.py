@@ -447,7 +447,7 @@ import datetime
 
 def log_error_to_file(error_traceback, file_name='error_log'):
     # Create "errors" folder inside the download folder
-    error_folder_path = os.path.join(makeDownloadFolder(), "errors")
+    error_folder_path = os.path.join(makeDownloadFolder(), "logs")
     makeFolder(error_folder_path)
 
     # Append .txt to the file name
@@ -483,15 +483,18 @@ class Service:
 
     def service_is_running(self):
         service_name = self.get_service_name()
+        thing=self.mActivity.getSystemService(context.ACTIVITY_SERVICE)
         context = self.mActivity.getApplicationContext()
-        manager = cast('android.app.ActivityManager',
-                       self.mActivity.getSystemService(context.ACTIVITY_SERVICE))
+        manager = cast('android.app.ActivityManager',thing)
         for service in manager.getRunningServices(100):
         	found_service=service.service.getClassName()
         	print("found_service: ",found_service)
-            if found_service== service_name:
-                return True
+        	if found_service== service_name:
+        		return True
         return False
+            #
+            
+        
 
     def start_service_if_not_running(self):
     	state=self.service_is_running()
