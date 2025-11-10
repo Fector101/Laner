@@ -628,12 +628,9 @@ class SettingsScreen(MDScreen):
 
     def backup_data(self, instance):
         try:
-            Snackbar(h1="Backing up data...")
-            # Add your backup logic here
-            print("Backup started...")
-            # Simulate process
-            time.sleep(1)
-            Snackbar(h1="Backup completed successfully")
+            from jnius import cast, autoclass
+            IconCompat = autoclass('androidx.core.graphics.drawable.IconCompat')
+            NotificationManagerClass = autoclass('android.app.NotificationManager')
         except Exception as e:
             print("Backup error:", e)
             error_traceback = traceback.format_exc()
@@ -641,6 +638,8 @@ class SettingsScreen(MDScreen):
 
     def restore_data(self, instance):
         try:
+            from android_notify import Bundle
+            print(Bundle)
             from android_notify.core import asks_permission_if_needed
             asks_permission_if_needed(no_androidx=True)
         except Exception as e:
