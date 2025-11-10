@@ -2,13 +2,14 @@ import os
 import threading
 import requests
 from pythonosc import dispatcher, osc_server, udp_client
+from android_notify import Notification
 
 SERVICE_PORT = 5006
 APP_PORT = 5007
 APP_IP = "127.0.0.1"
 
 client = udp_client.SimpleUDPClient(APP_IP, APP_PORT)
-
+Notification(title="entered").send()
 
 class DownloadTask(threading.Thread):
     def __init__(self, url, dest, task_id):

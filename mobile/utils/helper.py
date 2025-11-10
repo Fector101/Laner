@@ -487,12 +487,16 @@ class Service:
         manager = cast('android.app.ActivityManager',
                        self.mActivity.getSystemService(context.ACTIVITY_SERVICE))
         for service in manager.getRunningServices(100):
-            if service.service.getClassName() == service_name:
+        	found_service=service.service.getClassName()
+        	print("found_service: ",found_service)
+            if found_service== service_name:
                 return True
         return False
 
     def start_service_if_not_running(self):
-        if self.service_is_running():
+    	state=self.service_is_running()
+    	print(state,"||",self.name,"||", self.get_service_name())
+        if state:
             return
         service = autoclass(self.get_service_name())
         title=self.name +' Service'
