@@ -59,7 +59,7 @@ orientation = portrait
 
 # (list) List of service to declare
 #services = NAME:ENTRYPOINT_TO_PY,NAME2:ENTRYPOINT2_TO_PY
-services = Download:./services/download.py:True,Upload:./services/upload.py:True,Sendnoti:./services/old.py:True
+services = Download:./services/download.py:True,Upload:./services/upload.py:True,Sendnoti:./services/old.py:True,Mydownloader:./services/mydownloader.py:True
 #,Final:./services/finalact.py:foreground
 
 #

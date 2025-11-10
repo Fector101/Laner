@@ -462,3 +462,37 @@ def log_error_to_file(error_traceback, file_name='error_log'):
         file.write(f"{timestamp}\n")
         file.write(f"{error_traceback.strip()}\n")
         file.write('-' * 60 + '\n')
+
+
+
+
+class Service:
+    def __init__(self,name,args_str=""):
+        from android import mActivity
+        self.mActivity = mActivity
+        self.args_str=args_str
+        self.name=name
+        self.start_service_if_not_running()
+    def get_service_name(self):
+        context = self.mActivity.getApplicationContext()
+        return str(context.getPackageName()) + '.Service' + self.name
+
+    def service_is_running(self):
+        service_name = self.get_service_name()
+        context = self.mActivity.getApplicationContext()
+        manager = cast('android.app.ActivityManager',
+                       self.mActivity.getSystemService(context.ACTIVITY_SERVICE))
+        for service in manager.getRunningServices(100):
+            if service.service.getClassName() == service_name:
+                return True
+        return False
+
+    def start_service_if_not_running(self):
+        if self.service_is_running():
+            return
+        service = autoclass(self.get_service_name())
+        title=self.name +' Service'
+        msg='Started'
+        arg=self.args_str
+        icon='round_music_note_white_24'
+        service.start(self.mActivity, icon, title, msg, arg)

@@ -32,19 +32,25 @@ from kivy.clock import Clock
 from components import Header,HeaderBasic
 from components.templates import CustomDropDown, MDTextButton,MyBtmSheet
 from utils.typing.main import Laner
-from utils.helper import setHiddenFilesDisplay,test101,log_error_to_file, makeDownloadFolder
+from utils.helper import setHiddenFilesDisplay,test101,log_error_to_file, makeDownloadFolder,Service
 from utils.constants import PORTS
 from components.popup import Snackbar, PopupScreen
 
 
+from android_notify.config import run_on_ui_thread
+from android_notify import Notification
+
 try:
-    from android_notify.config import run_on_ui_thread
-    from android_notify import Notification
+    from pythonosc import udp_client,dispatcher, osc_server
 except Exception as e:
     print("failed at import....")
     error_traceback = traceback.format_exc()
     log_error_to_file(error_traceback)
     
+
+APP_PORT = 5007
+SERVICE_PORT = 5006
+SERVICE_IP = "127.0.0.1"
 
 
 class MySwitch(MDBoxLayout):
@@ -234,6 +240,8 @@ class SettingsScreen(MDScreen):
 
         self.name = 'settings'
         self.pc_name = ''
+        self.osc_client=None
+        self.disp =None
         # Main layout
         self.layout = MDBoxLayout(
             orientation='vertical',
@@ -284,8 +292,13 @@ class SettingsScreen(MDScreen):
 
         self.add_category("Storage", [
             {'size':[sp(100),sp(50)],"type": "button", 'id':'clear_btn', "title": "Clear Cache", "callback": self.clear_cache},
-    {'size':[sp(120),sp(50)], "type": "button", 'id':'backup_btn', "title": "Backup Data", "callback": self.backup_data},
-    {'size':[sp(120),sp(50)], "type": "button", 'id':'restore_btn', "title": "Restore Data", "callback": self.restore_data},
+    {'size':[sp(120),sp(50)], "type": "button", 'id':'backup_btn', "title": "start service", "callback": self.backup_data},
+    {'size':[sp(120),sp(50)], "type": "button", 'id':'restore_btn', "title": "Run py file", "callback": self.restore_data},
+    {'size':[sp(120),sp(50)], "type": "button", 'id':'setup_dispatcher', "title": "setup_dispatcher", "callback": self.setup_dispatcher},
+        {'size':[sp(120),sp(50)], "type": "button", 'id':'start_test_server', "title": "start_test_server", "callback": self.start_test_server},
+    {'size':[sp(120),sp(50)], "type": "button", 'id':'start_btn', "title": "Start Down", "callback": self.my_start_btn},
+    {'size':[sp(120),sp(50)], "type": "button", 'id':'my_resume_btn', "title": "Continue Down", "callback": self.my_resume_btn},
+    {'size':[sp(120),sp(50)], "type": "button", 'id':'pause_btn', "title": "Pause Down", "callback": self.my_pause_btn},
             {"type": "info", "title": "Storage Used", "value": "Calculate storage"}
         ])
 
@@ -628,9 +641,9 @@ class SettingsScreen(MDScreen):
 
     def backup_data(self, instance):
         try:
-            self.run_test_py()
+            Service(name='Mydownloader')
         except Exception as e:
-            print("Backup error:", e)
+            print("Start service error:", e)
             error_traceback = traceback.format_exc()
             log_error_to_file(error_traceback)
 
@@ -645,33 +658,85 @@ class SettingsScreen(MDScreen):
             print("Restore error:", e)
             error_traceback = traceback.format_exc()
             log_error_to_file(error_traceback)
-    def run_test_py(self):
-        """Safely runs test.py inside the Laner download folder."""
+            
+    def my_start_btn(self, instance):
+        SERVICE_IP = "127.0.0.1"
+        SERVICE_PORT = 5006
+        sample_url ="https://ash-speed.hetzner.com/100MB.bin"
+        save_path=os.path.join(makeDownloadFolder(),"test.bin")
+        self.osc_client = udp_client.SimpleUDPClient(SERVICE_IP, SERVICE_PORT)
+
+        self.osc_client.send_message("/download/start", [sample_url,save_path,"task_1"])
+        
+    def my_resume_btn(self, instance):
+        self.osc_client.send_message("/download/resume", ["task_1"])
+    def my_pause_btn(self, instance):
+        self.osc_client.send_message("/download/pause", ["task_1"])
+    
+    def on_progress(self, addr, task_id, progress):
+        Notification(
+            title=f"Download Progress ({task_id})",
+            message=f"{progress}% completed"
+        ).send()
+    
+    
+    def on_complete(self, addr, task_id, dest):
+        Notification(
+            title=f"Download Complete ({task_id})",
+            message=f"Saved to {dest}"
+        ).send()
+    
+    
+    def on_paused(self, addr, task_id):
+        Notification(
+            title=f"Download Paused ({task_id})",
+            message="The download has been paused"
+        ).send()
+    
+    
+    def on_resumed(self, addr, task_id):
+        Notification(
+            title=f"Download Resumed ({task_id})",
+            message="The download has resumed"
+        ).send()
+    
+    
+    def on_error(self, addr, task_id, msg):
+        Notification(
+            title=f"Download Error ({task_id})",
+            message=str(msg)
+        ).send()
+
+    
+    def on_cancelled(self, addr, task_id):
+        Notification(
+            title=f"Download Cancelled ({task_id})",
+            message="The download was cancelled"
+        ).send()
+    def setup_dispatcher(self, instance=None):
+        self.disp = dispatcher.Dispatcher()
+        self.disp.map("/download/progress", self.on_progress)
+        self.disp.map("/download/complete", self.on_complete)
+        self.disp.map("/download/paused", self.on_paused)
+        self.disp.map("/download/resumed", self.on_resumed)
+        self.disp.map("/download/error", self.on_error)
+        self.disp.map("/download/cancelled", self.on_cancelled)
+        
+    def listen(self):
+        Notification(
+        title="App Service",
+        message=f"Listening on port {APP_PORT}"
+        ).send()
+        server = osc_server.ThreadingOSCUDPServer(("0.0.0.0", APP_PORT), self.disp)
+        server.serve_forever()
+    
+    def start_test_server(self,instance):
         try:
-            
-            import subprocess
-            from kivy.utils import platform
-            
-            folder = makeDownloadFolder()
-            file_path = os.path.join(folder, "test.py")
-    
-            if not os.path.exists(file_path):
-                print(f"[ERROR] test.py not found at: {file_path}")
-                return
-    
-            cmd = ["python3", file_path] if platform == "android" else ["python", file_path]
-            print(f"[INFO] Running {file_path} ...")
-    
-            result = subprocess.run(cmd, capture_output=True, text=True)
-    
-            if result.stdout:
-                print("[OUTPUT]\n" + result.stdout.strip())
-            if result.stderr:
-                print("[ERROR]\n" + result.stderr.strip())
-    
+            threading.Thread(target=self.listen, daemon=True).start()
         except Exception as e:
-            print(f"[EXCEPTION] {e}")
-            
+            traceback.print_exc()
+        
+        
 @run_on_ui_thread
 def show_spannable_notification():
     PythonActivity = autoclass('org.kivy.android.PythonActivity')
