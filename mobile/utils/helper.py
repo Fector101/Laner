@@ -4,7 +4,11 @@ from pathlib import Path
 
 from utils.constants import OTHER_TXT_FORMATS
 from android_notify.config import from_service_file,get_python_activity_context
-from jnius import autoclass
+try:
+	from jnius import autoclass, cast
+except Exception as e:
+	print("Error importing pyjnius:", e)
+
 
 import sys
 print('sys.path 101 --->',[ path for path in sys.path],os.path.exists("/system/build.prop"),platform.release(),platform.system())
