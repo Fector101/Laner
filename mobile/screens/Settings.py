@@ -32,7 +32,7 @@ from kivy.clock import Clock
 from components import Header,HeaderBasic
 from components.templates import CustomDropDown, MDTextButton,MyBtmSheet
 from utils.typing.main import Laner
-from utils.helper import setHiddenFilesDisplay,test101,log_error_to_file, makeDownloadFolder,Service
+from utils.helper import setHiddenFilesDisplay,test101,log_error_to_file, makeDownloadFolder,Service,file_path_to_unique_int
 from utils.constants import PORTS
 from components.popup import Snackbar, PopupScreen
 
@@ -671,9 +671,16 @@ class SettingsScreen(MDScreen):
         self.osc_client.send_message("/download/start", [sample_url,save_path])
         
     def my_resume_btn(self, instance):
-        self.osc_client.send_message("/download/resume", ["task_1"])
+        ip_input=self.ids['ip_addr_input']
+        save_path=os.path.join(makeDownloadFolder(),f"{ip_input.text.strip()}")
+        task_id=file_path_to_unique_int()
+        self.osc_client.send_message("/download/resume", [task_id])
     def my_pause_btn(self, instance):
-        self.osc_client.send_message("/download/pause", ["task_1"])
+        ip_input=self.ids['ip_addr_input']
+        save_path=os.path.join(makeDownloadFolder(),f"{ip_input.text.strip()}")
+        task_id=file_path_to_unique_int()
+        self.osc_client.send_message("/download/pause", [task_id])
+        
     def stop_service(self, instance):
         self.osc_client.send_message("/service/stop",[])
     def on_progress(self, addr, task_id, progress):

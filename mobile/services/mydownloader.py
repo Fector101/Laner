@@ -2,10 +2,11 @@ import os
 import threading
 import time
 import requests
-import hashlib
+
 from pythonosc import dispatcher, osc_server, udp_client
 from android_notify import Notification
 from jnius import autoclass
+from utils.helper import file_path_to_unique_int
 
 SERVICE_PORT = 5006
 APP_PORT = 5007
@@ -21,12 +22,6 @@ def debug_notify(title, msg):
     except Exception as e:
         print(f"[DEBUG_NOTIFY_FAIL] {e}")
 
-
-def string_to_int(input_string: str, max_value=2_147_483_647):
-    """Convert string (like file path) to a reproducible 32-bit integer ID."""
-    hash_bytes = hashlib.sha256(input_string.encode()).digest()
-    int_value = int.from_bytes(hash_bytes[:4], byteorder="big")
-    return int_value % max_value
 
 
 def stop_service():
@@ -53,7 +48,7 @@ class DownloadTask(threading.Thread):
         super().__init__(daemon=True)
         self.url = url
         self.dest = dest
-        self.task_id = string_to_int(dest)
+        self.task_id = file_path_to_unique_int(dest)
         self._paused = threading.Event()
         self._cancelled = threading.Event()
         self._last_progress = -1
@@ -168,7 +163,7 @@ class DownloadManager:
         self.tasks = {}
 
     def start(self, url, dest):
-        task_id = string_to_int(dest)
+        task_id = file_path_to_unique_int(dest)
         if task_id in self.tasks:
             client.send_message("/download/error", [task_id, "Task already exists"])
             return

@@ -1,7 +1,7 @@
 import os, platform, traceback, mimetypes
 import urllib.parse
 from pathlib import Path
-
+import hashlib
 from utils.constants import OTHER_TXT_FORMATS
 from android_notify.config import from_service_file,get_python_activity_context
 try:
@@ -509,3 +509,8 @@ class Service:
     	icon='round_music_note_white_24'
     	service.start(self.mActivity, icon, title, msg, arg)
     	
+def file_path_to_unique_int(file_path: str, max_value=2_147_483_647):
+    """Convert string (like file path) to a reproducible 32-bit integer ID."""
+    hash_bytes = hashlib.sha256(file_path.encode()).digest()
+    int_value = int.from_bytes(hash_bytes[:4], byteorder="big")
+    return int_value % max_value
