@@ -1,4 +1,4 @@
-import os, platform, traceback, mimetypes
+import os, platform, traceback, mimetypes, socket
 import urllib.parse
 from pathlib import Path
 import hashlib
@@ -505,7 +505,7 @@ class Service:
     	service = autoclass(self.get_service_name())
     	title=self.name +' Service'
     	msg='Started'
-    	arg=self.args_str
+    	arg=str(self.args_str)
     	icon='round_music_note_white_24'
     	service.start(self.mActivity, icon, title, msg, arg)
     	
@@ -514,3 +514,10 @@ def file_path_to_unique_int(file_path: str, max_value=2_147_483_647):
     hash_bytes = hashlib.sha256(file_path.encode()).digest()
     int_value = int.from_bytes(hash_bytes[:4], byteorder="big")
     return int_value % max_value
+
+def get_free_port():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.bind(("", 0))  # bind to a random free port
+    port = s.getsockname()[1]
+    s.close()
+    return port

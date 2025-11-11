@@ -32,7 +32,7 @@ from kivy.clock import Clock
 from components import Header,HeaderBasic
 from components.templates import CustomDropDown, MDTextButton,MyBtmSheet
 from utils.typing.main import Laner
-from utils.helper import setHiddenFilesDisplay,test101,log_error_to_file, makeDownloadFolder,Service,file_path_to_unique_int
+from utils.helper import setHiddenFilesDisplay,test101,log_error_to_file, makeDownloadFolder,Service,file_path_to_unique_int,get_free_port
 from utils.constants import PORTS
 from components.popup import Snackbar, PopupScreen
 
@@ -49,7 +49,7 @@ except Exception as e:
     
 
 APP_PORT = 5007
-SERVICE_PORT = 5006
+SERVICE_PORT = get_free_port()
 SERVICE_IP = "127.0.0.1"
 
 
@@ -641,7 +641,7 @@ class SettingsScreen(MDScreen):
 
     def backup_data(self, instance):
         try:
-            Service(name='Mydownloader')
+            Service(name='Mydownloader',args_str=SERVICE_PORT)
         except Exception as e:
             print("Start service error:", e)
             error_traceback = traceback.format_exc()
@@ -662,7 +662,7 @@ class SettingsScreen(MDScreen):
     def my_start_btn(self, instance):
         ip_input=self.ids['ip_addr_input']
         SERVICE_IP = "127.0.0.1"
-        SERVICE_PORT = 5006
+        
         sample_url ="https://ash-speed.hetzner.com/100MB.bin"
         save_path=os.path.join(makeDownloadFolder(),f"{ip_input.text.strip()}")
         print("sending...",[sample_url,save_path])

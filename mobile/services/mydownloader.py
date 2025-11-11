@@ -2,13 +2,19 @@ import os
 import threading
 import time
 import requests
+from os import environ
 
 from pythonosc import dispatcher, osc_server, udp_client
 from android_notify import Notification
 from jnius import autoclass
 from utils.helper import file_path_to_unique_int
 
-SERVICE_PORT = 5006
+try:
+    SERVICE_PORT = int(environ.get('PYTHON_SERVICE_ARGUMENT', '5006'))
+except (TypeError, ValueError):
+    SERVICE_PORT = 5006
+
+print(f"[Service] Received value for port: {SERVICE_PORT}")
 APP_PORT = 5007
 APP_IP = "127.0.0.1"
 
