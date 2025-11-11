@@ -671,18 +671,22 @@ class SettingsScreen(MDScreen):
         self.osc_client.send_message("/download/start", [sample_url,save_path])
         
     def my_resume_btn(self, instance):
-        ip_input=self.ids['ip_addr_input']
-        save_path=os.path.join(makeDownloadFolder(),f"{ip_input.text.strip()}")
-        task_id=file_path_to_unique_int()
+        file_path=self.file_path_frm_ip_addr_input()
+        task_id=file_path_to_unique_int(file_path)
         self.osc_client.send_message("/download/resume", [task_id])
+    
     def my_pause_btn(self, instance):
-        ip_input=self.ids['ip_addr_input']
-        save_path=os.path.join(makeDownloadFolder(),f"{ip_input.text.strip()}")
-        task_id=file_path_to_unique_int()
+        
+        file_path=self.file_path_frm_ip_addr_input()
+        task_id=file_path_to_unique_int(file_path)
         self.osc_client.send_message("/download/pause", [task_id])
         
     def stop_service(self, instance):
         self.osc_client.send_message("/service/stop",[])
+    def file_path_frm_ip_addr_input(self):
+        ip_input=self.ids['ip_addr_input']
+        return os.path.join(makeDownloadFolder(),f"{ip_input.text.strip()}")
+        
     def on_progress(self, addr, task_id, progress):
         Notification(
             title=f"Download Progress ({task_id})",
