@@ -294,7 +294,6 @@ class SettingsScreen(MDScreen):
             {'size':[sp(100),sp(50)],"type": "button", 'id':'clear_btn', "title": "Clear Cache", "callback": self.clear_cache},
     {'size':[sp(120),sp(50)], "type": "button", 'id':'backup_btn', "title": "start service", "callback": self.backup_data},
     {'size':[sp(120),sp(50)], "type": "button", 'id':'restore_btn', "title": "Run py file", "callback": self.restore_data},
-    {'size':[sp(120),sp(50)], "type": "button", 'id':'setup_dispatcher', "title": "setup_dispatcher", "callback": self.setup_dispatcher},
         {'size':[sp(120),sp(50)], "type": "button", 'id':'start_test_server', "title": "start_test_server", "callback": self.start_test_server},
     {'size':[sp(120),sp(50)], "type": "button", 'id':'start_btn', "title": "Start Down", "callback": self.my_start_btn},
     {'size':[sp(120),sp(50)], "type": "button", 'id':'my_resume_btn', "title": "Continue Down", "callback": self.my_resume_btn},
@@ -665,9 +664,10 @@ class SettingsScreen(MDScreen):
         SERVICE_PORT = 5006
         sample_url ="https://ash-speed.hetzner.com/100MB.bin"
         save_path=os.path.join(makeDownloadFolder(),f"{ip_input.text.strip()}")
+        print("sending...",[sample_url,save_path])
         self.osc_client = udp_client.SimpleUDPClient(SERVICE_IP, SERVICE_PORT)
 
-        self.osc_client.send_message("/download/start", [sample_url,save_path,"task_1"])
+        self.osc_client.send_message("/download/start", [sample_url,save_path])
         
     def my_resume_btn(self, instance):
         self.osc_client.send_message("/download/resume", ["task_1"])
@@ -732,6 +732,7 @@ class SettingsScreen(MDScreen):
         server.serve_forever()
     
     def start_test_server(self,instance):
+        self.setup_dispatcher()
         try:
             threading.Thread(target=self.listen, daemon=True).start()
         except Exception as e:
