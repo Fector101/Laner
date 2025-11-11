@@ -660,10 +660,11 @@ class SettingsScreen(MDScreen):
             log_error_to_file(error_traceback)
             
     def my_start_btn(self, instance):
+        ip_input=self.ids['ip_addr_input']
         SERVICE_IP = "127.0.0.1"
         SERVICE_PORT = 5006
         sample_url ="https://ash-speed.hetzner.com/100MB.bin"
-        save_path=os.path.join(makeDownloadFolder(),"test.bin")
+        save_path=os.path.join(makeDownloadFolder(),f"{ip_input.text.strip()}")
         self.osc_client = udp_client.SimpleUDPClient(SERVICE_IP, SERVICE_PORT)
 
         self.osc_client.send_message("/download/start", [sample_url,save_path,"task_1"])
