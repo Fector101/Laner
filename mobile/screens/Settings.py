@@ -298,6 +298,7 @@ class SettingsScreen(MDScreen):
     {'size':[sp(120),sp(50)], "type": "button", 'id':'start_btn', "title": "Start Down", "callback": self.my_start_btn},
     {'size':[sp(120),sp(50)], "type": "button", 'id':'my_resume_btn', "title": "Continue Down", "callback": self.my_resume_btn},
     {'size':[sp(120),sp(50)], "type": "button", 'id':'pause_btn', "title": "Pause Down", "callback": self.my_pause_btn},
+    {'size':[sp(120),sp(50)], "type": "button", 'id':'stop_service', "title": "Stop Service", "callback": self.stop_service},
             {"type": "info", "title": "Storage Used", "value": "Calculate storage"}
         ])
 
@@ -673,7 +674,8 @@ class SettingsScreen(MDScreen):
         self.osc_client.send_message("/download/resume", ["task_1"])
     def my_pause_btn(self, instance):
         self.osc_client.send_message("/download/pause", ["task_1"])
-    
+    def stop_service(self, instance):
+        self.osc_client.send_message("/service/stop",[])
     def on_progress(self, addr, task_id, progress):
         Notification(
             title=f"Download Progress ({task_id})",
