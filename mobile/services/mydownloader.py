@@ -3,12 +3,20 @@ import threading
 import time
 import requests
 from os import environ
-
+import traceback
 from pythonosc import dispatcher, osc_server, udp_client
 from android_notify import Notification
 from jnius import autoclass
 from utils.helper import file_path_to_unique_int
-
+# Start logging
+try:
+    from utils.log_redirect import start_logging
+    start_logging()
+    print("📜 Service Logging started. All console output will also be saved.")
+except Exception as e:
+    from utils.helper import log_error_to_file
+    error_traceback = traceback.format_exc()
+    log_error_to_file(error_traceback)
 try:
     SERVICE_PORT = int(environ.get('PYTHON_SERVICE_ARGUMENT', '5006'))
 except (TypeError, ValueError):
