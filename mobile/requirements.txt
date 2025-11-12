@@ -1,7 +1,7 @@
 kivy
 https://github.com/kivymd/KivyMD/archive/master.zip
 opencv-python-headless
-plyer
+https://github.com/kivy/plyer/archive/master.zip
 android-notify
 buildozer
 setuptools

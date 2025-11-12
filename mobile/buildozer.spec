@@ -40,8 +40,7 @@ version = 1.0
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,materialyoucolor,asynckivy,asyncgui,pyjnius,docutils,netifaces,filetype,requests_toolbelt,websockets, https://github.com/Fector101/android_notify/archive/without-androidx.zip,python-osc
-
+requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,materialyoucolor,asynckivy,asyncgui,pyjnius,docutils,netifaces,filetype,requests_toolbelt,websockets, https://github.com/Fector101/android_notify/archive/without-androidx.zip,python-osc,https://github.com/kivy/plyer/archive/master.zip
 #requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,android-notify,materialyoucolor,asynckivy,asyncgui,pyjnius,docutils,netifaces,filetype,requests_toolbelt,websockets
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -59,7 +58,7 @@ orientation = portrait
 
 # (list) List of service to declare
 #services = NAME:ENTRYPOINT_TO_PY,NAME2:ENTRYPOINT2_TO_PY
-services = Download:./services/download.py:True,Upload:./services/upload.py:True,Sendnoti:./services/old.py:True,Mydownloader:./services/mydownloader.py:True
+services = Download:./android/services/download.py:True,Upload:./android/services/upload.py:True,Sendnoti:./android/services/old.py:True,Mydownloader:./android/services/mydownloader.py:True
 #,Final:./services/finalact.py:foreground
 
 #
@@ -185,7 +184,7 @@ android.api = 35
 
 # (list) List of Java files to add to the android project (can be java or a
 # directory containing the files)
-android.add_src = src
+android.add_src = android/src
 
 # (list) Android AAR archives to add
 #android.add_aars =
@@ -342,7 +341,7 @@ android.allow_backup = True
 #p4a.local_recipes =
 
 # (str) Filename to the hook for p4a
-p4a.hook = p4a/hook.py
+p4a.hook = for-build/p4a/hook.py
 
 # (str) Bootstrap to use for android builds
 # p4a.bootstrap = sdl2
