@@ -43,7 +43,7 @@ else:
         Snackbar(text)
 # Setup paths and load KV file.
 my_downloads_folder = makeDownloadFolder()
-kv_file_path = os.path.join(getAppFolder(), "screens", "folderscreen.kv")
+kv_file_path = os.path.join(getAppFolder(), "ui","screens", "folderscreen.kv")
 with open(kv_file_path, encoding="utf-8") as kv_file:
     Builder.load_string(kv_file.read(), filename="folderscreen.kv")
 
