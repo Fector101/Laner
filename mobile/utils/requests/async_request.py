@@ -10,7 +10,7 @@ from utils.config import Settings
 from .networkmanager import NetworkManager
 
 if not from_service_file():
-    from components.popup import Snackbar
+    from ui.components.popup import Snackbar
     from kivy.clock import Clock
 else:
     def Snackbar(**kwargs):

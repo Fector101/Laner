@@ -1,6 +1,6 @@
 # Werid typing for autocomplete
-from components import BottomNavigationBar
-from components.templates import MyBtmSheet
+from ui.components import BottomNavigationBar
+from ui.components.templates import MyBtmSheet
 from utils import Settings
 
 
