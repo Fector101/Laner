@@ -15,7 +15,7 @@ from kivy.core.window import Window
 
 from kivy.clock import Clock
 
-from components.popup import BookMarkedFolders
+from ui.components.popup import BookMarkedFolders
 
 
 class TabButton(RectangularRippleBehavior,ButtonBehavior,MDBoxLayout):

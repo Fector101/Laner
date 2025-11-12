@@ -23,7 +23,7 @@ from kivymd.material_resources import DEVICE_TYPE # if mobile or PC
 from kivymd.uix.filemanager import MDFileManager
 from kivymd.uix.navigationdrawer import  MDNavigationLayout
 
-from components import PictureViewer,FileReader
+from ui.components import PictureViewer,FileReader
 
 from utils.helper import (
     THEME_COLOR_TUPLE, makeDownloadFolder,
@@ -42,9 +42,9 @@ except Exception as e:
     log_error_to_file(error_traceback)
 
 from utils import Settings
-from screens import DisplayFolderScreen, ConnectScreen,SettingsScreen
-from components.templates import MyBtmSheet
-from components import BottomNavigationBar,TabButton
+from ui.screens import DisplayFolderScreen, ConnectScreen,SettingsScreen
+from ui.components.templates import MyBtmSheet
+from ui.components import BottomNavigationBar,TabButton
 
 
 if platform == 'android':

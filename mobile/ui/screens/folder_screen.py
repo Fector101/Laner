@@ -25,9 +25,9 @@ from kivymd.uix.button import MDFabButton
 
 from plyer import filechooser # pylint: disable=import-error
 
-from components.header import Header
-from components.popup import PopupDialog, Snackbar, PopupScreen
-from components.pictureviewer import SafeAsyncImage # it's been Used in .kv file
+from ui.components.header import Header
+from ui.components.popup import PopupDialog, Snackbar, PopupScreen
+from ui.components.pictureviewer import SafeAsyncImage # it's been Used in .kv file
 from utils.helper import getHiddenFilesDisplay_State, makeDownloadFolder, getAppFolder, getFormat, getFileName, \
     is_text_by_mime,get_destination_folder_for_file
 from utils import AsyncRequest, Settings

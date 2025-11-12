@@ -24,17 +24,17 @@ from kivy.properties import (ObjectProperty, BooleanProperty, ListProperty, Stri
 from kivymd.uix.selectioncontrol import MDCheckbox
 from kivymd.uix.label import MDIcon, MDLabel
 
-from components.loading_layout import LoadingScreen
+from ui.components.loading_layout import LoadingScreen
 from utils import Settings,NetworkManager,AsyncRequest,FindHosts
 
 from kivy.clock import Clock
 
-from components import Header,HeaderBasic
-from components.templates import CustomDropDown, MDTextButton,MyBtmSheet
+from ui.components import Header,HeaderBasic
+from ui.components.templates import CustomDropDown, MDTextButton,MyBtmSheet
 from utils.typing.main import Laner
 from utils.helper import setHiddenFilesDisplay,test101,log_error_to_file, makeDownloadFolder,Service,file_path_to_unique_int,get_free_port
 from utils.constants import PORTS
-from components.popup import Snackbar, PopupScreen
+from ui.components.popup import Snackbar, PopupScreen
 
 
 from android_notify.config import run_on_ui_thread

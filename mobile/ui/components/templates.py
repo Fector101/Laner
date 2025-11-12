@@ -11,7 +11,7 @@ from kivy.utils import platform # OS
 
 from utils.helper import getAppFolder
 
-with open(os.path.join(getAppFolder(),"components","templates.kv"), encoding="utf-8") as kv_file:
+with open(os.path.join(getAppFolder(),"ui","components","templates.kv"), encoding="utf-8") as kv_file:
     Builder.load_string(kv_file.read(), filename="MyBtmSheet.kv")
 
 

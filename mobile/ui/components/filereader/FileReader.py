@@ -10,8 +10,8 @@ from ..popup import PopupScreen
 if platform == 'android':
     from kivymd.toast import toast
 
-from components import HeaderBasic
-from components.popup import Snackbar
+from ui.components import HeaderBasic
+from ui.components.popup import Snackbar
 from utils.helper import getFileName, urlSafePath, getAppFolder
 from utils import AsyncRequest
 
