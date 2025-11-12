@@ -1,10 +1,12 @@
 import os, traceback, logging
 
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.screenmanager import ScreenManager, SlideTransition,NoTransition
+
 from kivy.metrics import dp,sp
 from kivy.core.window import Window
 from kivy.properties import ObjectProperty
+from kivy.utils import platform # OS
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.screenmanager import ScreenManager, SlideTransition,NoTransition
 
 from kivymd.app import MDApp
 from kivymd.uix.label import MDIcon
