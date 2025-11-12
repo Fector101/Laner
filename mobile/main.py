@@ -3,7 +3,7 @@ import os, traceback, logging
 
 from kivy.metrics import dp,sp
 from kivy.core.window import Window
-from kivy.properties import ObjectProperty
+from kivy.properties import ObjectProperty, StringProperty
 from kivy.utils import platform # OS
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import ScreenManager, SlideTransition,NoTransition
@@ -235,4 +235,5 @@ class Laner(MDApp):
 
 if __name__ == '__main__':
     Laner().run()
+
 
