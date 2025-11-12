@@ -3,20 +3,11 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import ScreenManager, SlideTransition,NoTransition
 from kivy.metrics import dp,sp
 from kivy.core.window import Window
-from kivy.properties import (ObjectProperty, BooleanProperty, ListProperty, StringProperty)
-from kivy.lang import Builder
-from kivy.utils import platform # OS
-
+from kivy.properties import ObjectProperty
 from kivymd.app import MDApp
 from kivymd.uix.label import MDIcon
-
-
-
 from kivymd.uix.screenmanager import MDScreenManager
-from kivymd.material_resources import DEVICE_TYPE # if mobile or PC
-
 from kivymd.uix.navigationdrawer import  MDNavigationLayout
-
 from ui.components import PictureViewer,FileReader
 
 from utils.helper import (

@@ -1,3 +1,8 @@
+from kivymd.material_resources import DEVICE_TYPE # if mobile or PC
+
+from kivy.utils import platform # OS
+
+
 if platform == 'android':
     from kivymd.toast import toast
     from jnius import autoclass, cast
