@@ -56,6 +56,15 @@ def stop_service():
         import traceback
         traceback.print_exc()
 
+def get_chunk_size(file_size):
+    # file_size in bytes
+    if file_size < 10 * 1024 * 1024:  # < 10 MB
+        return 256 * 1024             # 256 KB
+    elif file_size < 100 * 1024 * 1024:  # < 100 MB
+        return 1 * 1024 * 1024         # 1 MB
+    else:
+        return 4 * 1024 * 1024         # 4 MB
+
 
 class DownloadTask(threading.Thread):
     def __init__(self, url, dest):
@@ -114,7 +123,8 @@ class DownloadTask(threading.Thread):
                         mode = "ab" if downloaded > 0 else "wb"
 
                         with open(self.dest, mode) as f:
-                            for chunk in r.iter_content(1024 * 64):
+                            chunk_size = get_chunk_size(total)
+                            for chunk in r.iter_content(chunk_size):
                                 if self._cancelled.is_set():
                                     raise Exception("Download cancelled")
                                 while self._paused.is_set():
