@@ -1,17 +1,17 @@
-import traceback
+import os, traceback, logging
 
-import os, traceback
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import ScreenManager, SlideTransition,NoTransition
 from kivy.metrics import dp,sp
 from kivy.core.window import Window
 from kivy.properties import ObjectProperty
+
 from kivymd.app import MDApp
 from kivymd.uix.label import MDIcon
 from kivymd.uix.screenmanager import MDScreenManager
 from kivymd.uix.navigationdrawer import  MDNavigationLayout
-from ui.components import PictureViewer,FileReader
 
+from ui.components import PictureViewer,FileReader
 from utils.helper import (
     THEME_COLOR_TUPLE, makeDownloadFolder,
     setHiddenFilesDisplay, getAndroidBounds,
@@ -33,7 +33,7 @@ from ui.screens import DisplayFolderScreen, ConnectScreen,SettingsScreen
 from ui.components.templates import MyBtmSheet
 from ui.components import BottomNavigationBar,TabButton
 
-import logging
+
 
 logging.getLogger("urllib3").setLevel(logging.WARNING)
 # logging.getLogger("requests").setLevel(logging.WARNING)

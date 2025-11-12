@@ -12,7 +12,7 @@ from utils.helper import getAppFolder
 from kivymd.uix.swiper.swiper import MDSwiperItem
 import ui.components.templates
 filename="ConnectScreen.kv"
-kv_file_path = os.path.join(getAppFolder(), "screens", filename)
+kv_file_path = os.path.join(getAppFolder(),"ui", "screens", filename)
 with open(kv_file_path, encoding="utf-8") as kv_file:
     Builder.load_string(kv_file.read(), filename=filename)
 
