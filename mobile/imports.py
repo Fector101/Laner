@@ -1,6 +1,4 @@
 import os, traceback
-from kivy.uix.filechooser import FileChooserListView
-from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import ScreenManager, SlideTransition,NoTransition
 from kivy.metrics import dp,sp
@@ -10,17 +8,13 @@ from kivy.lang import Builder
 from kivy.utils import platform # OS
 
 from kivymd.app import MDApp
-from kivymd.uix.button import MDButton, MDButtonText, MDIconButton
 from kivymd.uix.label import MDIcon
-from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.floatlayout import MDFloatLayout
-from kivymd.uix.behaviors import RectangularRippleBehavior
-from kivymd.uix.relativelayout import MDRelativeLayout
-from kivymd.uix.stacklayout import MDStackLayout
-from kivymd.uix.screen import MDScreen
+
+
+
 from kivymd.uix.screenmanager import MDScreenManager
 from kivymd.material_resources import DEVICE_TYPE # if mobile or PC
-from kivymd.uix.filemanager import MDFileManager
+
 from kivymd.uix.navigationdrawer import  MDNavigationLayout
 
 from ui.components import PictureViewer,FileReader
