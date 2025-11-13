@@ -299,6 +299,7 @@ class SettingsScreen(MDScreen):
     {'size':[sp(120),sp(50)], "type": "button", 'id':'my_resume_btn', "title": "Continue Down", "callback": self.my_resume_btn},
     {'size':[sp(120),sp(50)], "type": "button", 'id':'pause_btn', "title": "Pause Down", "callback": self.my_pause_btn},
     {'size':[sp(120),sp(50)], "type": "button", 'id':'stop_service', "title": "Stop Service", "callback": self.stop_service},
+        {'size':[sp(120),sp(50)], "type": "button", 'id':'weird', "title": "weird sound", "callback": self.weird},
             {"type": "info", "title": "Storage Used", "value": "Calculate storage"}
         ])
 
@@ -687,6 +688,8 @@ class SettingsScreen(MDScreen):
         ip_input=self.ids['ip_addr_input']
         return os.path.join(makeDownloadFolder(),f"{ip_input.text.strip()}")
         
+    def weird(self,i):
+        import .test
     def on_progress(self, addr, task_id, progress):
         Notification(
             title=f"Download Progress ({task_id})",
