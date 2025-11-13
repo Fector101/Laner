@@ -26,9 +26,7 @@ try:
     from utils.log_redirect import start_logging
     start_logging()
 except Exception as e:
-    from utils.helper import log_error_to_file
-    error_traceback = traceback.format_exc()
-    log_error_to_file(error_traceback)
+    traceback.print_exc()
 
 from utils import Settings
 from ui.screens import DisplayFolderScreen, ConnectScreen,SettingsScreen
@@ -235,5 +233,6 @@ class Laner(MDApp):
 
 if __name__ == '__main__':
     Laner().run()
+
 
 
