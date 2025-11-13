@@ -96,3 +96,45 @@ def startService():
 
 # # Start foreground service with the notification
 # service.startForeground(1, builder.build())
+
+
+
+
+
+# @run_on_ui_thread
+# def show_custom_notification(title1, title2, message):
+#     PythonActivity = autoclass('org.kivy.android.PythonActivity')
+#     context = PythonActivity.mActivity
+#     NotificationCompatBuilder = autoclass('androidx.core.app.NotificationCompat$Builder')
+#     NotificationManager = autoclass('android.app.NotificationManager')
+#     NotificationChannel = autoclass('android.app.NotificationChannel')
+#     RemoteViews = autoclass('android.widget.RemoteViews')
+#
+#     # Defaults
+#     notification_service = context.getSystemService(context.NOTIFICATION_SERVICE)
+#     notification_manager = cast(NotificationManager, notification_service)
+#     channel = NotificationChannel('default_channel', 'default_channel', NotificationManager.IMPORTANCE_DEFAULT)
+#     if notification_manager.getNotificationChannel('default_channel') is None:
+#         notification_manager.createNotificationChannel(channel)
+#
+#
+#     builder = NotificationCompatBuilder(context, 'default_channel')
+#     builder.setSmallIcon(context.getApplicationInfo().icon)
+#
+#     # Create RemoteViews
+#     resources = context.getResources()
+#     package_name = context.getPackageName()
+
+#     ids
+#     small = resources.getIdentifier("small", "layout", package_name)
+#     large = resources.getIdentifier("large", "layout", package_name)
+#
+#     notificationLayout = RemoteViews(package_name, small)
+#     notificationLayoutExpanded = RemoteViews(package_name, large)
+#     print('small: ',small,'big: ',large, 'notificationLayout: ',notificationLayout, 'notificationLayoutExpanded: ',notificationLayoutExpanded)
+#
+#     builder.setStyle(autoclass('androidx.core.app.NotificationCompat$DecoratedCustomViewStyle')())
+#     builder.setCustomContentView(notificationLayout)
+#     builder.setCustomBigContentView(notificationLayoutExpanded)
+#     builder.setPriority(autoclass('androidx.core.app.NotificationCompat').PRIORITY_DEFAULT)
+#     notification_manager.notify(2351, builder.build())
