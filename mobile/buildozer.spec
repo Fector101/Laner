@@ -205,7 +205,7 @@ android.add_src = android/src
 # 3) A directory, here 'legal_resources' must contain one or more directories, 
 # each of a resource kind:  drawable, xml, etc...
 # android.add_resources = legal_resources
-android.add_resources = android/res #, icons
+android.add_resources = res #, icons
 
 # (list) Gradle dependencies to add
 android.gradle_dependencies = androidx.core:core-ktx:1.15.0, androidx.core:core:1.6.0
