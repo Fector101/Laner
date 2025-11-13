@@ -15,7 +15,7 @@ package.domain = org.laner
 source.dir = .
 
 # (list) Source files to include (let empty to include all the files)
-source.include_exts = py,png,jpg,kv,atlas,ttf,json,xml
+source.include_exts = py,png,jpg,kv,atlas,ttf,json,xml,wav
 #source.include_exts = py,png,jpg,kv,atlas,ttf,json
 
 # (list) List of inclusions using pattern matching
