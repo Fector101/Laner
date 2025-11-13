@@ -689,7 +689,7 @@ class SettingsScreen(MDScreen):
         return os.path.join(makeDownloadFolder(),f"{ip_input.text.strip()}")
         
     def weird(self,i):
-        import .test
+        from . import test
     def on_progress(self, addr, task_id, progress):
         Notification(
             title=f"Download Progress ({task_id})",
