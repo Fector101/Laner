@@ -689,7 +689,9 @@ class SettingsScreen(MDScreen):
         return os.path.join(makeDownloadFolder(),f"{ip_input.text.strip()}")
         
     def weird(self,i):
-        from . import test
+        Notification.createChannel(name="Weird sound tester",id="weird_sound_tester", description="tests weird sound for res/raw",res_sound_name="sneeze")
+        Notification(title="hello",channel_name="Weird sound tester").send()
+
     def on_progress(self, addr, task_id, progress):
         Notification(
             title=f"Download Progress ({task_id})",
