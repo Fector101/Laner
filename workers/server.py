@@ -268,6 +268,8 @@ class CustomHandler(SimpleHTTPRequestHandler):
             self.wfile.write(json.dumps(data).encode('utf-8'))
         except ConnectionAbortedError as connection_aborted_error:
             writeErrorLog(f'Connection was aborted: {connection_aborted_error}', traceback.format_exc())
+        except BrokenPipeError:
+            writeErrorLog('Client closed connection early\n hint probably timer out on client side:', traceback.format_exc())
 
 
 # Server Class
