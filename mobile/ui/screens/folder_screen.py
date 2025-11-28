@@ -2,6 +2,7 @@
 import json
 import os
 import traceback
+from urllib.parse import urlparse
 
 import requests
 from kivy.clock import Clock
@@ -101,7 +102,7 @@ class MyCard(RecycleDataViewBehavior,RectangularRippleBehavior,ButtonBehavior,MD
         
     def update_image(self):
         def without_url_format(url:str):
-            return os.path.join(*url.split('/')[4:])
+            return urlparse(url)#os.path.join(*url.split('/')[4:]) (changing because it tempered with the path)
         
         # print('cheacking self.thumbnail_url for ---> ',self.thumbnail_url)
         # if self.thumbnail_url:
