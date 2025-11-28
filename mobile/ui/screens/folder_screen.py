@@ -102,7 +102,7 @@ class MyCard(RecycleDataViewBehavior,RectangularRippleBehavior,ButtonBehavior,MD
         
     def update_image(self):
         def without_url_format(url:str):
-            return urlparse(url)#os.path.join(*url.split('/')[4:]) (changing because it tempered with the path)
+            return urlparse(url).path#os.path.join(*url.split('/')[4:]) (changing because it tempered with the path)
         
         # print('cheacking self.thumbnail_url for ---> ',self.thumbnail_url)
         # if self.thumbnail_url:
