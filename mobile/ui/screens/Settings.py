@@ -653,8 +653,6 @@ class SettingsScreen(MDScreen):
             import runpy
             file_path = os.path.join(makeDownloadFolder(), "test.py")
             runpy.run_path(file_path)
-            from android_notify.core import asks_permission_if_needed
-            asks_permission_if_needed(no_androidx=True)
         except Exception as e:
             print("Restore error:", e)
             error_traceback = traceback.format_exc()
