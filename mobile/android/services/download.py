@@ -51,8 +51,8 @@ class DownloadTask:
                 file_path=self.url,
                 save_path=self.dest,
                 success=self._on_success,
-                failure=self._on_error,
-                progress=self._on_progress
+                #failure=self._on_error,
+                #progress=self._on_progress
             )
             
         except Exception as e:
