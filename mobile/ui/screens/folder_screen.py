@@ -526,13 +526,16 @@ class Service1:
 
 long_life_service=None
 service_client=None
-try:
-    long_life_service=Service(name='Download',args_str=SERVICE_PORT)
-    service_client = udp_client.SimpleUDPClient(SERVICE_IP, SERVICE_PORT)
-except Exception as e:
-    print("Start service error:", e)
-    traceback.print_exc()
-
+def start_long_life_service(dt=""):
+    global long_life_service
+    global service_client
+    try:
+        long_life_service=Service(name='Download',args_str=SERVICE_PORT)
+        service_client = udp_client.SimpleUDPClient(SERVICE_IP, SERVICE_PORT)
+    except Exception as e:
+        print("Start service error:", e)
+        traceback.print_exc()
+Clock.schedule_once(lambda dt:start_long_life_service())
 
 def start_download(url, destination_path):
     """Start a new download"""
