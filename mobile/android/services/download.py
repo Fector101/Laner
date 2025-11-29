@@ -28,6 +28,7 @@ except (TypeError, ValueError):
 print(f"[Service] Received value for port: {SERVICE_PORT}")
 APP_PORT = 5007
 APP_IP = "127.0.0.1"
+n=Notification(id=101, title='Laner Download Service', message='Download service is running. No activity for 30min will auto-stop.')
 
 client = udp_client.SimpleUDPClient(APP_IP, APP_PORT)
 
@@ -106,6 +107,7 @@ class DownloadManager:
         self.tasks = {}
         self.last_activity = time.time()
         self.is_running = True
+        self.last_mins_left=0
         
         # Start background thread to check for inactivity
         self._start_inactivity_check()
@@ -120,7 +122,16 @@ class DownloadManager:
                     
                 current_time = time.time()
                 inactive_time = current_time - self.last_activity
-                
+
+                minutes_inactive = int(inactive_time // 60)
+                minutes_left = max(0, 30 - minutes_inactive)
+                if self.last_mins_left != minutes_left:
+                    if minutes_left > 0:
+                        message = f'Download service running. Auto-stop in {minutes_left}min'
+                    else:
+                        message = 'Download service - Shutting down...'
+                    n.updateMessage(message)
+                self.last_mins_left = minutes_left
                 # Check if no active downloads and 30 minutes of inactivity
                 active_downloads = any(task.status in ["downloading", "pending"] for task in self.tasks.values())
                 
@@ -254,11 +265,6 @@ disp.map("/service/keepalive", osc_keep_alive)  # For main app to reset inactivi
 
 # Create persistent service notification (not download progress)
 try:
-    n = Notification(
-        id=101,
-        title='Laner Download Service',
-        message='Download service is running. No activity for 30min will auto-stop.'
-    )
     n.addButton('Stop Service', lambda: manager.stop_service())
     n.send(persistent=True, close_on_click=False)
     print("📱 Service notification created")
