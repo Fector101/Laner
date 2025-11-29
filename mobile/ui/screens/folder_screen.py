@@ -3,6 +3,7 @@ import json
 import os
 import traceback
 from urllib.parse import urlparse
+from pythonosc import udp_client,dispatcher, osc_server
 
 import requests
 from kivy.clock import Clock
@@ -30,7 +31,7 @@ from ui.components.header import Header
 from ui.components.popup import PopupDialog, Snackbar, PopupScreen
 from ui.components.pictureviewer import SafeAsyncImage # it's been Used in .kv file
 from utils.helper import getHiddenFilesDisplay_State, makeDownloadFolder, getAppFolder, getFormat, getFileName, \
-    is_text_by_mime,get_destination_folder_for_file
+    is_text_by_mime,get_destination_folder_for_file,get_free_port,Service
 from utils import AsyncRequest, Settings
 from utils.constants import IMAGE_FORMATS
 
@@ -47,6 +48,13 @@ my_downloads_folder = makeDownloadFolder()
 kv_file_path = os.path.join(getAppFolder(), "ui","screens", "folderscreen.kv")
 with open(kv_file_path, encoding="utf-8") as kv_file:
     Builder.load_string(kv_file.read(), filename="folderscreen.kv")
+
+
+
+
+APP_PORT = 5007
+SERVICE_PORT = get_free_port()
+SERVICE_IP = "127.0.0.1"
 
 
 class RV(RecycleView):
@@ -402,7 +410,9 @@ class FileOperations:
             #     print(f'Download service failed101 {e}')
             #     traceback.print_exc()
             try:
-                Service(name='Download',args_str=STRING_DATA)
+                if long_life_service and service_client:
+                    start_download(url=needed_file,destination_path=save_path)
+                #Service(name='Download',args_str=STRING_DATA)
             except Exception as e1:
                 print('Second try1:',e1)
                 toast('Downloading From App State')
@@ -438,7 +448,7 @@ class FileOperations:
                 data = {'file_path': file_path, 'save_path': current_dir}
                 STRING_DATA = json.dumps(data)
                 # service.start(mActivity, 'small_icon', 'title', 'content', STRING_DATA)
-                Service(name='Upload',args_str=STRING_DATA)
+                Service1(name='Upload',args_str=STRING_DATA)
             except Exception as e:
                 print(f'Upload service failed101 {e}')
                 toast('Uploading From App State')
@@ -480,7 +490,7 @@ class FileOperations:
 
 
 
-class Service:
+class Service1:
     def __init__(self,name,args_str):
         from android import mActivity
         self.mActivity = mActivity
@@ -510,3 +520,46 @@ class Service:
         arg=self.args_str
         icon='round_music_note_white_24'
         service.start(self.mActivity, icon, title, msg, arg)
+
+
+
+
+long_life_service=None
+service_client=None
+try:
+    long_life_service=Service(name='Download',args_str=SERVICE_PORT)
+    service_client = udp_client.SimpleUDPClient(SERVICE_IP, SERVICE_PORT)
+except Exception as e:
+    print("Start service error:", e)
+    traceback.print_exc()
+
+
+def start_download(url, destination_path):
+    """Start a new download"""
+    service_client.send_message("/download/start", [url, destination_path])
+    print(f"📥 Started download: {url} -> {destination_path}")
+
+def pause_download(task_id):
+    """Pause a download"""
+    service_client.send_message("/download/pause", [task_id])
+    print(f"⏸️ Paused download task: {task_id}")
+
+def resume_download(task_id):
+    """Resume a download"""
+    service_client.send_message("/download/resume", [task_id])
+    print(f"▶️ Resumed download task: {task_id}")
+
+def cancel_download(task_id):
+    """Cancel a download"""
+    service_client.send_message("/download/cancel", [task_id])
+    print(f"❌ Cancelled download task: {task_id}")
+
+def get_download_status(task_id):
+    """Get status of a download"""
+    service_client.send_message("/download/status", [task_id])
+    print(f"📊 Requested status for task: {task_id}")
+
+def list_all_tasks():
+    """List all active download tasks"""
+    service_client.send_message("/download/list", [])
+    print("📋 Requested task list")
