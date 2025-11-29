@@ -5,8 +5,9 @@ Image=cairosvg=None
 try:
     import cairosvg
 except ImportError:
-    print('No svg previews')
+    #print('No svg previews')
     print("-- run pip install cairosvg")
+    cairosvg=None
     #print('Check cairosvg repo issuses section for how to fix or downloaad and install <link>')
 except Exception as e:
     print("SVG Preview Issue Visit page https://github.com/Kozea/CairoSVG/issues/388")
@@ -65,7 +66,11 @@ class JPEGWorker(BaseGen,BaseGenException):
 
     def genrateJPEG(self):
         try:
+            
             if self.is_svg():
+                if not cairosvg:
+                    self.getfailSafeImg()
+                    return
                 self.genPNG_from_SVG()
                 
             im = Image.open(self.inputted_img_path)
