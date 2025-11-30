@@ -35,6 +35,8 @@ n.from_foreground_service=True
 builder=n.fill_args()
 notification=builder.build()
 # Final call
+print("calling foreground service")
 if foreground_type:
     service = autoclass('org.kivy.android.PythonService').mService
     service.startForeground(1, notification, foreground_type)
+    print("starting foreground service")
