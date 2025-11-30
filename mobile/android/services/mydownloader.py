@@ -85,8 +85,11 @@ try:
     )
     notification_intent.setAction(Intent.ACTION_MAIN)
     notification_intent.addCategory(Intent.CATEGORY_LAUNCHER)
+    
+    PendingIntentFlags = jnius.autoclass("android.app.PendingIntent")
+    FLAG_IMMUTABLE = PendingIntentFlags.FLAG_IMMUTABLE
 
-    intent = PendingIntent.getActivity(service, 0, notification_intent, 0)
+    intent = PendingIntent.getActivity(service, 0, notification_intent, FLAG_IMMUTABLE)
     print("🟢 PendingIntent created")
 
     notification_builder.setContentTitle(title)
