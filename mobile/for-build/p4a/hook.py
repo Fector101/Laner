@@ -52,4 +52,4 @@ def after_apk_build(toolchain: ToolchainCL):
     # Write back the final manifest
     # -----------------------------
     manifest_file.write_text(text, encoding="utf-8")
-    print("🏁 Manifest update completed")
+    print("Manifest update completed",text)
