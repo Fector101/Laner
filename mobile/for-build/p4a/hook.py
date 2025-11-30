@@ -6,7 +6,7 @@ def after_apk_build(toolchain: ToolchainCL):
     text = manifest_file.read_text(encoding="utf-8")
 
     package = toolchain.args.package
-    target = f'android:name="{package}.ServiceMydownloader"'
+    target = f'android:name="org.laner.lan_ft.ServiceMydownloader"'
 
     # -----------------------------
     # Inject foregroundServiceType
