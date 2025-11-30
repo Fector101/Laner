@@ -40,7 +40,7 @@ version = 1.0
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,materialyoucolor,asynckivy,asyncgui,pyjnius,docutils,netifaces,filetype,requests_toolbelt,websockets, https://github.com/Fector101/android_notify/archive/feat-broadcast-btns.zip,python-osc,https://github.com/kivy/plyer/archive/master.zip
+requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,materialyoucolor,asynckivy,asyncgui,pyjnius,docutils,netifaces,filetype,requests_toolbelt,websockets, https://github.com/Fector101/android_notify/archive/feat-foreground-service.zip,python-osc,https://github.com/kivy/plyer/archive/master.zip
 #requirements = python3,kivy,https://github.com/kivymd/KivyMD/archive/master.zip,android-notify,materialyoucolor,asynckivy,asyncgui,pyjnius,docutils,netifaces,filetype,requests_toolbelt,websockets
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -101,7 +101,7 @@ fullscreen = 1
 # (list) Permissions
 # (See https://python-for-android.readthedocs.io/en/latest/buildoptions/#build-options-1 for all the supported syntaxes and properties)
 #android.permissions = android.permission.INTERNET, (name=android.permission.WRITE_EXTERNAL_STORAGE;maxSdkVersion=18)
-android.permissions = INTERNET, FOREGROUND_SERVICE,POST_NOTIFICATIONS,android.permission.ACCESS_ALL_DOWNLOADS, READ_EXTERNAL_STORAGE, MANAGE_EXTERNAL_STORAGE
+android.permissions = INTERNET, FOREGROUND_SERVICE, FOREGROUND_SERVICE_DATA_SYNC, POST_NOTIFICATIONS, android.permission.ACCESS_ALL_DOWNLOADS, READ_EXTERNAL_STORAGE, MANAGE_EXTERNAL_STORAGE
 
 # (list) features (adds uses-feature -tags to manifest)
 #android.features = android.hardware.usb.host
