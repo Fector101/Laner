@@ -5,7 +5,7 @@ def after_apk_build(toolchain: ToolchainCL):
     manifest_file = Path(toolchain._dist.dist_dir) / "src" / "main" / "AndroidManifest.xml"
     text = manifest_file.read_text(encoding="utf-8")
 
-    package = toolchain.args.package
+    #package = toolchain.args.package
     target = f'android:name="org.laner.lan_ft.ServiceMydownloader"'
 
     # -----------------------------
