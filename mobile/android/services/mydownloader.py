@@ -11,7 +11,7 @@ try:
     foreground_type = autoclass(
         "android.content.pm.ServiceInfo"
     ).FOREGROUND_SERVICE_TYPE_DATA_SYNC
-    print("[foreground] Using ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC")
+    print("[foreground] Using ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC",foreground_type)
 
 except Exception as e:
     print("[foreground error] Using ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC",e)
@@ -36,4 +36,5 @@ builder=n.fill_args()
 notification=builder.build()
 # Final call
 if foreground_type:
+    service = autoclass('org.kivy.android.PythonService').mService
     service.startForeground(1, notification, foreground_type)
