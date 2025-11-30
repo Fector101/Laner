@@ -272,7 +272,7 @@ class SettingsScreen(MDScreen):
         )
 
         # Categories
-        self.ipAddressInput = MDTextField(pos_hint={'center_x': .5}, size_hint=[.8, None], height=sp(80))
+        self.ipAddressInput = MDTextField(pos_hint={'center_x': .5}, size_hint=[.8, None], height=sp(70))
 
         self.advanced_options =PortBoxLayout()
 

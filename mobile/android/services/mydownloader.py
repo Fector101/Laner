@@ -97,7 +97,7 @@ try:
     notification_builder.setContentIntent(intent)
 
     #Drawable = jnius.autoclass("{}.R$drawable".format(service.getPackageName()))
-    icon = autoclass("android.R$drawable").ic_dialog_info # getattr(Drawable, 'icon')
+    icon = jnius.autoclass("android.R$drawable").ic_dialog_info # getattr(Drawable, 'icon')
     notification_builder.setSmallIcon(icon)
 
     print(f"🟢 Small icon set: {icon}")
