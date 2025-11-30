@@ -1,4 +1,10 @@
 import jnius
+try:
+    from utils.log_redirect import start_logging
+    start_logging()
+    print("📜 Service Logging started. All console output will also be saved.")
+except Exception as e:
+    print("File Logger Failed")
 
 print("🔥 Starting foreground notification setup...")
 
