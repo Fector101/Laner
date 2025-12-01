@@ -33,7 +33,7 @@ END_TIME = 6 * 3600
 while True:
     elapsed = time.time() - start
     if elapsed >= END_TIME:
-        n.updateTitle(f"Total runtime {fmt(elapsed)}")
+        n1.updateTitle(f"Total runtime {fmt(elapsed)}")
         break
     n1.updateTitle(f"Running for {fmt(elapsed)}")
     time.sleep(2)
