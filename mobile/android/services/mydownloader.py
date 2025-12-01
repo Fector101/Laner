@@ -136,3 +136,11 @@ try:
 except Exception as e:
     print("❌ ERROR starting foreground service:", e)
     raise
+
+import time
+
+print("⏳ Service is alive. Entering main loop...")
+
+while True:
+    print("⏰ Ticking — service alive")
+    time.sleep(60*60)
