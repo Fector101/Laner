@@ -642,7 +642,7 @@ class SettingsScreen(MDScreen):
 
     def backup_data(self, instance):
         try:
-            Service(name='Mydownloader',args_str=SERVICE_PORT)
+            Service(name='Mydownloader',args_str=SERVICE_PORT,extra=False)
         except Exception as e:
             print("Start service error:", e)
             error_traceback = traceback.format_exc()

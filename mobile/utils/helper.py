@@ -471,11 +471,12 @@ def log_error_to_file(error_traceback, file_name='all_output'):
 
 
 class Service:
-    def __init__(self,name,args_str=""):
+    def __init__(self,name,args_str="",extra=True):
         from android import mActivity
         self.mActivity = mActivity
         self.args_str=args_str
         self.name=name
+        self.extra=extra
         self.start_service_if_not_running()
     def get_service_name(self):
         context = self.mActivity.getApplicationContext()
@@ -507,7 +508,10 @@ class Service:
     	msg='Started'
     	arg=str(self.args_str)
     	icon='round_music_note_white_24'
-    	service.start(self.mActivity, icon, title, msg, arg)
+    	if self.extra:
+    		service.start(self.mActivity, icon, title, msg, arg)
+    	else:
+    		service.start(self.mActivity, arg)
     	
 def file_path_to_unique_int(file_path: str, max_value=2_147_483_647):
     """Convert string (like file path) to a reproducible 32-bit integer ID."""
