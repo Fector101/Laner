@@ -14,9 +14,10 @@ from jnius import autoclass
 
 BuildVersion = autoclass("android.os.Build$VERSION")
 ServiceInfo = autoclass("android.content.pm.ServiceInfo")
-service = get_python_activity().mService
-foreground_type= ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC if BuildVersion.SDK_INT >= 30 else 0
+PythonService = autoclass('org.kivy.android.PythonService')
 
+service = PythonService.mService
+foreground_type= ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC if BuildVersion.SDK_INT >= 30 else 0
 fmt = lambda s: f"{int(s//3600)}h {int((s%3600)//60)}m {int(s%60)}s"
 
 n=Notification(title="Foreground Service Active", message="This service is running in the foreground")
