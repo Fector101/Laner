@@ -21,7 +21,6 @@ else:
             print('A fall back Clock async_requests',self)
 
 from utils.constants import IMAGE_FORMATS, PORTS
-Notification.logs = True
 
 
 class ProgressData:
