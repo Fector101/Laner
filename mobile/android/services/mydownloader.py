@@ -3,7 +3,7 @@ try:
     start_logging()
     print("Service Logging started. All console output will also be saved.")
 except Exception as e:
-    print("File Logger Failed")
+    print("File Logger Failed",e)
     
 print("Entered Service File...")
 import time
@@ -36,4 +36,4 @@ while True:
         n.updateTitle(f"Total runtime {fmt(elapsed)}")
         break
     n1.updateTitle(f"Running for {fmt(elapsed)}")
-    time.sleep(1)
+    time.sleep(2)
