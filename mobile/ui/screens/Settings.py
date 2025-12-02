@@ -299,7 +299,12 @@ class SettingsScreen(MDScreen):
     {'size':[sp(120),sp(50)], "type": "button", 'id':'my_resume_btn', "title": "Continue Down", "callback": self.my_resume_btn},
     {'size':[sp(120),sp(50)], "type": "button", 'id':'pause_btn', "title": "Pause Down", "callback": self.my_pause_btn},
     {'size':[sp(120),sp(50)], "type": "button", 'id':'stop_service', "title": "Stop Service", "callback": self.stop_service},
-        {'size':[sp(120),sp(50)], "type": "button", 'id':'weird', "title": "weird sound", "callback": self.weird},
+    {'size':[sp(120),sp(50)], "type": "button", 'id':'weird', "title": "weird sound", "callback": self.weird},
+    {'size':[sp(120),sp(50)], "type": "button", 'id':'red', "title": "red", "callback": self.red},
+    {'size':[sp(120),sp(50)], "type": "button", 'id':'blue', "title": "blue", "callback": self.blue},
+    {'size':[sp(120),sp(50)], "type": "button", 'id':'green', "title": "green", "callback": self.green},
+    {'size':[sp(120),sp(50)], "type": "button", 'id':'the_btns_test', "title": "the_btns_test", "callback": self.the_btns_test},
+    
             {"type": "info", "title": "Storage Used", "value": "Calculate storage"}
         ])
 
@@ -681,6 +686,14 @@ class SettingsScreen(MDScreen):
         self.osc_client.send_message("/download/pause", [task_id])
         
     def stop_service(self, instance):
+        from jnius import autoclass
+        service = autoclass('org.laner.lan_ft.ClassName')
+        mActivity = autoclass('org.kivy.android.PythonActivity').mActivity
+        service.stop(mActivity)
+        return
+    
+        #---- Old method usage below
+        
         self.osc_client.send_message("/service/stop",[])
     def file_path_frm_ip_addr_input(self):
         ip_input=self.ids['ip_addr_input']
@@ -753,8 +766,19 @@ class SettingsScreen(MDScreen):
             threading.Thread(target=self.listen, daemon=True).start()
         except Exception as e:
             traceback.print_exc()
-        
-        
+    
+    def red(self,e):
+        Notification(title="red1",name="red").send()
+    def green(self,e):
+        Notification(title="change_app_page1",name="change_app_page").send()
+    def blue(self,e):
+        Notification(title="change_app_color1",name="change_app_color").send()
+    def the_btns_test(self,e):
+        def playVideo():
+            print('Playing Video')
+        n = Notification(title="Jane Dough",message="How to use android-notify #coding #purepython")
+        n.addButton(text="Play",on_release=playVideo)
+        n.send()
 @run_on_ui_thread
 def show_spannable_notification():
     PythonActivity = autoclass('org.kivy.android.PythonActivity')

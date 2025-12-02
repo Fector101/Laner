@@ -230,7 +230,15 @@ class Laner(MDApp):
         
         # print('What app see\'s as window height',Window.height)
         # print('BTM NAV Height',self.bottom_navigation_bar.height)
-
+    def on_resume(self):
+        from android_notify import NotificationHandler
+        name = NotificationHandler.get_name()
+        print("on_resume", name)
+        if name == 'change_app_page':
+            print('change_app_page inside')
+        elif name == 'change_app_color':
+            print('change_app_color inside')
+        
 if __name__ == '__main__':
     Laner().run()
 
