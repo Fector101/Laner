@@ -1,8 +1,8 @@
 name: Python Syntax Check
 
 on:
-  workflow_dispatch:
-  #push:
+  #workflow_dispatch:
+  push:
   #pull_request:
 
 jobs:

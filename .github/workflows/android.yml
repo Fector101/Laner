@@ -1,11 +1,11 @@
 name: Build
 
-#on:
- # workflow_run:
-  #  workflows: ["Python Syntax Check"]
-   # types:
-    #  - completed
-on: [push]
+on:
+  workflow_run:
+    workflows: ["Python Syntax Check"]
+    types:
+      - completed
+#on: [push]
 #on:
  # release:
   #  types: [published]
