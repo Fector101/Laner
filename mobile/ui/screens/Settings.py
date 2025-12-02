@@ -775,9 +775,15 @@ class SettingsScreen(MDScreen):
         Notification(title="change_app_color1",name="change_app_color").send()
     def the_btns_test(self,e):
         def playVideo():
-            print('Playing Video')
+            print('Playing Video...')
+        def stopVideo():
+            print("Stopping Video...")
+        def playLater():
+            print ("Playing later")
         n = Notification(title="Jane Dough",message="How to use android-notify #coding #purepython")
         n.addButton(text="Play",on_release=playVideo)
+        n.addButton(text="Stop",on_release=stopVideo)
+        n.addButton(text="Play Later",on_release=playLater)
         n.send()
 @run_on_ui_thread
 def show_spannable_notification():

@@ -218,6 +218,7 @@ class DownloadManager:
         except Exception as e:
             print("❌ Error while stopping service:", e)
             traceback.print_exc()
+        print("stopped download service")
 
 
 # Initialize manager
