@@ -535,7 +535,7 @@ def start_long_life_service(dt=""):
     except Exception as e:
         print("Start service error:", e)
         traceback.print_exc()
-Clock.schedule_once(lambda dt:start_long_life_service(),5*60)
+Clock.schedule_once(lambda dt:start_long_life_service(),5)
 
 def start_download(url, destination_path):
     """Start a new download"""
