@@ -290,7 +290,7 @@ class SettingsScreen(MDScreen):
             {"type": "switch", "switch_state": True if MDApp.get_running_app().get_stored_theme() == 'Dark' else False, "title": "Dark Mode", "callback": self.toggle_theme}
         ])
 
-        self.add_category("Storage", [
+        self.add_category("Tests", [
             {'size':[sp(100),sp(50)],"type": "button", 'id':'clear_btn', "title": "Clear Cache", "callback": self.clear_cache},
     {'size':[sp(120),sp(50)], "type": "button", 'id':'backup_btn', "title": "start service", "callback": self.backup_data},
     {'size':[sp(120),sp(50)], "type": "button", 'id':'restore_btn', "title": "Run py file", "callback": self.restore_data},
@@ -304,8 +304,8 @@ class SettingsScreen(MDScreen):
     {'size':[sp(120),sp(50)], "type": "button", 'id':'blue', "title": "blue", "callback": self.blue},
     {'size':[sp(120),sp(50)], "type": "button", 'id':'green', "title": "green", "callback": self.green},
     {'size':[sp(120),sp(50)], "type": "button", 'id':'the_btns_test', "title": "the_btns_test", "callback": self.the_btns_test},
-    
-            {"type": "info", "title": "Storage Used", "value": "Calculate storage"}
+    {'size':[sp(120),sp(50)], "type": "button", 'id':'standalone_callback', "title": "standalone_callback", "callback": self.standalone_callback},
+    {"type": "info", "title": "Storage Used", "value": "Calculate storage"}
         ])
 
         self.add_category("Advanced Options", [{"type": "custom", "widget": self.advanced_options}])
@@ -768,11 +768,11 @@ class SettingsScreen(MDScreen):
             traceback.print_exc()
     
     def red(self,e):
-        Notification(title="red1",name="red").send()
+        Notification(title="Everywhere Red",name="red").send()
     def green(self,e):
         Notification(title="Change App Page",name="upload").send()
     def blue(self,e):
-        Notification(title="change_app_color1",name="change_app_color").send()
+        Notification(title="Change to Blue",name="blue").send()
     def the_btns_test(self,e):
         def playVideo():
             print('Playing Video...')
@@ -785,6 +785,10 @@ class SettingsScreen(MDScreen):
         n.addButton(text="Stop",on_release=stopVideo)
         n.addButton(text="Play Later",on_release=playLater)
         n.send()
+    def standalone_callback(self, a):
+        def alone():
+            print("Alone we standing...")
+        Notification(title="Standalone Callback",callback=alone).send()
 @run_on_ui_thread
 def show_spannable_notification():
     PythonActivity = autoclass('org.kivy.android.PythonActivity')

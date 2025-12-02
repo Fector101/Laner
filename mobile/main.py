@@ -237,8 +237,9 @@ class Laner(MDApp):
         if name == 'upload':
             print('changing _app_page...')
             self.my_screen_manager.change_screen(name)
-        elif name == 'change_app_color':
-            print('change_app_color inside')
+        elif name == 'blue':
+            for screen in self.my_screen_manager.screens:
+                screen.md_bg_color =[0,0,1,1]
         elif name == "red":
             for screen in self.my_screen_manager.screens:
                 screen.md_bg_color =[1,0,0,1]
