@@ -687,7 +687,7 @@ class SettingsScreen(MDScreen):
         
     def stop_service(self, instance):
         from jnius import autoclass
-        service = autoclass('org.laner.lan_ft.ClassName')
+        service = autoclass('org.laner.lan_ft.ServiceMydownloader')
         mActivity = autoclass('org.kivy.android.PythonActivity').mActivity
         service.stop(mActivity)
         return
@@ -770,7 +770,7 @@ class SettingsScreen(MDScreen):
     def red(self,e):
         Notification(title="red1",name="red").send()
     def green(self,e):
-        Notification(title="change_app_page1",name="change_app_page").send()
+        Notification(title="Change App Page",name="upload").send()
     def blue(self,e):
         Notification(title="change_app_color1",name="change_app_color").send()
     def the_btns_test(self,e):

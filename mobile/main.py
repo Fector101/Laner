@@ -234,10 +234,15 @@ class Laner(MDApp):
         from android_notify import NotificationHandler
         name = NotificationHandler.get_name()
         print("on_resume", name)
-        if name == 'change_app_page':
-            print('change_app_page inside')
+        if name == 'upload':
+            print('changing _app_page...')
+            self.my_screen_manager.change_screen(name)
         elif name == 'change_app_color':
             print('change_app_color inside')
+        elif name == "red":
+            for screen in self.my_screen_manager.screens:
+                screen.md_bg_color =[1,0,0,1]
+            # Tab to edit
         
 if __name__ == '__main__':
     Laner().run()
