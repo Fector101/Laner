@@ -32,7 +32,7 @@ except Exception as e:
 from android_notify import Notification
 n=Notification(title="working")
 n.from_foreground_service=True
-builder=n.fill_args()
+builder=n.start_building()
 notification=builder.build()
 # Final call
 print("calling foreground service")

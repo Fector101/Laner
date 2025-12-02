@@ -21,7 +21,7 @@ foreground_type= ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC if BuildVersion.S
 fmt = lambda s: f"{int(s//3600)}h {int((s%3600)//60)}m {int(s%60)}s"
 
 n=Notification(title="Foreground Service Active", message="This service is running in the foreground")
-builder=n.fill_args() # not using .send() allowing.startForeground() to send initial notification 
+builder=n.start_building() # not using .send() allowing.startForeground() to send initial notification 
 service.startForeground(n.id, builder.build(), foreground_type)
 
 
