@@ -23,7 +23,8 @@ fmt = lambda s: f"{int(s//3600)}h {int((s%3600)//60)}m {int(s%60)}s"
 n=Notification(title="Foreground Service Active", message="This service is running in the foreground")
 builder=n.start_building() # not using .send() allowing.startForeground() to send initial notification 
 service.startForeground(n.id, builder.build(), foreground_type)
-
+print("started foreground service...")
+service.setAutoRestartService(True)# supposed to make service restart on error or exit
 
 print("Foreground Service is alive. Entering main loop...")
 n1 = Notification(title="Running for 0h 0m 0s")
