@@ -6,6 +6,7 @@ except Exception as e:
     print("File Logger Failed",e)
     
 print("Entered Service File...")
+print("service arg --->",environ.get('PYTHON_SERVICE_ARGUMENT', '5006'))
 import time
 from android_notify import Notification
 from android_notify.config import get_python_activity
@@ -24,7 +25,7 @@ n=Notification(title="Foreground Service Active", message="This service is runni
 builder=n.start_building() # not using .send() allowing.startForeground() to send initial notification 
 service.startForeground(n.id, builder.build(), foreground_type)
 #print("started foreground service...")
-#service.setAutoRestartService(True)# supposed to make service restart on error or exit
+#didnt add this in 5hrs+ run test laterservice.setAutoRestartService(True)# supposed to make service restart on error or exit
 
 print("Foreground Service is alive. Entering main loop...")
 n1 = Notification(title="Running for 0h 0m 0s")
@@ -38,4 +39,4 @@ while True:
         n1.updateTitle(f"Total runtime {fmt(elapsed)}")
         break
     n1.updateTitle(f"Running for {fmt(elapsed)}")
-    time.sleep(2)
+    time.sleep(1)

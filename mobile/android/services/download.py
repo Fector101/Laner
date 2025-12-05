@@ -8,7 +8,7 @@ from pythonosc import dispatcher, osc_server, udp_client
 from android_notify import Notification
 from jnius import autoclass
 from utils.requests.async_request import AsyncRequest
-import random
+
 
 # Start logging
 try:
@@ -28,7 +28,11 @@ except (TypeError, ValueError):
 print(f"[Service] Received value for port: {SERVICE_PORT}")
 APP_PORT = 5007
 APP_IP = "127.0.0.1"
-n=Notification(id=101, title='Laner Download Service', message='Download service is running. No activity for 30min will auto-stop.')
+
+n=Notification(id=101, title='Download Service', message='This allows background downloads. No activity for 30min will auto-stop.')
+n.addButton('Stop Service', lambda: manager.stop_service())
+builder=n.start_building() # not using .send() allowing.startForeground() to send initial notification 
+service.startForeground(n.id, builder.build(), foreground_type)
 
 client = udp_client.SimpleUDPClient(APP_IP, APP_PORT)
 
@@ -263,14 +267,6 @@ disp.map("/download/status", osc_status)
 disp.map("/download/list", osc_list_tasks)
 disp.map("/service/stop", osc_stop_service)
 disp.map("/service/keepalive", osc_keep_alive)  # For main app to reset inactivity timer
-
-# Create persistent service notification (not download progress)
-try:
-    n.addButton('Stop Service', lambda: manager.stop_service())
-    n.send(persistent=True, close_on_click=False)
-    print("📱 Service notification created")
-except Exception as e:
-    print("Service notification error:", e)
 
 print(f"[Service] Starting OSC server on port {SERVICE_PORT}")
 server = osc_server.ThreadingOSCUDPServer(("0.0.0.0", SERVICE_PORT), disp)

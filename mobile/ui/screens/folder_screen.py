@@ -31,7 +31,7 @@ from ui.components.header import Header
 from ui.components.popup import PopupDialog, Snackbar, PopupScreen
 from ui.components.pictureviewer import SafeAsyncImage # it's been Used in .kv file
 from utils.helper import getHiddenFilesDisplay_State, makeDownloadFolder, getAppFolder, getFormat, getFileName, \
-    is_text_by_mime,get_destination_folder_for_file,get_free_port,Service
+    is_text_by_mime,get_destination_folder_for_file,Service
 from utils import AsyncRequest, Settings
 from utils.constants import IMAGE_FORMATS
 
@@ -53,7 +53,6 @@ with open(kv_file_path, encoding="utf-8") as kv_file:
 
 
 APP_PORT = 5007
-SERVICE_PORT = get_free_port()
 SERVICE_IP = "127.0.0.1"
 
 
@@ -410,8 +409,8 @@ class FileOperations:
             #     print(f'Download service failed101 {e}')
             #     traceback.print_exc()
             try:
-                if long_life_service and service_client:
-                    start_download(url=needed_file,destination_path=save_path)
+                #if long_life_service and service_client:
+                start_download(url=needed_file,destination_path=save_path)
                 #Service(name='Download',args_str=STRING_DATA)
             except Exception as e1:
                 print('Second try1:',e1)
@@ -524,18 +523,16 @@ class Service1:
 
 
 
-long_life_service=None
 service_client=None
-def start_long_life_service(dt=""):
-    global long_life_service
+def start_service_server(dt=""):
     global service_client
     try:
-        long_life_service=Service(name='Download',args_str=SERVICE_PORT)
+        SERVICE_PORT=MDApp.get_running_app().DOWNLOAD_SERVICE_PORT
         service_client = udp_client.SimpleUDPClient(SERVICE_IP, SERVICE_PORT)
     except Exception as e:
-        print("Start service error:", e)
+        print("Start service client server error:", e)
         traceback.print_exc()
-Clock.schedule_once(lambda dt:start_long_life_service(),10)
+Clock.schedule_once(lambda dt:start_service_server(),10)
 
 def start_download(url, destination_path):
     """Start a new download"""

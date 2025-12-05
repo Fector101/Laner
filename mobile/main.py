@@ -7,6 +7,7 @@ from kivy.properties import ObjectProperty, StringProperty
 from kivy.utils import platform # OS
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import ScreenManager, SlideTransition,NoTransition
+from kivy.clock import Clock
 
 from kivymd.app import MDApp
 from kivymd.uix.label import MDIcon
@@ -17,7 +18,7 @@ from ui.components import PictureViewer,FileReader
 from utils.helper import (
     THEME_COLOR_TUPLE, makeDownloadFolder,
     setHiddenFilesDisplay, getAndroidBounds,
-    getViewPortSize,
+    getViewPortSize,get_free_port,Service,
     getStatusBarHeight,requestMultiplePermissions
     )
 
@@ -131,6 +132,7 @@ class Laner(MDApp):
     bottom_navigation_bar=ObjectProperty()
     btm_sheet = ObjectProperty()
     settings = Settings()
+    DOWNLOAD_SERVICE_PORT = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -139,6 +141,13 @@ class Laner(MDApp):
         self.theme_cls.theme_style = self.get_stored_theme()
         self.theme_cls.primary_palette = "White"
 
+    def on_start(self):
+        def android_service(dt):
+            self.DOWNLOAD_SERVICE_PORT=get_free_port()
+            Service(name='Download',args_str=self.DOWNLOAD_SERVICE_PORT,extra=False)
+        Clock.schedule_once(lambda dt:android_service(),2)
+
+    
     def get_stored_theme(self):
         return self.settings.get('display', 'theme')
 
