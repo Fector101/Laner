@@ -32,7 +32,6 @@ APP_PORT = 5007
 APP_IP = "127.0.0.1"
 
 n=Notification(id=101, title='Download Service', message='This allows background downloads. No activity for 30min will auto-stop.')
-n.addButton('Stop Service', lambda: manager.stop_service())
 builder=n.start_building() # not using .send() allowing.startForeground() to send initial notification 
 
 
@@ -231,7 +230,8 @@ class DownloadManager:
 
 # Initialize manager
 manager = DownloadManager()
-
+n.addButton('Stop Service', lambda: manager.stop_service()) # TODO: make NotificationHandler.get_name for buttons then stop from on resume since Notification instance is different from one on app or create activity intent listener with ID 
+n.refresh() # id passed into startForeground will be used to remove it from tray by android system
 # ---- OSC handlers ----
 def osc_start(addr, url, dest):
     manager.start(url, dest)
