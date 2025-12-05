@@ -13,6 +13,7 @@ from kivymd.app import MDApp
 from kivymd.uix.label import MDIcon
 from kivymd.uix.screenmanager import MDScreenManager
 from kivymd.uix.navigationdrawer import  MDNavigationLayout
+from android_notify import NotificationHandler
 
 from ui.components import PictureViewer,FileReader
 from utils.helper import (
@@ -142,7 +143,11 @@ class Laner(MDApp):
         self.theme_cls.primary_palette = "White"
 
     def on_start(self):
-        def android_service(dt):
+        try:
+            NotificationHandler.asks_permission()
+        except Exception as e:
+            traceback.print_exc()
+        def android_service():
             self.DOWNLOAD_SERVICE_PORT=get_free_port()
             Service(name='Download',args_str=self.DOWNLOAD_SERVICE_PORT,extra=False)
         Clock.schedule_once(lambda dt:android_service(),2)
@@ -240,7 +245,6 @@ class Laner(MDApp):
         # print('What app see\'s as window height',Window.height)
         # print('BTM NAV Height',self.bottom_navigation_bar.height)
     def on_resume(self):
-        from android_notify import NotificationHandler
         name = NotificationHandler.get_name()
         print("on_resume", name)
         if name == 'upload':
