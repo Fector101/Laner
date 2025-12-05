@@ -8,17 +8,19 @@ from pythonosc import dispatcher, osc_server, udp_client
 from android_notify import Notification
 from jnius import autoclass
 from utils.requests.async_request import AsyncRequest
-
+from utils.log_redirect import start_logging
 
 # Start logging
 try:
-    from utils.log_redirect import start_logging
     start_logging()
     print("📜 Service Logging started. All console output will also be saved.")
 except Exception as e:
-    from utils.helper import log_error_to_file
     error_traceback = traceback.format_exc()
-    log_error_to_file(error_traceback)
+    
+PythonService = autoclass('org.kivy.android.PythonService')
+BuildVersion = autoclass("android.os.Build$VERSION")
+ServiceInfo = autoclass("android.content.pm.ServiceInfo")
+service = PythonService.mService
 
 try:
     SERVICE_PORT = int(environ.get('PYTHON_SERVICE_ARGUMENT', '5006'))
@@ -32,6 +34,9 @@ APP_IP = "127.0.0.1"
 n=Notification(id=101, title='Download Service', message='This allows background downloads. No activity for 30min will auto-stop.')
 n.addButton('Stop Service', lambda: manager.stop_service())
 builder=n.start_building() # not using .send() allowing.startForeground() to send initial notification 
+
+
+foreground_type= ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC if BuildVersion.SDK_INT >= 30 else 0
 service.startForeground(n.id, builder.build(), foreground_type)
 
 client = udp_client.SimpleUDPClient(APP_IP, APP_PORT)
@@ -212,8 +217,6 @@ class DownloadManager:
                 task.cancel()
         
         try:
-            PythonService = autoclass('org.kivy.android.PythonService')
-            service = PythonService.mService
             if service:
                 service.stopSelf()
                 print("✅ Service stopped due to inactivity.")
