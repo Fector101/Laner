@@ -25,6 +25,7 @@ from utils.helper import (
 
 # Start logging
 try:
+    from utils.android.service_client import UIServiceListener,UIServiceMessenger
     from utils.log_redirect import start_logging
     start_logging()
 except Exception as e:
@@ -133,8 +134,9 @@ class Laner(MDApp):
     bottom_navigation_bar=ObjectProperty()
     btm_sheet = ObjectProperty()
     settings = Settings()
-    DOWNLOAD_SERVICE_PORT = None
-
+    DOWNLOAD_SERVICE_PORT = get_free_port()
+    DOWNLOAD_SERVICE_UI_PORT = get_free_port()
+    ui_service_messenger=None
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.nav_layout = None
@@ -147,8 +149,13 @@ class Laner(MDApp):
             NotificationHandler.asks_permission()
         except Exception as e:
             traceback.print_exc()
+        try:
+            UIServiceListener(self.DOWNLOAD_SERVICE_UI_PORT).start()
+            self.ui_service_messenger=UIServiceMessenger(self.DOWNLOAD_SERVICE_PORT)
+        except Exception as e:
+            traceback.print_exc()
+        
         def android_service():
-            self.DOWNLOAD_SERVICE_PORT=get_free_port()
             Service(name='Download',args_str=self.DOWNLOAD_SERVICE_PORT,extra=False)
         Clock.schedule_once(lambda dt:android_service(),2)
 

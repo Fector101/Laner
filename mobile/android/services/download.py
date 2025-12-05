@@ -161,6 +161,7 @@ class DownloadManager:
 
     def start(self, url, dest):
         """Start a new download task"""
+        print("received download args for UI",url,dest)
         self.update_activity()
         
         # Check if same file is already downloading

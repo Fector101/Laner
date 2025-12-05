@@ -154,6 +154,7 @@ class DisplayFolderScreen(MDScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.app = MDApp.get_running_app()
+        self.ui_service_messenger=self.app.ui_service_messenger
         self.screen_history: list[str] = []
         # noinspection PyTypeChecker
         self.current_popup:PopupScreen|None=None # To track if i need to close popup when android back btn is pressed
@@ -410,7 +411,8 @@ class FileOperations:
             #     traceback.print_exc()
             try:
                 #if long_life_service and service_client:
-                start_download(url=needed_file,destination_path=save_path)
+                
+                self.ui_service_messenger.start_download(url=needed_file,destination_path=save_path)
                 #Service(name='Download',args_str=STRING_DATA)
             except Exception as e1:
                 print('Second try1:',e1)
@@ -519,47 +521,3 @@ class Service1:
         arg=self.args_str
         icon='round_music_note_white_24'
         service.start(self.mActivity, icon, title, msg, arg)
-
-
-
-
-service_client=None
-def start_service_server(dt=""):
-    global service_client
-    try:
-        SERVICE_PORT=MDApp.get_running_app().DOWNLOAD_SERVICE_PORT
-        service_client = udp_client.SimpleUDPClient(SERVICE_IP, SERVICE_PORT)
-    except Exception as e:
-        print("Start service client server error:", e)
-        traceback.print_exc()
-Clock.schedule_once(lambda dt:start_service_server(),10)
-
-def start_download(url, destination_path):
-    """Start a new download"""
-    service_client.send_message("/download/start", [url, destination_path])
-    print(f"📥 Started download: {url} -> {destination_path}")
-
-def pause_download(task_id):
-    """Pause a download"""
-    service_client.send_message("/download/pause", [task_id])
-    print(f"⏸️ Paused download task: {task_id}")
-
-def resume_download(task_id):
-    """Resume a download"""
-    service_client.send_message("/download/resume", [task_id])
-    print(f"▶️ Resumed download task: {task_id}")
-
-def cancel_download(task_id):
-    """Cancel a download"""
-    service_client.send_message("/download/cancel", [task_id])
-    print(f"❌ Cancelled download task: {task_id}")
-
-def get_download_status(task_id):
-    """Get status of a download"""
-    service_client.send_message("/download/status", [task_id])
-    print(f"📊 Requested status for task: {task_id}")
-
-def list_all_tasks():
-    """List all active download tasks"""
-    service_client.send_message("/download/list", [])
-    print("📋 Requested task list")
