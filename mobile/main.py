@@ -156,7 +156,10 @@ class Laner(MDApp):
             traceback.print_exc()
         
         def android_service():
-            Service(name='Download',args_str=self.DOWNLOAD_SERVICE_PORT,extra=False)
+            try:
+                Service(name='Download',args_str=self.DOWNLOAD_SERVICE_PORT,extra=False)
+            except Exception as e:
+                traceback.print_exc()
         Clock.schedule_once(lambda dt:android_service(),2)
 
     
