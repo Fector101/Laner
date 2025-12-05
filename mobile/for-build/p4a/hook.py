@@ -1,4 +1,3 @@
-    print("Manifest update completed",text)
 from pathlib import Path
 from pythonforandroid.toolchain import ToolchainCL
 
