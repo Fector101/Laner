@@ -1,0 +1,1 @@
+Laner: For send and receiving files wireless to PC and other devices.
