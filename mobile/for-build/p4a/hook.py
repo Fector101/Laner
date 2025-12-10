@@ -30,13 +30,13 @@ def after_apk_build(toolchain: ToolchainCL):
                         f' android:foregroundServiceType="{fgs_type}"' +
                         text[end:]
                     )
-                    print(f"✅ Added foregroundServiceType='{fgs_type}' to Service{name.capitalize()}")
+                    print(f"Added foregroundServiceType='{fgs_type}' to Service{name.capitalize()}")
                 else:
-                    print(f"ℹ️ Service{name.capitalize()} already has foregroundServiceType")
+                    print(f"Service{name.capitalize()} already has foregroundServiceType")
             else:
-                print(f"⚠️ Service{name.capitalize()} found but no '/>' closing tag")
+                print(f"Service{name.capitalize()} found but no '/>' closing tag")
         else:
-            print(f"⚠️ Service{name.capitalize()} not found in manifest")
+            print(f"Service{name.capitalize()} not found in manifest")
 
     # ====================================================
     # Always add receiver if not already added
@@ -54,14 +54,14 @@ def after_apk_build(toolchain: ToolchainCL):
     if receiver_xml.strip() not in text:
         if "</application>" in text:
             text = text.replace("</application>", f"{receiver_xml}\n</application>")
-            print("✅ Receiver added")
+            print("Receiver added")
         else:
-            print("⚠️ Could not find </application> to insert receiver")
+            print("Could not find </application> to insert receiver")
     else:
-        print("ℹ️ Receiver already exists in manifest")
+        print("Receiver already exists in manifest")
 
     # ====================================================
     # Save final manifest back
     # ====================================================
     manifest_file.write_text(text, encoding="utf-8")
-    print("🎯 Manifest update completed successfully!")
+    print("Manifest update completed successfully!")
