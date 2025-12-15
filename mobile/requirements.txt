@@ -5,7 +5,8 @@ https://github.com/kivy/plyer/archive/master.zip
 android-notify
 buildozer
 setuptools
-Cython
+Cython==0.29.33
 netifaces
 requests_toolbelt
 websockets
+python-osc
